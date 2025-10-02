@@ -1,0 +1,17 @@
+{
+  "cpp": {
+    "prefix": "c++",
+    "body": [
+      "include <bits/stdc++.h>\n",
+      "using namespace std;\n",
+      "\n",
+      "\n",
+      "\n",
+      "int main() {\n",
+      "\t$0",
+      "\treturn 0;",
+      "}"
+    ],
+    "description": "C++作题模板"
+  }
+}
