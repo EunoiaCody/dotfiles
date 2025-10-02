@@ -11,7 +11,7 @@
 
 ## 目录结构
 
-```
+```tree
 dotfiles/
 ├── kitty/          # Kitty 终端配置
 ├── mpv/            # MPV 播放器配置
@@ -20,6 +20,271 @@ dotfiles/
 ├── sync-config.sh  # 配置同步脚本
 └── README.md       # 说明文档
 ```
+
+## 依赖安装
+
+在使用这些配置文件之前，您需要安装相应的软件及其依赖。
+
+### 基础软件安装
+
+首先安装四个主要软件：
+
+#### Kitty 终端模拟器
+
+```bash
+# Ubuntu/Debian
+sudo apt install kitty
+
+# Fedora/RHEL
+sudo dnf install kitty
+
+# Arch Linux
+sudo pacman -S kitty
+
+# macOS
+brew install kitty
+
+# Windows
+# 从 https://sw.kovidgoyal.net/kitty/binary/ 下载安装包
+```
+
+#### MPV 媒体播放器
+
+```bash
+# Ubuntu/Debian
+sudo apt install mpv
+
+# Fedora/RHEL
+sudo dnf install mpv
+
+# Arch Linux
+sudo pacman -S mpv
+
+# macOS
+brew install mpv
+
+# Windows
+# 从 https://mpv.io/installation/ 下载安装包
+```
+
+#### Neovim 编辑器
+
+```bash
+# Ubuntu/Debian (推荐使用 PPA 获取最新版本)
+sudo add-apt-repository ppa:neovim-ppa/stable
+sudo apt update
+sudo apt install neovim
+
+# Fedora/RHEL
+sudo dnf install neovim
+
+# Arch Linux
+sudo pacman -S neovim
+
+# macOS
+brew install neovim
+
+# Windows
+# 使用 Chocolatey: choco install neovim
+# 或从 https://github.com/neovim/neovim/releases 下载
+```
+
+#### Neovide GUI
+
+```bash
+# Ubuntu/Debian
+# 从 GitHub releases 下载 deb 包
+wget https://github.com/neovide/neovide/releases/latest/download/neovide.deb
+sudo dpkg -i neovide.deb
+
+# Fedora/RHEL
+sudo dnf install neovide
+
+# Arch Linux
+sudo pacman -S neovide
+
+# macOS
+brew install neovide
+
+# Windows
+# 从 https://github.com/neovide/neovide/releases 下载安装包
+```
+
+### 必需的依赖项
+
+#### Kitty 依赖
+
+**JetBrains Mono 字体**：配置中指定的默认字体
+
+```bash
+# Ubuntu/Debian
+sudo apt install fonts-jetbrains-mono
+
+# Fedora/RHEL
+sudo dnf install jetbrains-mono-fonts
+
+# Arch Linux
+sudo pacman -S ttf-jetbrains-mono
+
+# macOS
+brew install font-jetbrains-mono
+
+# 手动安装（所有系统）
+# 1. 访问 https://www.jetbrains.com/lp/mono/
+# 2. 下载字体文件
+# 3. 安装到系统字体目录
+```
+
+#### Neovim 插件依赖
+
+**Node.js**：LSP 服务器和某些插件需要
+
+```bash
+# Ubuntu/Debian
+curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+# Fedora/RHEL
+sudo dnf install nodejs npm
+
+# Arch Linux
+sudo pacman -S nodejs npm
+
+# macOS
+brew install node
+
+# Windows
+# 从 https://nodejs.org 下载安装包
+```
+
+**Python 3**：Python LSP 和插件支持
+
+```bash
+# Ubuntu/Debian
+sudo apt install python3 python3-pip
+
+# Fedora/RHEL
+sudo dnf install python3 python3-pip
+
+# Arch Linux
+sudo pacman -S python python-pip
+
+# macOS
+brew install python
+
+# Windows
+# 从 https://python.org 下载安装包
+```
+
+**构建工具**：编译某些插件需要
+
+```bash
+# Ubuntu/Debian
+sudo apt install build-essential cmake gcc g++
+
+# Fedora/RHEL
+sudo dnf groupinstall "Development Tools"
+sudo dnf install cmake gcc gcc-c++
+
+# Arch Linux
+sudo pacman -S base-devel cmake gcc
+
+# macOS
+xcode-select --install
+brew install cmake
+
+# Windows
+# 安装 Visual Studio Build Tools 或 MinGW-w64
+```
+
+**Git**：插件管理需要
+
+```bash
+# Ubuntu/Debian
+sudo apt install git
+
+# Fedora/RHEL
+sudo dnf install git
+
+# Arch Linux
+sudo pacman -S git
+
+# macOS
+brew install git
+
+# Windows
+# 从 https://git-scm.com 下载安装包
+```
+
+**Ripgrep**：文件搜索功能
+
+```bash
+# Ubuntu/Debian
+sudo apt install ripgrep
+
+# Fedora/RHEL
+sudo dnf install ripgrep
+
+# Arch Linux
+sudo pacman -S ripgrep
+
+# macOS
+brew install ripgrep
+
+# Windows
+# 使用 Chocolatey: choco install ripgrep
+```
+
+#### MPV 可选依赖
+
+**FFmpeg**：增强的格式支持（通常已包含在 MPV 中）
+
+```bash
+# Ubuntu/Debian
+sudo apt install ffmpeg
+
+# Fedora/RHEL
+sudo dnf install ffmpeg
+
+# Arch Linux
+sudo pacman -S ffmpeg
+
+# macOS
+brew install ffmpeg
+
+# Windows
+# 从 https://ffmpeg.org 下载或使用包管理器
+```
+
+### 安装后设置
+
+安装完所有依赖后：
+
+1. **重启终端**以确保所有路径更新
+2. **启动 Neovim** 首次运行会自动安装插件：
+
+   ```bash
+   nvim
+   ```
+
+   插件将自动安装，可能需要几分钟时间。
+
+3. **验证安装**：
+
+   ```bash
+   # 检查 Node.js
+   node --version
+
+   # 检查 Python
+   python3 --version
+
+   # 检查构建工具
+   gcc --version
+   cmake --version
+
+   # 检查 Git
+   git --version
+   ```
 
 ## 使用方法
 
