@@ -1,0 +1,13 @@
+# config.toml
+[editor]
+# 设置字体和字号
+font_family = "Jetbrains Mono"
+font_size = 18
+
+[window]
+# 设置窗口的初始大小
+width = 1200
+height = 800
+
+# 启用或禁用毛玻璃效果
+translucent_background = true
