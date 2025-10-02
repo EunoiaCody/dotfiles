@@ -371,12 +371,12 @@ crontab -e
 - 配置 Anime4K 画质增强着色器
 - 自定义快捷键和播放设置
 
-### Neovide GUI
+### Neovide 图形界面
 
 - Neovim 的 GUI 前端配置
 - 包含字体和界面设置
 
-### Neovim 编辑器
+### Neovim 编辑器配置
 
 - 基于 Lazy.nvim 的插件管理
 - LSP 支持和代码补全
