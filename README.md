@@ -2,6 +2,14 @@
 
 我的个人配置文件备份仓库
 
+## 🔗 符号链接结构
+
+本仓库使用**符号链接（symlinks）**的方式来管理配置文件，这意味着：
+
+- ✅ 当你修改 `~/.config/` 中的配置文件时，仓库中的文件会**自动同步更新**
+- ✅ 无需手动复制文件，始终保持最新状态
+- ✅ 便于版本控制和备份管理
+
 ## 包含的配置文件
 
 ### 📺 Kitty
@@ -38,7 +46,30 @@ Neovim 图形界面客户端配置
 
 ## 使用方法
 
-克隆此仓库并将配置文件复制到相应的配置目录：
+### 方法1：恢复配置（推荐）
+
+如果你想要使用这些配置，直接克隆仓库并创建符号链接：
+
+```bash
+git clone https://github.com/EunoiaCody/dotfiles.git ~/dotfiles
+cd ~/dotfiles
+
+# 备份现有配置（如果存在）
+mv ~/.config/kitty ~/.config/kitty.bak 2>/dev/null || true
+mv ~/.config/neovide ~/.config/neovide.bak 2>/dev/null || true
+mv ~/.config/nvim ~/.config/nvim.bak 2>/dev/null || true
+mv ~/.config/mpv ~/.config/mpv.bak 2>/dev/null || true
+
+# 创建符号链接
+ln -sf ~/dotfiles/kitty ~/.config/kitty
+ln -sf ~/dotfiles/neovide ~/.config/neovide
+ln -sf ~/dotfiles/nvim ~/.config/nvim
+ln -sf ~/dotfiles/mpv ~/.config/mpv
+```
+
+### 方法2：传统复制方式
+
+如果你只是想要复制配置文件：
 
 ```bash
 git clone https://github.com/EunoiaCody/dotfiles.git
