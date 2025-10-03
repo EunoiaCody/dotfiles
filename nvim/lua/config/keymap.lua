@@ -34,4 +34,5 @@ map("x", "<ctrl>V", "\"+pp", { desc = "粘贴自系统剪贴板"})
 -- 打开 Copilot Chat 
 map("n", "<leader>coc", "<CMD>CodeCompanionChat<CR>", { desc = "打开 Copilot Chat" })
 
-map("n", "<leader>C", "<cmd>MonokaiProSelect<cr>", { desc = "Select Monokai pro filter" })
+-- 打开终端
+map("n", "<leader>to", "<CMD>ToggleTerm<CR>", { desc = "打开终端" })
