@@ -52,14 +52,14 @@ else
     echo "提交完成！"
     
     # 询问是否推送到远程仓库
-    read -p "是否推送到 GitHub? (y/N): " -n 1 -r
+    read -p "是否推送到 GitHub? (Y/n): " -n 1 -r
     echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
+    if [[ $REPLY =~ ^[Nn]$ ]]; then
+        echo "跳过推送，你可以稍后手动运行 'git push'"
+    else
         echo "推送到远程仓库..."
         git push
         echo "✓ 推送完成！"
-    else
-        echo "跳过推送，你可以稍后手动运行 'git push'"
     fi
 fi
 
