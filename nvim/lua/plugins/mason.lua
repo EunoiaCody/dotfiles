@@ -9,6 +9,9 @@ return {
         "cpp",
         "javascript",
         "typescript",
+        "clangd",
+        "gopls",
+        "rust-analyzer",
       },
       ui = {
         icon = {
