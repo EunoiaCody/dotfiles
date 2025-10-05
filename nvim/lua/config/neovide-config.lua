@@ -3,6 +3,3 @@ if vim.g.neovide then
   vim.keymap.set({ "n", "v" }, "<C-ScrollWheelDown>", ":lua vim.g.neovide_scale_factor = vim.g.neovide_scale_factor - 0.1<CR>")
 end
 
---if vim.g.neovide then
---  { "sphamba/smear-cursor.nvim", enabled = false }
---end
