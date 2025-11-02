@@ -1,77 +1,129 @@
 return {
-  'saghen/blink.cmp',
-  -- optional: provides snippets for the snippet source
-  dependencies = {
-    'L3MON4D3/LuaSnip', 
-    'rafamadriz/friendly-snippets',
-    'fang2hou/blink-copilot'
-  },
 
-  -- use a release tag to download pre-built binaries
-  version = '1.*',
-  -- AND/OR build from source, requires nightly: https://rust-lang.github.io/rustup/concepts/channels.html#working-with-nightly-rust
-  -- build = 'cargo build --release',
-  -- If you use nix, you can build from source using latest nightly rust with:
-  -- build = 'nix run .#build-plugin',
-
-  ---@module 'blink.cmp'
-  ---@type blink.cmp.Config
-  opts = {
-    -- 'default' (recommended) for mappings similar to built-in completions (C-y to accept)
-    -- 'super-tab' for mappings similar to vscode (tab to accept)
-    -- 'enter' for enter to accept
-    -- 'none' for no mappings
-    --
-    -- All presets have the following mappings:
-    -- C-space: Open menu or open docs if already open
-    -- C-n/C-p or Up/Down: Select next/previous item
-    -- C-e: Hide menu
-    -- C-k: Toggle signature help (if signature.enabled = true)
-    --
-    -- See :h blink-cmp-config-keymap for defining your own keymap
-    keymap = { preset = 'enter' },
-
-    appearance = {
-      -- 'mono' (default) for 'Nerd Font Mono' or 'normal' for 'Nerd Font'
-      -- Adjusts spacing to ensure icons are aligned
-      nerd_font_variant = 'mono'
-    },
-
-    -- (Default) Only show the documentation popup when manually triggered
-    completion = { documentation = { auto_show = false } },
-
-    -- Default list of enabled providers defined so that you can extend it
-    -- elsewhere in your config, without redefining it, due to `opts_extend`
-    sources = {
-      default = {
-        'copilot',
-        'lsp', 
-        'path', 
-        'snippets', 
-        'buffer',
+  {
+    "mason-org/mason.nvim",
+    opts_extend = { "ensure_installed" },
+    opts = {
+      ensure_installed = {
+        "lua-language-server",
       },
-      providers = {
-        copilot = {
-          name = "copilot",
-          module = "blink-copilot",
-          score_offset = 100,
-          async = true,
-          opts = {
-            kind_icon = "",
-            kind_hl = "DevIconCopilot",
-          },
+      ui = {
+        icon = {
+          package_installed = "✓",
+          package_pending = "➜",
+          package_uninstalled = "✗"
         },
       },
     },
+    config = function(_, opts)
+      require("mason").setup(opts)
+      local mr = require("mason-registry")
 
-    snippets = { preset = 'luasnip' },
-
-    -- (Default) Rust fuzzy matcher for typo resistance and significantly better performance
-    -- You may use a lua implementation instead by using `implementation = "lua"` or fallback to the lua implementation,
-    -- when the Rust fuzzy matcher is not available, by using `implementation = "prefer_rust"`
-    --
-    -- See the fuzzy documentation for more information
-    fuzzy = { implementation = "prefer_rust_with_warning" }
+      local function ensure_installed(pkg)
+        for _, tools in ipairs(opts.ensure_installed) do
+          local p = mr.get_package(tools)
+          if not p:is_installed() then
+            p:install()
+          end
+        end
+      end
+      if mr.refresh then
+        mr.refresh(ensure_installed)
+      else
+        ensure_installed()
+      end
+    end,
   },
-  opts_extend = { "sources.default" }
+  
+  {
+    "neovim/nvim-lspconfig",
+    dependencies = { "saghen/blink.cmp", "williamboman/mason.nvim", "williamboman/mason-lspconfig.nvim" },
+    -- example calling setup directly for each LSP
+    opts = {
+      servers = {
+        lua_ls = {},
+        clangd = {},
+        rust_analyzer = {},
+        pyright = {},
+      }
+    },
+    config = function(_, opts)
+      -- Setup neovim lua configuration
+      require('neodev').setup()
+
+      vim.diagnostic.config({
+        underline = false,
+        signs = false,
+        update_in_insert = false,
+        virtual_text = { spacing = 2, prefix = "●" },
+        severity_sort = true,
+        float = {
+          border = "rounded",
+        },
+      })
+
+      -- Use LspAttach autocommand to only map the following keys
+      -- after the language server attaches to the current buffer
+      vim.api.nvim_create_autocmd("LspAttach", {
+        group = vim.api.nvim_create_augroup("UserLspConfig", {}),
+        callback = function(ev)
+          -- vim.keymap.set("n", "K", vim.lsp.buf.hover) -- configured in "nvim-ufo" plugin
+          vim.keymap.set("n", "<leader>d", vim.diagnostic.open_float, {
+            buffer = ev.buf,
+            desc = "[LSP] Show diagnostic",
+          })
+          vim.keymap.set("n", "<leader>gk", vim.lsp.buf.signature_help, { desc = "[LSP] Signature help" })
+          vim.keymap.set("n", "<leader>wa", vim.lsp.buf.add_workspace_folder, { desc = "[LSP] Add workspace folder" })
+          vim.keymap.set(
+            "n",
+            "<leader>wr",
+            vim.lsp.buf.remove_workspace_folder,
+            { desc = "[LSP] Remove workspace folder" }
+          )
+          vim.keymap.set("n", "<leader>wl", function()
+            print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
+          end, { desc = "[LSP] List workspace folders" })
+          vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, { buffer = ev.buf, desc = "[LSP] Rename" })
+        end,
+      })
+
+      require('mason-lspconfig').setup({
+        ensure_installed = vim.tbl_keys(opts.servers),
+        handlers = {
+          function(server_name) -- default handler (optional)
+            require('lspconfig')[server_name].setup({})
+          end,
+          ['lua_ls'] = function()
+            require('lspconfig').lua_ls.setup({
+              settings = {
+                Lua = {
+                  runtime = {
+                    -- Tell the language server which version of Lua you're using (most likely LuaJIT in Neovim)
+                    version = 'LuaJIT',
+                  },
+                  diagnostics = {
+                    -- Get the language server to recognize the `vim` global
+                    globals = { 'vim' },
+                  },
+                  workspace = {
+                    -- Make the server aware of Neovim runtime files
+                    library = vim.api.nvim_get_runtime_file("", true),
+                    checkThirdParty = false,
+                  },
+                  -- Do not send telemetry data containing a randomized but unique identifier
+                  telemetry = {
+                    enable = false,
+                  },
+                },
+              },
+            })
+          end,
+        }
+      })
+    end,
+  },
+  {
+    "folke/neodev.nvim",
+    opts = {}
+  }
 }

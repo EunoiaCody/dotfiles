@@ -19,3 +19,4 @@ end
 
 -- 在任何终端打开时自动应用这些映射
 vim.cmd('autocmd! TermOpen term://* lua set_terminal_keymaps()')
+
