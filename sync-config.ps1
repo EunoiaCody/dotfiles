@@ -42,8 +42,10 @@ Get-ChildItem -Path $ScriptDir -Filter ".git" -Recurse -Directory -Force |
 Write-Host "检查 Git 状态..." -ForegroundColor Cyan
 
 # 检查是否有未暂存或已暂存的更改
-$hasUnstagedChanges = git diff --quiet; $LASTEXITCODE -ne 0
-$hasStagedChanges = git diff --staged --quiet; $LASTEXITCODE -ne 0
+git diff --quiet
+$hasUnstagedChanges = $LASTEXITCODE -ne 0
+git diff --staged --quiet
+$hasStagedChanges = $LASTEXITCODE -ne 0
 
 if (-not $hasUnstagedChanges -and -not $hasStagedChanges) {
     Write-Host "没有检测到配置文件变更" -ForegroundColor Yellow
