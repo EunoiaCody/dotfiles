@@ -1,5 +1,5 @@
 # 同步配置文件脚本
-# 这个脚本会将 $env:LOCALAPPDATA 中的配置文件更新到 dotfiles 仓库
+# 这个脚本会将 %LOCALAPPDATA%（用户主目录\AppData\Local\）中的配置文件更新到 dotfiles 仓库
 
 $ErrorActionPreference = "Stop"
 
@@ -41,8 +41,11 @@ Get-ChildItem -Path $ScriptDir -Filter ".git" -Recurse -Directory -Force |
 # Git 操作
 Write-Host "检查 Git 状态..." -ForegroundColor Cyan
 
-$gitStatus = git status --porcelain
-if ([string]::IsNullOrEmpty($gitStatus)) {
+# 检查是否有未暂存或已暂存的更改
+$hasUnstagedChanges = git diff --quiet; $LASTEXITCODE -ne 0
+$hasStagedChanges = git diff --staged --quiet; $LASTEXITCODE -ne 0
+
+if (-not $hasUnstagedChanges -and -not $hasStagedChanges) {
     Write-Host "没有检测到配置文件变更" -ForegroundColor Yellow
 } else {
     Write-Host "检测到配置文件变更，正在提交..." -ForegroundColor Green
@@ -53,7 +56,7 @@ if ([string]::IsNullOrEmpty($gitStatus)) {
     $CommitMessage = @"
 更新配置文件 - $Timestamp
 
-自动同步 AppData\Local 中的配置文件到 dotfiles 仓库
+自动同步 %LOCALAPPDATA% 中的配置文件到 dotfiles 仓库
 "@
     
     git commit -m $CommitMessage

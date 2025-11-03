@@ -1,5 +1,5 @@
 # 还原配置文件脚本（带本地备份，存在 .bak 先删除再备份）
-# 将 dotfiles 仓库中的配置文件恢复到 $env:LOCALAPPDATA，如有同名目录则本地重命名为 .bak（已存在则先删）
+# 将 dotfiles 仓库中的配置文件恢复到 %LOCALAPPDATA%（用户主目录\AppData\Local\），如有同名目录则本地重命名为 .bak（已存在则先删）
 
 $ErrorActionPreference = "Stop"
 
