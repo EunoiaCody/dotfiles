@@ -435,13 +435,15 @@ Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process
 你可以使用任务计划程序来自动同步配置：
 
 ```powershell
-# 创建一个批处理文件 sync-dotfiles.bat
+# 创建一个批处理文件 sync-dotfiles.bat（将路径替换为你的 dotfiles 仓库位置）
 @echo off
 cd /d "%USERPROFILE%\dotfiles"
 powershell.exe -ExecutionPolicy Bypass -File ".\sync-config.ps1"
 ```
 
 然后在任务计划程序中创建定时任务运行此批处理文件。
+
+**注意**：请根据实际克隆位置修改 `%USERPROFILE%\dotfiles` 路径。
 
 ## 配置说明
 
