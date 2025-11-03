@@ -13,12 +13,15 @@
 
 ```tree
 dotfiles/
-├── kitty/          # Kitty 终端配置
-├── mpv/            # MPV 播放器配置
-├── neovide/        # Neovide GUI 配置
-├── nvim/           # Neovim 编辑器配置
-├── sync-config.sh  # 配置同步脚本
-└── README.md       # 说明文档
+├── kitty/              # Kitty 终端配置
+├── mpv/                # MPV 播放器配置
+├── neovide/            # Neovide GUI 配置
+├── nvim/               # Neovim 编辑器配置
+├── restore-config.sh   # Linux/macOS 配置还原脚本
+├── restore-config.ps1  # Windows 配置还原脚本
+├── sync-config.sh      # Linux/macOS 配置同步脚本
+├── sync-config.ps1     # Windows 配置同步脚本
+└── README.md           # 说明文档
 ```
 
 ## 依赖安装
@@ -288,7 +291,9 @@ brew install ffmpeg
 
 ## 使用方法
 
-### 方式一：直接复制（推荐）
+### Linux / macOS
+
+#### 方式一：直接复制（推荐）
 
 将配置文件复制到对应的配置目录：
 
@@ -304,7 +309,7 @@ cp -r neovide ~/.config/
 cp -r nvim ~/.config/
 ```
 
-### 方式二：创建符号链接（本地同步）
+#### 方式二：创建符号链接（本地同步）
 
 如果你想要本地配置文件与仓库保持实时同步：
 
@@ -327,11 +332,57 @@ ln -sf ~/dotfiles/neovide ~/.config/neovide
 ln -sf ~/dotfiles/nvim ~/.config/nvim
 ```
 
+### Windows 10 / 11
+
+#### 方式一：使用还原脚本（推荐）
+
+本仓库提供了 PowerShell 脚本，用于在 Windows 上管理配置文件。配置文件将安装到 `%LOCALAPPDATA%`（用户主目录\AppData\Local\）。
+
+```powershell
+# 克隆仓库
+git clone https://github.com/EunoiaCody/dotfiles.git
+cd dotfiles
+
+# 运行还原脚本（需要以管理员权限或允许脚本执行）
+.\restore-config.ps1
+```
+
+**注意**：如果遇到执行策略错误，可以临时允许脚本执行：
+
+```powershell
+# 临时允许执行脚本（当前 PowerShell 会话）
+Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process
+
+# 然后运行脚本
+.\restore-config.ps1
+```
+
+还原脚本会：
+1. 将配置文件从仓库复制到 `%LOCALAPPDATA%`
+2. 自动备份现有配置（如果存在）为 `.bak` 后缀
+3. 如果已存在 `.bak` 备份，会先删除旧备份
+
+#### 方式二：手动复制
+
+```powershell
+# 克隆仓库
+git clone https://github.com/EunoiaCody/dotfiles.git
+cd dotfiles
+
+# 手动复制配置文件到 %LOCALAPPDATA%
+Copy-Item -Path kitty -Destination $env:LOCALAPPDATA\kitty -Recurse
+Copy-Item -Path mpv -Destination $env:LOCALAPPDATA\mpv -Recurse
+Copy-Item -Path neovide -Destination $env:LOCALAPPDATA\neovide -Recurse
+Copy-Item -Path nvim -Destination $env:LOCALAPPDATA\nvim -Recurse
+```
+
 ## 同步配置文件
 
-本仓库提供了一个自动同步脚本 `sync-config.sh`，用于将本地配置文件的更改同步到 Git 仓库。
+本仓库提供了自动同步脚本，用于将本地配置文件的更改同步到 Git 仓库。
 
-### 使用同步脚本
+### Linux / macOS
+
+#### 使用同步脚本
 
 ```bash
 cd ~/dotfiles
@@ -344,7 +395,7 @@ cd ~/dotfiles
 2. 检测文件变更并自动提交
 3. 询问是否推送到 GitHub
 
-### 自动化同步（可选）
+#### 自动化同步（可选）
 
 你可以设置定期任务来自动同步配置：
 
@@ -355,6 +406,42 @@ crontab -e
 # 添加以下行（每天晚上 11 点同步）
 0 23 * * * cd ~/dotfiles && ./sync-config.sh >/dev/null 2>&1
 ```
+
+### Windows 10 / 11
+
+#### 使用同步脚本
+
+```powershell
+cd dotfiles
+.\sync-config.ps1
+```
+
+脚本会：
+
+1. 将 `%LOCALAPPDATA%` 中的配置文件复制到仓库
+2. 清理嵌入的 git 仓库（如果有）
+3. 检测文件变更并自动提交
+4. 询问是否推送到 GitHub
+
+**注意**：如果遇到执行策略错误，可以临时允许脚本执行：
+
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process
+.\sync-config.ps1
+```
+
+#### 自动化同步（可选）
+
+你可以使用任务计划程序来自动同步配置：
+
+```powershell
+# 创建一个批处理文件 sync-dotfiles.bat
+@echo off
+cd /d "%USERPROFILE%\dotfiles"
+powershell.exe -ExecutionPolicy Bypass -File ".\sync-config.ps1"
+```
+
+然后在任务计划程序中创建定时任务运行此批处理文件。
 
 ## 配置说明
 
