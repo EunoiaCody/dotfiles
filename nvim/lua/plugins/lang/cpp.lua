@@ -4,8 +4,7 @@ return {
     optional = true,
     opts = {
       ensure_installed = {
-        "c",
-        "cpp",
+        "clangd",
       },
     },
     opts_extend = { "ensure_installed" },

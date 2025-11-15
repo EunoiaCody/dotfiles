@@ -4,7 +4,7 @@ return {
     optional = true,
     opts = {
       ensure_installed = {
-        "python",
+        "pyright",
       },
     },
     opts_extend = { "ensure_installed" },
