@@ -16,3 +16,7 @@ end
 -- 在任何终端打开时自动应用这些映射
 vim.cmd('autocmd! TermOpen term://* lua set_terminal_keymaps()')
 
+-- 配置 notify 插件的背景颜色为透明色
+require("notify").setup({
+  background_colour = "#000000",
+})
