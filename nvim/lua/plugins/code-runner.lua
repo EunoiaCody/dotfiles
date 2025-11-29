@@ -21,6 +21,7 @@ return {
           cpp = "g++ $fileName -o $fileNameWithoutExt && ./$fileNameWithoutExt",
           lua = "lua",
           sh = "bash",
+          vue = "npm run dev $end"
         }
       }
     )

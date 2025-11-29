@@ -20,5 +20,22 @@ return {
         { "mason-org/mason.nvim", opts = {} },
         "neovim/nvim-lspconfig",
     },
-}
+  },
+  {
+    'stevearc/conform.nvim',
+    opts = {
+      formatters_by_ft = {
+        lua = { "stylua" },
+        python = { "black", "isort" },
+        rust = { "rustfmt" },
+        cpp = { "clang_format" },
+        typescript = { "prettierd" },
+        javascript = { "prettierd" },
+      },
+      format_on_save = {
+        timeout_ms = 500,
+        lsp_format = "fallback",
+      }
+    },
+  },
 }
