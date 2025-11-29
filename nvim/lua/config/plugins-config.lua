@@ -1,9 +1,5 @@
 vim.cmd[[colorscheme dracula]]
 
-require("overseer").setup({
-  templates = { "builtin", "user.cpp_build" },
-})
-
 require("toggleterm").setup{}
 
 function _G.set_terminal_keymaps()
