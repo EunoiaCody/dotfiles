@@ -13,7 +13,7 @@ return {
         filetype = {
           python = "python3 -u",
           javascript = "node",
-          typescript = "deno run",
+          typescript = "tsc $fileName && node $fileNameWithoutExt.js",
           rust = "cargo run",
           go = "go run",
           java = "javac $fileName && java $fileNameWithoutExt",
