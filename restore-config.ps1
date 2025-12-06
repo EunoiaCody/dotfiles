@@ -3,6 +3,10 @@
 
 $ErrorActionPreference = "Stop"
 
+Write-Host "从 GitHub 拉取配置文件..." -ForegroundColor Green
+
+git pull
+
 Write-Host "开始还原配置文件到 $env:LOCALAPPDATA ..." -ForegroundColor Green
 
 # 获取脚本所在目录
