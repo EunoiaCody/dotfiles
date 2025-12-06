@@ -5,6 +5,10 @@
 
 set -e
 
+echo "从 GitHub 拉取配置文件..."
+
+git pull
+
 echo "开始还原配置文件到 ~/.config/ ..."
 
 cd "$(dirname "$0")"
