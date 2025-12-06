@@ -2,13 +2,15 @@ function fish_prompt
     set -l last_status $status
     set -l cwd (prompt_pwd)
 
-    # --- Catppuccin 颜色定义 ---
-    set -l ctp_mauve cba6f7 # 路径颜色 (Purple)
-    set -l ctp_pink f5c2e7 # Git 颜色 (Pink)
-    set -l ctp_mauve_status cba6f7 # 成功状态颜色 (Mauve)
-    set -l ctp_red f38ba8 # 失败状态颜色 (Red)
-    set -l ctp_subtext1 6c7086 # 连接线颜色
-    set -l ctp_mantle 45475a # 装饰线颜色
+    # --- Catppuccin Mocha Palette ---
+    # https://catppuccin.com/palette/
+    set -l ctp_path 89b4fa # Blue (Path)
+    set -l ctp_git cba6f7 # Mauve (Git)
+    set -l ctp_success a6e3a1 # Green (Success)
+    set -l ctp_error f38ba8 # Red (Error)
+    set -l ctp_connector 7f849c # Overlay 1 (Connector)
+    set -l ctp_decoration 6c7086 # Overlay 0 (Decoration)
+    set -l ctp_date a6adc8 # Subtext 0 (Date)
 
     # --- 1. 定义系统图标 ---
     set -l os_icon "" # 默认图标
@@ -67,29 +69,46 @@ function fish_prompt
     echo "" # 上方空一行
 
     # --- 第二部分：Prompt 结构 ---
-    set_color $ctp_mantle # 灰色连接线
-    echo -n "┌──"
+    
+    # 1. 准备颜色变量
+    set -l c_dec (set_color $ctp_decoration)
+    set -l c_path (set_color $ctp_path --bold)
+    set -l c_git (set_color $ctp_git)
+    set -l c_date (set_color $ctp_date)
+    set -l c_reset (set_color normal)
 
-    set_color $ctp_mauve --bold # 路径颜色
-    echo -n " $os_icon  $cwd "
+    # 2. 构建左侧内容
+    set -l left_str "$c_dec┌──$c_path $os_icon  $cwd "
 
-    if fish_git_prompt >/dev/null
-        set_color $ctp_pink # Git 颜色
-        set -l git_info (fish_git_prompt | string trim -c ' ()')
-        echo -n "─  $git_info"
+    set -l git_info (fish_git_prompt | string trim -c ' ()')
+    if test -n "$git_info"
+        set left_str "$left_str$c_git─  $git_info"
     end
 
-    set_color normal
-    echo "" # 换行
+    # 3. 构建右侧内容 (日期)
+    set -l right_str "$c_date"(date "+%y-%m-%d %H:%M ")"$c_reset"
 
-    set_color $ctp_subtext1 # 灰色连接线
+    # 4. 计算填充并输出
+    set -l left_len (string length --visible "$left_str")
+    set -l right_len (string length --visible "$right_str")
+    set -l pad_len (math $COLUMNS - $left_len - $right_len)
+    
+    if test $pad_len -lt 1
+        set pad_len 1
+    end
+    
+    set -l padding (string repeat -n $pad_len " ")
+    
+    echo "$left_str$padding$right_str"
+
+    set_color $ctp_connector # 灰色连接线
     echo -n "└─"
 
     if test $last_status -eq 0
-        set_color $ctp_mauve_status # 成功状态
+        set_color $ctp_success # 成功状态
         echo -n " ✔ "
     else
-        set_color $ctp_red # 失败状态
+        set_color $ctp_error # 失败状态
         echo -n " ✘ "
     end
 
