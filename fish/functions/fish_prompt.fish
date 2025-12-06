@@ -10,8 +10,8 @@ function fish_prompt
     set -l ctp_subtext1 6c7086 # 连接线颜色
     set -l ctp_mantle 45475a # 装饰线颜色
 
-    # --- 1. 定义系统图标（兼容性优化 & 通配符增强） ---
-    set -l os_icon "" # 默认图标 (地球)
+    # --- 1. 定义系统图标 ---
+    set -l os_icon "" # 默认图标
     set -l system_name (uname -s)
 
     if test "$system_name" = Linux
@@ -27,10 +27,9 @@ function fish_prompt
                     set os_icon "" # Ubuntu
                     # 🛠️ Arch 系拆分
                 case arch archarm "*arch"
-                    set os_icon "" # Arch Linux (含 Archarm 和其他 Arch 衍生版)
+                    set os_icon "" # Arch Linux
                 case manjaro
                     set os_icon "" # Manjaro 专用图标
-                    # -----------------
                 case fedora "fedora*"
                     set os_icon "" # Fedora
                 case debian
