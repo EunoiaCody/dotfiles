@@ -13,7 +13,7 @@ Write-Host "开始还原配置文件到 $env:LOCALAPPDATA ..." -ForegroundColor 
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 Set-Location $ScriptDir
 
-$ConfigDirs = @("kitty", "mpv", "neovide", "nvim")
+$ConfigDirs = @("kitty", "mpv", "neovide", "nvim", "fish")
 
 foreach ($dir in $ConfigDirs) {
     $Src = Join-Path $ScriptDir $dir

@@ -8,6 +8,7 @@
 - **mpv** - 媒体播放器配置（包含 uosc 界面和 Anime4K 着色器）
 - **neovide** - Neovim GUI 配置
 - **nvim** - Neovim 编辑器配置
+- **fish**
 
 ## 目录结构
 
@@ -17,6 +18,7 @@ dotfiles/
 ├── mpv/                # MPV 播放器配置
 ├── neovide/            # Neovide GUI 配置
 ├── nvim/               # Neovim 编辑器配置
+├── fish/               # Fish shell 配置
 ├── restore-config.sh   # Linux/macOS 配置还原脚本
 ├── restore-config.ps1  # Windows 配置还原脚本
 ├── sync-config.sh      # Linux/macOS 配置同步脚本
@@ -111,6 +113,25 @@ brew install neovide
 
 # Windows
 # 从 https://github.com/neovide/neovide/releases 下载安装包
+```
+
+#### Fish SHell
+
+```bash
+# Ubuntu/Debian
+sudo apt install fish
+
+# Fedora/RHEL
+sudo dnf install fish
+
+# Arch Linux
+sudo pacman -S fish
+
+# macOS
+brew install fish
+
+# Windows
+# 使用 Chocolatey: choco install fish
 ```
 
 ### 必需的依赖项
