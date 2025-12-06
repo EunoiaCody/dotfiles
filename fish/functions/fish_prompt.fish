@@ -1,90 +1,79 @@
 function fish_prompt
-        set -l __last_command_exit_status $status
-    
-        if not set -q -g __fish_arrow_functions_defined
-                set -g __fish_arrow_functions_defined
-                function _git_branch_name
-                        set -l branch (git symbolic-ref --quiet HEAD 2>/dev/null)
-                        if set -q branch[1]
-                                echo (string replace -r '^refs/heads/' '' $branch)
-                        else
-                                echo (git rev-parse --short HEAD 2>/dev/null)
-                        end
-                end
-        
-                function _is_git_dirty
-                        not command git diff-index --cached --quiet HEAD -- &>/dev/null
-                        or not command git diff --no-ext-diff --quiet --exit-code &>/dev/null
-                end
-        
-                function _is_git_repo
-                        type -q git
-                        or return 1
-                        git rev-parse --git-dir >/dev/null 2>&1
-                end
-        
-                function _hg_branch_name
-                        echo (hg branch 2>/dev/null)
-                end
-        
-                function _is_hg_dirty
-                        set -l stat (hg status -mard 2>/dev/null)
-                        test -n "$stat"
-                end
-        
-                function _is_hg_repo
-                        fish_print_hg_root >/dev/null
-                end
-        
-                function _repo_branch_name
-                        _$argv[1]_branch_name
-                end
-        
-                function _is_repo_dirty
-                        _is_$argv[1]_dirty
-                end
-        
-                function _repo_type
-                        if _is_hg_repo
-                                echo hg
-                                return 0
-                        else if _is_git_repo
-                                echo git
-                                return 0
-                        end
-                        return 1
-                end
+    set -l last_status $status
+    set -l cwd (prompt_pwd)
+
+    # --- Catppuccin 颜色定义 ---
+    set -l ctp_mauve cba6f7    # 路径颜色 (Purple)
+    set -l ctp_pink f5c2e7     # Git 颜色 (Pink)
+    set -l ctp_mauve_status cba6f7 # 成功状态颜色 (Mauve)
+    set -l ctp_red f38ba8      # 失败状态颜色 (Red)
+    set -l ctp_subtext1 6c7086 # 连接线颜色
+    set -l ctp_mantle 45475a   # 装饰线颜色
+
+    # --- 1. 定义系统图标（增强版，加入 Termux） ---
+    set -l os_icon "" # 默认图标 (地球)
+    set -l system_name (uname -s)
+
+    if test "$system_name" = "Linux"
+        # 🌟 优先检查是否是 Termux (通过检查环境变量)
+        if set -q TERMUX_VERSION
+            set os_icon "" # 📱 Android/Termux 图标
+        else
+            # 区分 Linux 发行版
+            set -l distro_id (cat /etc/os-release 2>/dev/null | grep '^ID=' | string replace --regex '^ID="?([a-z0-9-]+)"?$' '\1')
+            
+            switch $distro_id
+                case "ubuntu" "ubuntu*"
+                    set os_icon "" # Ubuntu
+                case "arch" "archarm" "manjaro"
+                    set os_icon "" # Arch Linux
+                case "fedora" "fedora*"
+                    set os_icon "" # Fedora
+                case "debian"
+                    set os_icon "" # Debian
+                case "pop" "pop-os"
+                    set os_icon "" # Pop!_OS
+                case "*" # 默认 Linux
+                    set os_icon "" # Tux 企鹅
+            end
         end
+    else if test "$system_name" = "Darwin"
+        set os_icon "" # macOS (Apple)
+    else if test "$system_name" = "CYGWIN_NT"
+        set os_icon "" # Windows/Cygwin
+    end
     
-        set -l cyan (set_color -o cyan)
-        set -l yellow (set_color -o yellow)
-        set -l red (set_color -o red)
-        set -l green (set_color -o green)
-        set -l blue (set_color -o blue)
-        set -l normal (set_color normal)
+    # ----------------------------------
+
+    echo "" # 上方空一行，视觉更清晰
+
+    # --- 第二部分：Prompt 结构 ---
+    set_color $ctp_mantle # 灰色连接线
+    echo -n "┌──"
     
-        set -l arrow_color "$green"
-        if test $__last_command_exit_status != 0
-                set arrow_color "$red"
-        end
+    set_color $ctp_mauve --bold # 路径颜色
+    # 使用根据系统判断出的图标
+    echo -n " $os_icon  $cwd "
     
-        set -l arrow "$arrow_color➜ "
-        if fish_is_root_user
-                set arrow "$arrow_color# "
-        end
+    if fish_git_prompt > /dev/null
+        set_color $ctp_pink # Git 颜色
+        set -l git_info (fish_git_prompt | string trim -c ' ()')
+        echo -n "─  $git_info"
+    end
     
-        set -l cwd $cyan(prompt_pwd | path basename)
+    set_color normal
+    echo "" # 换行
+
+    set_color $ctp_subtext1 # 灰色连接线
+    echo -n "└─"
+
+    if test $last_status -eq 0
+        set_color $ctp_mauve_status # 成功状态
+        echo -n " ✔ "
+    else
+        set_color $ctp_red # 失败状态
+        echo -n " ✘ "
+    end
     
-        set -l repo_info
-        if set -l repo_type (_repo_type)
-                set -l repo_branch $red(_repo_branch_name $repo_type)
-                set repo_info "$blue $repo_type:($repo_branch$blue)"
-        
-                if _is_repo_dirty $repo_type
-                        set -l dirty "$yellow ✗"
-                        set repo_info "$repo_info$dirty"
-                end
-        end
-    
-        echo -n -s $arrow ' '$cwd $repo_info $normal ' '
+    set_color normal
 end
