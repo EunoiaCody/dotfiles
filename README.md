@@ -8,7 +8,7 @@
 - **mpv** - 媒体播放器配置（包含 uosc 界面和 Anime4K 着色器）
 - **neovide** - Neovim GUI 配置
 - **nvim** - Neovim 编辑器配置
-- **fish**
+- **fish** - Fish shell 配置
 
 ## 目录结构
 
