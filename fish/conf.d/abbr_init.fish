@@ -1,3 +1,6 @@
+# fish abbr
+abbr --add fish-reload "source ~/.config/fish/**/*.fish"
+
 # General abbr
 abbr --add nvi neovide
 
@@ -26,3 +29,9 @@ abbr --add brewi "brew install"
 abbr --add brewr "brew uninstall"
 abbr --add brewu "brew update && brew upgrade"
 abbr --add brews "brew search"
+
+# pkg(termux) abbr
+abbr --add pkgi "pkg install"
+abbr --add pkgr "pkg uninstall"
+abbr --add pkgs "pkg search"
+abbr --add pkgu "pkg update && pkg upgrade"
