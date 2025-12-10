@@ -28,10 +28,10 @@ map("n", "<leader>ntc", "<CMD>NvimTreeClose<CR>", { desc = "关闭 Nvim Tree" })
 -- 复制粘贴
 map("v", "<ctrl>C", "\"+y", { desc = "复制到系统剪贴板" })
 map("x", "<ctrl>C", "\"+yy", { desc = "复制到系统剪贴板" })
-map("v", "<ctrl>V", "\"+p", { desc = "粘贴自系统剪贴板"})
-map("x", "<ctrl>V", "\"+pp", { desc = "粘贴自系统剪贴板"})
+map("v", "<ctrl>V", "\"+p", { desc = "粘贴自系统剪贴板" })
+map("x", "<ctrl>V", "\"+pp", { desc = "粘贴自系统剪贴板" })
 
--- 打开 Copilot Chat 
+-- 打开 Copilot Chat
 map("n", "<leader>coc", "<CMD>CodeCompanionChat<CR>", { desc = "打开 Copilot Chat" })
 
 -- 打开终端
@@ -45,3 +45,6 @@ vim.keymap.set('n', '<leader>rp', ':RunProject<CR>', { noremap = true, silent = 
 vim.keymap.set('n', '<leader>rc', ':RunClose<CR>', { noremap = true, silent = false, desc = "关闭运行窗口" })
 vim.keymap.set('n', '<leader>crf', ':CRFiletype<CR>', { noremap = true, silent = false, desc = "选择文件类型运行器" })
 vim.keymap.set('n', '<leader>crp', ':CRProjects<CR>', { noremap = true, silent = false, desc = "选择项目运行器" })
+
+-- Mason
+vim.keymap.set('n', '<leader>ms', '<CMD>Mason<CR>', { desc = "open mason" })
