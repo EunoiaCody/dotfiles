@@ -43,28 +43,6 @@ return {
         },
       },
     },
---    config = function(_, opts)
---      local copilot = {
---        "copilot",
---        show_colors = true,
---        symbols = {
---          status = {
---            hl = {
---              enabled = mocha.green,
---              sleep = mocha.overlay0,
---              disabled = mocha.surface0,
---              warning = mocha.peach,
---              unknown = mocha.red,
---            },
---          },
---          spinner_color = mocha.mauve,
---        },
---      }
---
---      table.insert(opts.sections.lualine_c, copilot)
---
---      require("lualine").setup(opts)
---    end,
   },
 
   {

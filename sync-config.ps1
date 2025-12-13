@@ -10,7 +10,7 @@ $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 Set-Location $ScriptDir
 
 # 配置文件夹列表
-$ConfigDirs = @("kitty", "mpv", "neovide", "nvim")
+$ConfigDirs = @("kitty", "mpv", "neovide", "nvim", "fish")
 
 # 同步每个配置文件夹
 foreach ($dir in $ConfigDirs) {

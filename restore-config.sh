@@ -5,11 +5,15 @@
 
 set -e
 
+echo "从 GitHub 拉取配置文件..."
+
+git pull
+
 echo "开始还原配置文件到 ~/.config/ ..."
 
 cd "$(dirname "$0")"
 
-CONFIG_DIRS=("kitty" "mpv" "neovide" "nvim")
+CONFIG_DIRS=("kitty" "mpv" "neovide" "nvim" "fish")
 
 for dir in "${CONFIG_DIRS[@]}"; do
     SRC="$dir"
