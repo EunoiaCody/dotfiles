@@ -20,7 +20,6 @@ return {
 					"markdown_inline",
 					"javascript",
 					"typescript",
-					"latex",
 					"vue",
 				},
 				sync_install = false,

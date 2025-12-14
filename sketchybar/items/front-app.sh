@@ -1,0 +1,12 @@
+sketchybar --add item front_app left \
+           --set front_app icon.drawing=on \
+           --set front_app icon.font="sketchybar-app-font:Regular:16.0" \
+           --set front_app icon.color=$MAUVE \
+           --set front_app label.drawing=on label.font="SF Pro:SemiBold:14.0" \
+           --set front_app label.color=$TEXT \
+           --set front_app background.color=$SURFACE0 \
+           --set front_app background.corner_radius=8 \
+           --set front_app background.border_width=1 \
+           --set front_app background.border_color=$MAUVE \
+           --set front_app script="$PLUGIN_DIR/front_app.sh" \
+           --subscribe front_app front_app_switched

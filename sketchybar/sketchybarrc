@@ -1,0 +1,116 @@
+# This is a demo config to showcase some of the most important commands.
+# It is meant to be changed and configured, as it is intentionally kept sparse.
+# For a (much) more advanced configuration example see my dotfiles:
+# https://github.com/FelixKratz/dotfiles
+
+PLUGIN_DIR="$CONFIG_DIR/plugins"
+ITEM_DIR="$CONFIG_DIR/items"
+
+##### Catppuccin Mocha Color Palette #####
+export BASE=0xff1e1e2e
+export MANTLE=0xff181825
+export CRUST=0xff11111b
+export TEXT=0xffcdd6f4
+export SUBTEXT1=0xffbac2de
+export SUBTEXT0=0xffa6adc8
+export OVERLAY2=0xff9399b2
+export OVERLAY1=0xff7f849c
+export OVERLAY0=0xff6c7086
+export SURFACE2=0xff585b70
+export SURFACE1=0xff45475a
+export SURFACE0=0xff313244
+export BLUE=0xff89b4fa
+export LAVENDER=0xffb4befe
+export SAPPHIRE=0xff74c7ec
+export SKY=0xff89dceb
+export TEAL=0xff94e2d5
+export GREEN=0xffa6e3a1
+export YELLOW=0xfff9e2af
+export PEACH=0xfffab387
+export MAROON=0xffeba0ac
+export RED=0xfff38ba8
+export MAUVE=0xffcba6f7
+export PINK=0xfff5c2e7
+export FLAMINGO=0xfff2cdcd
+export ROSEWATER=0xfff5e0dc
+
+##### Bar Appearance #####
+# Configuring the general appearance of the bar.
+# These are only some of the options available. For all options see:
+# https://felixkratz.github.io/SketchyBar/config/bar
+# If you are looking for other colors, see the color picker:
+# https://felixkratz.github.io/SketchyBar/config/tricks#color-picker
+
+sketchybar --bar position=top \
+                 height=40 \
+                 blur_radius=90 \
+                 color=0x80181825 \
+                 margin=10 \
+                 y_offset=8 \
+                 corner_radius=12 \
+                 border_width=2 \
+                 border_color=$SURFACE1 \
+                 shadow=on \
+                 notch_width=200
+
+##### Animation Settings #####
+sketchybar --animate tanh 15
+
+##### Changing Defaults #####
+# We now change some default values, which are applied to all further items.
+# For a full list of all available item properties see:
+# https://felixkratz.github.io/SketchyBar/config/items
+
+default=(
+  padding_left=5
+  padding_right=5
+  icon.font="JetBrainsMono Nerd Font:Bold:17.0"
+  label.font="JetBrainsMono Nerd Font:Bold:14.0"
+  icon.color=$TEXT
+  label.color=$TEXT
+  icon.padding_left=8
+  icon.padding_right=4
+  label.padding_left=4
+  label.padding_right=8
+  background.color=$SURFACE0
+  background.corner_radius=8
+  background.height=26
+  background.border_width=1
+  background.border_color=$SURFACE2
+  y_offset=1
+)
+sketchybar --default "${default[@]}"
+
+##### Adding Mission Control Space Indicators #####
+# Let's add some mission control spaces:
+# https://felixkratz.github.io/SketchyBar/config/components#space----associate-mission-control-spaces-with-an-item
+# to indicate active and available mission control spaces.
+
+
+source "$ITEM_DIR/apple.sh"
+source "$ITEM_DIR/front-app.sh"
+
+##### Adding Left Items #####
+# We add some regular items to the left side of the bar, where
+# only the properties deviating from the current defaults need to be set
+
+source "$ITEM_DIR/clock.sh"
+source "$ITEM_DIR/volume.sh"
+source "$ITEM_DIR/network.sh"
+source "$ITEM_DIR/ram.sh"
+
+##### Adding Right Items #####
+# In the same way as the left items we can add items to the right side.
+# Additional position (e.g. center) are available, see:
+# https://felixkratz.github.io/SketchyBar/config/items#adding-items-to-sketchybar
+
+# Some items refresh on a fixed cycle, e.g. the clock runs its script once
+# every 10s. Other items respond to events they subscribe to, e.g. the
+# volume.sh script is only executed once an actual change in system audio
+# volume is registered. More info about the event system can be found here:
+# https://felixkratz.github.io/SketchyBar/config/events
+
+
+
+##### Force all scripts to run the first time (never do this in a script) #####
+sketchybar --update
