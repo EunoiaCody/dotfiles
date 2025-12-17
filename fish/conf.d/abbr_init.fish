@@ -28,7 +28,7 @@ abbr --add gitpl "git pull"
 # homebrew abbr
 abbr --add brewi "brew install"
 abbr --add brewr "brew uninstall"
-abbr --add brewu "brew update && brew upgrade"
+abbr --add brewu "brew upgrade"
 abbr --add brews "brew search"
 
 # pkg(termux) abbr
