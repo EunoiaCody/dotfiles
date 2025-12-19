@@ -27,7 +27,7 @@ function fish_prompt
             switch $distro_id
                 case ubuntu "ubuntu*"
                     set os_icon "" # Ubuntu
-                    # 🛠️ Arch 系拆分
+                    # Arch 系拆分
                 case arch archarm "*arch"
                     set os_icon "" # Arch Linux
                 case manjaro
@@ -69,7 +69,7 @@ function fish_prompt
     echo "" # 上方空一行
 
     # --- 第二部分：Prompt 结构 ---
-    
+
     # 1. 准备颜色变量
     set -l c_dec (set_color $ctp_decoration)
     set -l c_path (set_color $ctp_path --bold)
@@ -92,13 +92,13 @@ function fish_prompt
     set -l left_len (string length --visible "$left_str")
     set -l right_len (string length --visible "$right_str")
     set -l pad_len (math $COLUMNS - $left_len - $right_len)
-    
+
     if test $pad_len -lt 1
         set pad_len 1
     end
-    
+
     set -l padding (string repeat -n $pad_len " ")
-    
+
     echo "$left_str$padding$right_str"
 
     set_color $ctp_connector # 灰色连接线
