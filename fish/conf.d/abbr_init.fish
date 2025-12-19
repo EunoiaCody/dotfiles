@@ -36,3 +36,9 @@ abbr --add pkgi "pkg install"
 abbr --add pkgr "pkg uninstall"
 abbr --add pkgs "pkg search"
 abbr --add pkgu "pkg upgrade"
+
+# apk(alpine linux)
+abbr --add apki "sudo apk add"
+abbr --add apkr "sudo apk del"
+abbr --add apku "sudo apk update && sudo apk upgrade"
+abbr --add apks "apk search"
