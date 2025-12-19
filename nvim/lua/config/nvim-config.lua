@@ -4,9 +4,9 @@ opt.number = true -- 显示行号
 opt.list = true -- 高亮当前选中的行
 
 -- 设置为tab 宽度
-opt.tabstop = 4
-opt.shiftwidth = 4
-opt.softtabstop = 4
+opt.tabstop = 2
+opt.shiftwidth = 2
+opt.softtabstop = 2
 opt.expandtab = true
 opt.autoindent = true
 opt.smartindent = true
