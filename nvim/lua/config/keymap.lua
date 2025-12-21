@@ -26,10 +26,10 @@ map("n", "<leader>nto", "<CMD>NvimTreeOpen<CR>", { desc = "打开 Nvim Tree" }) 
 map("n", "<leader>ntc", "<CMD>NvimTreeClose<CR>", { desc = "关闭 Nvim Tree" }) -- 关闭 nvim-tree.nvim
 
 -- 复制粘贴
-map("v", "<ctrl>C", "\"+y", { desc = "复制到系统剪贴板" })
-map("x", "<ctrl>C", "\"+yy", { desc = "复制到系统剪贴板" })
-map("v", "<ctrl>V", "\"+p", { desc = "粘贴自系统剪贴板" })
-map("x", "<ctrl>V", "\"+pp", { desc = "粘贴自系统剪贴板" })
+map("v", "<ctrl>C", '"+y', { desc = "复制到系统剪贴板" })
+map("x", "<ctrl>C", '"+yy', { desc = "复制到系统剪贴板" })
+map("v", "<ctrl>V", '"+p', { desc = "粘贴自系统剪贴板" })
+map("x", "<ctrl>V", '"+pp', { desc = "粘贴自系统剪贴板" })
 
 -- 打开 Copilot Chat
 map("n", "<leader>coc", "<CMD>CodeCompanionChat<CR>", { desc = "打开 Copilot Chat" })
@@ -38,13 +38,37 @@ map("n", "<leader>coc", "<CMD>CodeCompanionChat<CR>", { desc = "打开 Copilot C
 map("n", "<leader>to", "<CMD>ToggleTerm<CR>", { desc = "打开终端" })
 
 -- Code Runner
-vim.keymap.set('n', '<leader>rr', ':RunCode<CR>', { noremap = true, silent = false, desc = "运行代码" })
-vim.keymap.set('n', '<leader>rf', ':RunFile<CR>', { noremap = true, silent = false, desc = "运行当前文件" })
-vim.keymap.set('n', '<leader>rft', ':RunFile tab<CR>', { noremap = true, silent = false, desc = "在新标签页运行当前文件" })
-vim.keymap.set('n', '<leader>rp', ':RunProject<CR>', { noremap = true, silent = false, desc = "运行项目" })
-vim.keymap.set('n', '<leader>rc', ':RunClose<CR>', { noremap = true, silent = false, desc = "关闭运行窗口" })
-vim.keymap.set('n', '<leader>crf', ':CRFiletype<CR>', { noremap = true, silent = false, desc = "选择文件类型运行器" })
-vim.keymap.set('n', '<leader>crp', ':CRProjects<CR>', { noremap = true, silent = false, desc = "选择项目运行器" })
+vim.keymap.set("n", "<leader>rr", ":RunCode<CR>", { noremap = true, silent = false, desc = "运行代码" })
+vim.keymap.set("n", "<leader>rf", ":RunFile<CR>", { noremap = true, silent = false, desc = "运行当前文件" })
+vim.keymap.set(
+	"n",
+	"<leader>rft",
+	":RunFile tab<CR>",
+	{ noremap = true, silent = false, desc = "在新标签页运行当前文件" }
+)
+vim.keymap.set("n", "<leader>rp", ":RunProject<CR>", { noremap = true, silent = false, desc = "运行项目" })
+vim.keymap.set("n", "<leader>rc", ":RunClose<CR>", { noremap = true, silent = false, desc = "关闭运行窗口" })
+vim.keymap.set(
+	"n",
+	"<leader>crf",
+	":CRFiletype<CR>",
+	{ noremap = true, silent = false, desc = "选择文件类型运行器" }
+)
+vim.keymap.set(
+	"n",
+	"<leader>crp",
+	":CRProjects<CR>",
+	{ noremap = true, silent = false, desc = "选择项目运行器" }
+)
 
 -- Mason
-vim.keymap.set('n', '<leader>ms', '<CMD>Mason<CR>', { desc = "open mason" })
+vim.keymap.set("n", "<leader>ms", "<CMD>Mason<CR>", { desc = "open mason" })
+
+-- Snacks.nvim Dimming
+map("n", "<leader>sdo", function()
+	require("snacks").dim()
+end, { desc = "打开 Snacks Dimming" })
+
+map("n", "<leader>sdc", function()
+	require("snacks").dim.disable()
+end, { desc = "关闭 Snacks Dimming" })
