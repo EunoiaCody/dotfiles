@@ -40,3 +40,33 @@ vim.api.nvim_create_user_command("Format", function(args)
 	end
 	require("conform").format({ async = true, lsp_format = "fallback", range = range })
 end, { range = true })
+
+-- lualine 配置
+require("lualine").setup({
+	options = {
+		theme = "catppuccin",
+	},
+})
+
+-- Catppuccin 配置
+require("catppuccin").setup({
+	flavour = "mocha", -- 选择风味: latte, frappe, macchiato, mocha
+	integrations = {
+		native_lsp = {
+			enabled = true,
+			virtual_text = {
+				errors = { "italic" },
+				hints = { "italic" },
+				warnings = { "italic" },
+				information = { "italic" },
+			},
+			underlines = {
+				errors = { "underline" },
+				hints = { "underline" },
+				warnings = { "underline" },
+				information = { "underline" },
+			},
+		},
+	},
+	auto_integrate = true,
+})
