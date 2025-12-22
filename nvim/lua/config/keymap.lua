@@ -72,3 +72,8 @@ end, { desc = "打开 Snacks Dimming" })
 map("n", "<leader>sdc", function()
 	require("snacks").dim.disable()
 end, { desc = "关闭 Snacks Dimming" })
+
+-- barbar 配置
+map("n", "<leader>,", "<Cmd>BufferPrevious<CR>", { desc = "前一个标签页" })
+map("n", "<leader>.", "<Cmd>BufferNext<CR>", { desc = "后一个标签页" })
+map("n", "<leader>bc", "<Cmd>BufferClose<CR>", { desc = "关闭当前标签页" })
