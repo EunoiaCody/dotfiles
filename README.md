@@ -9,6 +9,8 @@
 - **neovide** - Neovim GUI 配置
 - **nvim** - Neovim 编辑器配置
 - **fish** - Fish shell 配置
+- **aerospace** - macOS 平铺窗口管理器配置
+- **sketchybar** - macOS 状态栏配置
 
 ## 目录结构
 
@@ -19,6 +21,8 @@ dotfiles/
 ├── neovide/            # Neovide GUI 配置
 ├── nvim/               # Neovim 编辑器配置
 ├── fish/               # Fish shell 配置
+├── aerospace/          # AeroSpace 窗口管理器配置
+├── sketchybar/         # SketchyBar 状态栏配置
 ├── restore-config.sh   # Linux/macOS 配置还原脚本
 ├── restore-config.ps1  # Windows 配置还原脚本
 ├── sync-config.sh      # Linux/macOS 配置同步脚本
@@ -28,374 +32,116 @@ dotfiles/
 
 ## 依赖安装
 
-在使用这些配置文件之前，您需要安装相应的软件及其依赖。
-
-### 基础软件安装
-
-首先安装四个主要软件：
-
-#### Kitty 终端模拟器
-
-```bash
-# Ubuntu/Debian
-sudo apt install kitty
-
-# Fedora/RHEL
-sudo dnf install kitty
-
-# Arch Linux
-sudo pacman -S kitty
-
-# macOS
-brew install kitty
-
-# Windows
-# 从 https://sw.kovidgoyal.net/kitty/binary/ 下载安装包
-```
-
-#### MPV 媒体播放器
-
-```bash
-# Ubuntu/Debian
-sudo apt install mpv
-
-# Fedora/RHEL
-sudo dnf install mpv
-
-# Arch Linux
-sudo pacman -S mpv
-
-# macOS
-brew install mpv
-
-# Windows
-# 从 https://mpv.io/installation/ 下载安装包
-```
-
-#### Neovim 编辑器
-
-```bash
-# Ubuntu/Debian (推荐使用 PPA 获取最新版本)
-sudo add-apt-repository ppa:neovim-ppa/stable
-sudo apt update
-sudo apt install neovim
-
-# Fedora/RHEL
-sudo dnf install neovim
-
-# Arch Linux
-sudo pacman -S neovim
-
-# macOS
-brew install neovim
-
-# Windows
-# 使用 Chocolatey: choco install neovim
-# 或从 https://github.com/neovim/neovim/releases 下载
-```
-
-#### Neovide GUI
-
-```bash
-# Ubuntu/Debian
-# 从 GitHub releases 下载 deb 包
-wget https://github.com/neovide/neovide/releases/latest/download/neovide.deb
-sudo dpkg -i neovide.deb
-
-# Fedora/RHEL
-sudo dnf install neovide
-
-# Arch Linux
-sudo pacman -S neovide
-
-# macOS
-brew install neovide
-
-# Windows
-# 从 https://github.com/neovide/neovide/releases 下载安装包
-```
-
-#### Fish SHell
-
-```bash
-# Ubuntu/Debian
-sudo apt install fish
-
-# Fedora/RHEL
-sudo dnf install fish
-
-# Arch Linux
-sudo pacman -S fish
-
-# macOS
-brew install fish
-
-# Windows
-# 使用 Chocolatey: choco install fish
-```
-
-### 必需的依赖项
-
-#### Kitty 依赖
-
-**JetBrains Mono 字体**：配置中指定的默认字体
-
-```bash
-# Ubuntu/Debian
-sudo apt install fonts-jetbrains-mono
-
-# Fedora/RHEL
-sudo dnf install jetbrains-mono-fonts
-
-# Arch Linux
-sudo pacman -S ttf-jetbrains-mono
-
-# macOS
-brew install font-jetbrains-mono
-
-# 手动安装（所有系统）
-# 1. 访问 https://www.jetbrains.com/lp/mono/
-# 2. 下载字体文件
-# 3. 安装到系统字体目录
-```
-
-#### Neovim 插件依赖
-
-**Node.js**：LSP 服务器和某些插件需要
-
-```bash
-# Ubuntu/Debian
-curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
-sudo apt-get install -y nodejs
-
-# Fedora/RHEL
-sudo dnf install nodejs npm
-
-# Arch Linux
-sudo pacman -S nodejs npm
-
-# macOS
-brew install node
-
-# Windows
-# 从 https://nodejs.org 下载安装包
-```
-
-**Python 3**：Python LSP 和插件支持
-
-```bash
-# Ubuntu/Debian
-sudo apt install python3 python3-pip
-
-# Fedora/RHEL
-sudo dnf install python3 python3-pip
-
-# Arch Linux
-sudo pacman -S python python-pip
-
-# macOS
-brew install python
-
-# Windows
-# 从 https://python.org 下载安装包
-```
-
-**构建工具**：编译某些插件需要
-
-```bash
-# Ubuntu/Debian
-sudo apt install build-essential cmake gcc g++
-
-# Fedora/RHEL
-sudo dnf groupinstall "Development Tools"
-sudo dnf install cmake gcc gcc-c++
-
-# Arch Linux
-sudo pacman -S base-devel cmake gcc
-
-# macOS
-xcode-select --install
-brew install cmake
-
-# Windows
-# 安装 Visual Studio Build Tools 或 MinGW-w64
-```
-
-**Git**：插件管理需要
-
-```bash
-# Ubuntu/Debian
-sudo apt install git
-
-# Fedora/RHEL
-sudo dnf install git
-
-# Arch Linux
-sudo pacman -S git
-
-# macOS
-brew install git
-
-# Windows
-# 从 https://git-scm.com 下载安装包
-```
-
-**Ripgrep**：文件搜索功能
-
-```bash
-# Ubuntu/Debian
-sudo apt install ripgrep
-
-# Fedora/RHEL
-sudo dnf install ripgrep
-
-# Arch Linux
-sudo pacman -S ripgrep
-
-# macOS
-brew install ripgrep
-
-# Windows
-# 使用 Chocolatey: choco install ripgrep
-```
-
-#### MPV 可选依赖
-
-**FFmpeg**：增强的格式支持（通常已包含在 MPV 中）
-
-```bash
-# Ubuntu/Debian
-sudo apt install ffmpeg
-
-# Fedora/RHEL
-sudo dnf install ffmpeg
-
-# Arch Linux
-sudo pacman -S ffmpeg
-
-# macOS
-brew install ffmpeg
-
-# Windows
-# 从 https://ffmpeg.org 下载或使用包管理器
-```
+### 主要软件
+
+| 软件 | Ubuntu/Debian | Fedora/RHEL | Arch Linux | macOS | Windows |
+|------|---------------|-------------|------------|-------|---------|
+| **Kitty** | `apt install kitty` | `dnf install kitty` | `pacman -S kitty` | `brew install kitty` | [下载](https://sw.kovidgoyal.net/kitty/binary/) |
+| **MPV** | `apt install mpv` | `dnf install mpv` | `pacman -S mpv` | `brew install mpv` | [下载](https://mpv.io/installation/) |
+| **Neovim** | `apt install neovim`* | `dnf install neovim` | `pacman -S neovim` | `brew install neovim` | `choco install neovim` 或 [下载](https://github.com/neovim/neovim/releases) |
+| **Neovide** | [下载 deb](https://github.com/neovide/neovide/releases) | `dnf install neovide` | `pacman -S neovide` | `brew install neovide` | [下载](https://github.com/neovide/neovide/releases) |
+| **Fish** | `apt install fish` | `dnf install fish` | `pacman -S fish` | `brew install fish` | `choco install fish` |
+| **AeroSpace** | N/A | N/A | N/A | `brew install --cask nikitabobko/tap/aerospace` | N/A |
+| **SketchyBar** | N/A | N/A | N/A | `brew tap FelixKratz/formulae && brew install sketchybar` | N/A |
+
+\* Ubuntu/Debian 推荐使用 PPA：`sudo add-apt-repository ppa:neovim-ppa/stable && sudo apt update`
+
+### 必需依赖
+
+| 依赖 | 用途 | Ubuntu/Debian | Fedora/RHEL | Arch Linux | macOS | Windows |
+|------|------|---------------|-------------|------------|-------|---------|
+| **JetBrains Mono** | Kitty 字体 | `apt install fonts-jetbrains-mono` | `dnf install jetbrains-mono-fonts` | `pacman -S ttf-jetbrains-mono` | `brew install font-jetbrains-mono` | [下载](https://www.jetbrains.com/lp/mono/) |
+| **Node.js** | Neovim LSP | `apt install nodejs` | `dnf install nodejs npm` | `pacman -S nodejs npm` | `brew install node` | [下载](https://nodejs.org) |
+| **Python 3** | Neovim 插件 | `apt install python3 python3-pip` | `dnf install python3 python3-pip` | `pacman -S python python-pip` | `brew install python` | [下载](https://python.org) |
+| **Git** | 插件管理 | `apt install git` | `dnf install git` | `pacman -S git` | `brew install git` | [下载](https://git-scm.com) |
+| **Ripgrep** | 文件搜索 | `apt install ripgrep` | `dnf install ripgrep` | `pacman -S ripgrep` | `brew install ripgrep` | `choco install ripgrep` |
+| **构建工具** | 插件编译 | `apt install build-essential cmake` | `dnf groupinstall "Development Tools" && dnf install cmake` | `pacman -S base-devel cmake` | `xcode-select --install && brew install cmake` | Visual Studio Build Tools |
+| **FFmpeg** | MPV 格式支持（可选） | `apt install ffmpeg` | `dnf install ffmpeg` | `pacman -S ffmpeg` | `brew install ffmpeg` | [下载](https://ffmpeg.org) |
 
 ### 安装后设置
 
-安装完所有依赖后：
-
-1. **重启终端**以确保所有路径更新
-2. **启动 Neovim** 首次运行会自动安装插件：
-
-   ```bash
-   nvim
-   ```
-
-   插件将自动安装，可能需要几分钟时间。
-
-3. **验证安装**：
-
-   ```bash
-   # 检查 Node.js
-   node --version
-
-   # 检查 Python
-   python3 --version
-
-   # 检查构建工具
-   gcc --version
-   cmake --version
-
-   # 检查 Git
-   git --version
-   ```
+1. 重启终端以应用路径更新
+2. 首次启动 Neovim 会自动安装插件：`nvim`（需几分钟）
+3. 验证安装：`node --version && python3 --version && git --version`
 
 ## 使用方法
 
 ### Linux / macOS
 
-#### 方式一：直接复制（推荐）
+#### 使用还原脚本（推荐）
 
-将配置文件复制到对应的配置目录：
+```bash
+git clone https://github.com/EunoiaCody/dotfiles.git
+cd dotfiles
+./restore-config.sh
+```
+
+脚本会将配置文件复制到 `~/.config/`（fish 配置到 `~/.config/fish/`，aerospace 配置到 `~/.aerospace.toml`）。
+
+#### 手动安装
 
 ```bash
 # 克隆仓库
 git clone https://github.com/EunoiaCody/dotfiles.git
 cd dotfiles
 
-# 复制配置文件到 ~/.config/
-cp -r kitty ~/.config/
-cp -r mpv ~/.config/
-cp -r neovide ~/.config/
-cp -r nvim ~/.config/
+# 复制配置
+cp -r kitty mpv neovide nvim ~/.config/
+cp -r fish ~/.config/fish/
+cp aerospace/aerospace.toml ~/.aerospace.toml
+cp -r sketchybar ~/.config/
 ```
 
-#### 方式二：创建符号链接（本地同步）
-
-如果你想要本地配置文件与仓库保持实时同步：
+#### 使用符号链接（实时同步）
 
 ```bash
-# 克隆仓库到合适的位置
 git clone https://github.com/EunoiaCody/dotfiles.git ~/dotfiles
 cd ~/dotfiles
 
 # 备份现有配置（可选）
 mkdir -p ~/.config/backup
-mv ~/.config/kitty ~/.config/backup/ 2>/dev/null || true
-mv ~/.config/mpv ~/.config/backup/ 2>/dev/null || true
-mv ~/.config/neovide ~/.config/backup/ 2>/dev/null || true
-mv ~/.config/nvim ~/.config/backup/ 2>/dev/null || true
+for dir in kitty mpv neovide nvim sketchybar; do
+    [ -d ~/.config/$dir ] && mv ~/.config/$dir ~/.config/backup/
+done
 
 # 创建符号链接
-ln -sf ~/dotfiles/kitty ~/.config/kitty
-ln -sf ~/dotfiles/mpv ~/.config/mpv
-ln -sf ~/dotfiles/neovide ~/.config/neovide
-ln -sf ~/dotfiles/nvim ~/.config/nvim
+for dir in kitty mpv neovide nvim sketchybar; do
+    ln -sf ~/dotfiles/$dir ~/.config/$dir
+done
+ln -sf ~/dotfiles/fish ~/.config/fish
+ln -sf ~/dotfiles/aerospace/aerospace.toml ~/.aerospace.toml
 ```
 
 ### Windows 10 / 11
 
-#### 方式一：使用还原脚本（推荐）
-
-本仓库提供了 PowerShell 脚本，用于在 Windows 上管理配置文件。配置文件将安装到 `%LOCALAPPDATA%`（用户主目录\AppData\Local\）。
+#### 使用还原脚本（推荐）
 
 ```powershell
-# 克隆仓库
 git clone https://github.com/EunoiaCody/dotfiles.git
 cd dotfiles
 
-# 运行还原脚本（需要以管理员权限或允许脚本执行）
-.\restore-config.ps1
-```
-
-**注意**：如果遇到执行策略错误，可以临时允许脚本执行：
-
-```powershell
-# 临时允许执行脚本（当前 PowerShell 会话）
+# 如遇执行策略错误，先运行：
 Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process
 
-# 然后运行脚本
 .\restore-config.ps1
 ```
 
-还原脚本会：
-1. 将配置文件从仓库复制到 `%LOCALAPPDATA%`
-2. 自动备份现有配置（如果存在）为 `.bak` 后缀
-3. 如果已存在 `.bak` 备份，会先删除旧备份
+脚本功能：
+- 将配置复制到 `%LOCALAPPDATA%`
+- 自动备份现有配置（添加 `.bak` 后缀）
+- 清理旧备份
 
-#### 方式二：手动复制
+#### 手动安装
 
 ```powershell
-# 克隆仓库
 git clone https://github.com/EunoiaCody/dotfiles.git
 cd dotfiles
 
-# 手动复制配置文件到 %LOCALAPPDATA%
-Copy-Item -Path kitty -Destination $env:LOCALAPPDATA\kitty -Recurse
-Copy-Item -Path mpv -Destination $env:LOCALAPPDATA\mpv -Recurse
-Copy-Item -Path neovide -Destination $env:LOCALAPPDATA\neovide -Recurse
-Copy-Item -Path nvim -Destination $env:LOCALAPPDATA\nvim -Recurse
+# 复制配置文件
+Copy-Item -Path kitty,mpv,neovide,nvim,fish -Destination $env:LOCALAPPDATA -Recurse
 ```
+
+**注意**：Windows 不支持 aerospace 和 sketchybar（仅限 macOS）。
 
 ## 同步配置文件
 
@@ -403,95 +149,93 @@ Copy-Item -Path nvim -Destination $env:LOCALAPPDATA\nvim -Recurse
 
 ### Linux / macOS
 
-#### 使用同步脚本
-
 ```bash
 cd ~/dotfiles
 ./sync-config.sh
 ```
 
-脚本会：
-
+脚本功能：
 1. 将 `~/.config/` 中的配置文件复制到仓库
 2. 检测文件变更并自动提交
 3. 询问是否推送到 GitHub
 
-#### 自动化同步（可选）
-
-你可以设置定期任务来自动同步配置：
+**自动化同步**（可选）：使用 crontab 定期同步
 
 ```bash
-# 编辑 crontab
 crontab -e
-
-# 添加以下行（每天晚上 11 点同步）
+# 添加：每天 23:00 自动同步
 0 23 * * * cd ~/dotfiles && ./sync-config.sh >/dev/null 2>&1
 ```
 
 ### Windows 10 / 11
 
-#### 使用同步脚本
-
 ```powershell
+# 如遇执行策略错误，先运行：
+Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process
+
 cd dotfiles
 .\sync-config.ps1
 ```
 
-脚本会：
-
+脚本功能：
 1. 将 `%LOCALAPPDATA%` 中的配置文件复制到仓库
-2. 清理嵌入的 git 仓库（如果有）
+2. 清理嵌入的 git 仓库
 3. 检测文件变更并自动提交
 4. 询问是否推送到 GitHub
 
-**注意**：如果遇到执行策略错误，可以临时允许脚本执行：
+**自动化同步**（可选）：创建 `sync-dotfiles.bat`
 
-```powershell
-Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process
-.\sync-config.ps1
-```
-
-#### 自动化同步（可选）
-
-你可以使用任务计划程序来自动同步配置：
-
-```powershell
-# 创建一个批处理文件 sync-dotfiles.bat（将路径替换为你的 dotfiles 仓库位置）
+```batch
 @echo off
 cd /d "%USERPROFILE%\dotfiles"
 powershell.exe -ExecutionPolicy Bypass -File ".\sync-config.ps1"
 ```
 
-然后在任务计划程序中创建定时任务运行此批处理文件。
-
-**注意**：请根据实际克隆位置修改 `%USERPROFILE%\dotfiles` 路径。
+然后在任务计划程序中创建定时任务运行此文件。
 
 ## 配置说明
 
 ### Kitty 终端
 
-- 包含主题配置和快捷键设置
-- 支持字体渲染优化
-- 包含窗口管理配置
+- 主题配置和快捷键设置
+- 字体渲染优化
+- 窗口管理配置
 
 ### MPV 播放器
 
-- 集成 uosc 现代化界面
-- 包含弹幕支持 (uosc_danmaku)
-- 配置 Anime4K 画质增强着色器
+- uosc 现代化界面
+- uosc_danmaku 弹幕支持
+- Anime4K 画质增强着色器
 - 自定义快捷键和播放设置
 
 ### Neovide 图形界面
 
-- Neovim 的 GUI 前端配置
-- 包含字体和界面设置
+- Neovim GUI 前端配置
+- 字体和界面设置
 
-### Neovim 编辑器配置
+### Neovim 编辑器
 
-- 基于 Lazy.nvim 的插件管理
+- Lazy.nvim 插件管理
 - LSP 支持和代码补全
-- 包含各种开发工具和主题
+- 多种开发工具和主题
 - 支持多种编程语言
+
+### Fish Shell
+
+- Shell 环境配置
+- 自定义函数和别名
+
+### AeroSpace 窗口管理器（仅 macOS）
+
+- 平铺窗口管理配置
+- 快捷键绑定
+- 工作区管理
+
+### SketchyBar 状态栏（仅 macOS）
+
+- Catppuccin Mocha 主题配置
+- 自定义插件和组件
+- 状态栏布局设置
 
 ## 版本控制说明
 
