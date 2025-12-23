@@ -2,6 +2,15 @@
 
 我的个人配置文件仓库，包含各种应用程序的配置文件。
 
+```
+███████╗██╗   ██╗███╗   ██╗ ██████╗ ██╗ █████╗ 
+██╔════╝██║   ██║████╗  ██║██╔═══██╗██║██╔══██╗
+█████╗  ██║   ██║██╔██╗ ██║██║   ██║██║███████║
+██╔══╝  ██║   ██║██║╚██╗██║██║   ██║██║██╔══██║
+███████╗╚██████╔╝██║ ╚████║╚██████╔╝██║██║  ██║
+╚══════╝ ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝ ╚═╝╚═╝  ╚═╝
+```
+
 ## 包含的配置
 
 - **kitty** - 终端模拟器配置
@@ -36,11 +45,11 @@ dotfiles/
 
 | 软件 | Ubuntu/Debian | Fedora/RHEL | Arch Linux | macOS | Windows |
 |------|---------------|-------------|------------|-------|---------|
-| **Kitty** | `apt install kitty` | `dnf install kitty` | `pacman -S kitty` | `brew install kitty` | [下载](https://sw.kovidgoyal.net/kitty/binary/) |
+| **Kitty** | `apt install kitty` | `dnf install kitty` | `pacman -S kitty` | `brew install kitty` | N/A |
 | **MPV** | `apt install mpv` | `dnf install mpv` | `pacman -S mpv` | `brew install mpv` | [下载](https://mpv.io/installation/) |
 | **Neovim** | `apt install neovim`* | `dnf install neovim` | `pacman -S neovim` | `brew install neovim` | `choco install neovim` 或 [下载](https://github.com/neovim/neovim/releases) |
 | **Neovide** | [下载 deb](https://github.com/neovide/neovide/releases) | `dnf install neovide` | `pacman -S neovide` | `brew install neovide` | [下载](https://github.com/neovide/neovide/releases) |
-| **Fish** | `apt install fish` | `dnf install fish` | `pacman -S fish` | `brew install fish` | `choco install fish` |
+| **Fish** | `apt install fish` | `dnf install fish` | `pacman -S fish` | `brew install fish` | N/A |
 | **AeroSpace** | N/A | N/A | N/A | `brew install --cask nikitabobko/tap/aerospace` | N/A |
 | **SketchyBar** | N/A | N/A | N/A | `brew tap FelixKratz/formulae && brew install sketchybar` | N/A |
 
