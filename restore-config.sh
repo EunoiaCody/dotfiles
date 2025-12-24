@@ -13,7 +13,7 @@ echo "开始还原配置文件到 ~/.config/ ..."
 
 cd "$(dirname "$0")"
 
-CONFIG_DIRS=("kitty" "mpv" "neovide" "nvim" "fish" "aerospace" "sketchybar")
+CONFIG_DIRS=("kitty" "mpv" "neovide" "nvim" "fish" "aerospace" "sketchybar" "yazi")
 
 for dir in "${CONFIG_DIRS[@]}"; do
     SRC="$dir"
