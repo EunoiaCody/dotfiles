@@ -62,6 +62,7 @@
                 "google-chrome"
                 "visual-studio-code"
                 "wechat"
+                "orbstack"
                 "qq"
                 "kitty"
                 "tailscale-app"
