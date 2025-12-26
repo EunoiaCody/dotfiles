@@ -27,6 +27,7 @@
             home.packages = with pkgs; [
               neovim yazi bat eza fd fzf ripgrep jq zoxide 
               fastfetch lazygit gh yt-dlp ffmpeg mpv kitty neovide fish 
+              figlet python3 tree-sitter
             ];
 
             xdg.configFile = {
