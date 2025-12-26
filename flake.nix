@@ -57,6 +57,10 @@
                 "qq"
                 "kitty"
                 "tailscale"
+                "steam"
+                "steamcmd"
+                "tailscale-app"
+                "telegram-desktop"
               ];
             };
 
