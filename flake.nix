@@ -47,6 +47,7 @@
               onActivation.upgrade = true;
 
               taps = [
+                "thusvill/livewallpaper"
                 "dimentium/autoraise"
                 "nikitabobko/tap"
                 "Felixkratz/formulae"
@@ -60,6 +61,7 @@
 
               casks = [
                 "google-chrome"
+                "livewallpaper"
                 "obs"
                 "visual-studio-code"
                 "wechat"
