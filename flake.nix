@@ -49,7 +49,7 @@
               taps = [
                 "dimentium/autoraise"
                 "nikitabobko/tap"
-                "elixkratz/formulae"
+                "Felixkratz/formulae"
               ];
 
               brews = [
