@@ -68,6 +68,7 @@
                 "orbstack"
                 "qq"
                 "kitty"
+                "neovide"
                 "tailscale-app"
                 "steam"
                 "steamcmd"
@@ -119,8 +120,6 @@
                 yt-dlp
                 ffmpeg
                 mpv
-                kitty
-                neovide
                 fish
                 figlet
                 python3
