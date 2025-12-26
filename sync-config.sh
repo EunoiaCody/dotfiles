@@ -11,7 +11,7 @@ echo "开始同步配置文件到 dotfiles 仓库..."
 cd "$(dirname "$0")"
 
 # 配置文件夹列表
-CONFIG_DIRS=("kitty" "mpv" "neovide" "nvim" "fish" "aerospace" "sketchybar" "yazi")
+CONFIG_DIRS=("kitty" "mpv" "neovide" "nvim" "fish" "aerospace" "sketchybar" "yazi" "figlet")
 
 # 同步每个配置文件夹
 for dir in "${CONFIG_DIRS[@]}"; do
