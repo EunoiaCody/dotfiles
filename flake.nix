@@ -46,8 +46,16 @@
               onActivation.autoUpdate = true;
               onActivation.upgrade = true;
 
+              taps = [
+                "dimentium/autoraise"
+                "nikitabobko/tap"
+                "elixkratz/formulae"
+              ];
+
               brews = [
                 "mas"
+                "borders"
+                "sketchybar"
               ];
 
               casks = [
@@ -61,6 +69,8 @@
                 "steamcmd"
                 "tailscale-app"
                 "telegram-desktop"
+                "dimentium/autoraise/autoraiseapp"
+                "aerospace"
               ];
             };
 
