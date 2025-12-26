@@ -38,6 +38,7 @@
               "mpv".source = ./mpv;
               "neovide".source = ./neovide;
               "aerospace".source = ./aerospace;
+              "figlet".source = ./figlet;
             };
 
             programs.home-manager.enable = true;
