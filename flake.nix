@@ -23,15 +23,12 @@
             home.homeDirectory = "/Users/eunoiacody";
             home.stateVersion = "23.11";
 
-            # 软件包：直接从你的 GitHub 列表迁移
+
             home.packages = with pkgs; [
               neovim yazi bat eza fd fzf ripgrep jq zoxide 
               fastfetch lazygit gh yt-dlp ffmpeg mpv kitty neovide fish 
-              # 你可以随时在这里增加新的软件名
             ];
 
-            # 映射目录：将本地克隆的仓库路径映射到 ~/.config
-            # 这样你在 ~/dotfiles 里的修改能通过 switch 立即生效
             xdg.configFile = {
               "nvim".source = ./nvim;
               "yazi".source = ./yazi;
