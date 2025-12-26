@@ -60,7 +60,7 @@
 
               casks = [
                 "google-chrome"
-                "obs-studio"
+                "obs"
                 "visual-studio-code"
                 "wechat"
                 "orbstack"
