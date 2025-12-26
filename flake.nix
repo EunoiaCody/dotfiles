@@ -68,7 +68,7 @@
                 "orbstack"
                 "qq"
                 "kitty"
-                "neovide"
+                "neovide-app"
                 "tailscale-app"
                 "steam"
                 "steamcmd"
