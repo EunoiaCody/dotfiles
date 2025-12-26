@@ -64,7 +64,7 @@
                 "wechat"
                 "qq"
                 "kitty"
-                "tailscale"
+                "tailscale-app"
                 "steam"
                 "steamcmd"
                 "tailscale-app"
