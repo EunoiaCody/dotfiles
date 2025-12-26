@@ -56,8 +56,7 @@ if test -x "$DARWIN_REBUILD"
     if sudo env http_proxy=http://127.0.0.1:20122 \
             https_proxy=http://127.0.0.1:20122 \
             all_proxy=socks5://127.0.0.1:20122 \
-            $DARWIN_REBUILD switch --flake . \
-            --option substituters "https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store https://cache.nixos.org"
+            $DARWIN_REBUILD switch --flake . 
             
         echo (set_color green)"✨ 系统与用户配置已同步完成！"(set_color normal)
     else
