@@ -49,7 +49,6 @@
               tree-sitter
               clang
               nodejs
-              npm
               git
               cmake
             ];
