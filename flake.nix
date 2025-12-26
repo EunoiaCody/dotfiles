@@ -40,6 +40,26 @@
               home = "/Users/eunoiacody";
             };
 
+            homebrew = {
+              enable = true;
+              onActivation.cleanup = "zap";
+              onActivation.autoUpdate = true;
+              onActivation.upgrade = true;
+
+              brwe = [
+                "mas"
+              ];
+
+              casks = [
+                "google-chrome"
+                "visual-studio-code"
+                "wechat"
+                "qq"
+                "kitty"
+                "tailscale"
+              ];
+            };
+
             # 这里的包是全系统用户可用的
             environment.systemPackages = [ pkgs.vim pkgs.git ];
 
