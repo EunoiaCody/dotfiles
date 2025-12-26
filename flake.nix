@@ -46,7 +46,7 @@
               onActivation.autoUpdate = true;
               onActivation.upgrade = true;
 
-              brwe = [
+              brew = [
                 "mas"
               ];
 
