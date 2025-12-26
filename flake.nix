@@ -13,7 +13,8 @@
     let
       system = "aarch64-darwin";
       pkgs = nixpkgs.legacyPackages.${system};
-    in {
+    in
+    {
       homeConfigurations."eunoiacody" = home-manager.lib.homeManagerConfiguration {
         inherit pkgs;
 
@@ -25,9 +26,32 @@
 
 
             home.packages = with pkgs; [
-              neovim yazi bat eza fd fzf ripgrep jq zoxide 
-              fastfetch lazygit gh yt-dlp ffmpeg mpv kitty neovide fish 
-              figlet python3 tree-sitter
+              neovim
+              yazi
+              bat
+              eza
+              fd
+              fzf
+              ripgrep
+              jq
+              zoxide
+              fastfetch
+              lazygit
+              gh
+              yt-dlp
+              ffmpeg
+              mpv
+              kitty
+              neovide
+              fish
+              figlet
+              python3
+              tree-sitter
+              clang
+              nodejs
+              npm
+              git
+              cmake
             ];
 
             xdg.configFile = {
