@@ -51,6 +51,7 @@
               nodejs
               git
               cmake
+              nerd-fonts-jetbrains-mono
             ];
 
             xdg.configFile = {
