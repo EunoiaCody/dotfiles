@@ -54,7 +54,6 @@
               ];
 
               brews = [
-                "copilot-cli"
                 "mas"
                 "borders"
                 "sketchybar"
@@ -63,6 +62,7 @@
               casks = [
                 "google-chrome"
                 "livewallpaper"
+                "copilot-cli"
                 "obs"
                 "visual-studio-code"
                 "wechat"
