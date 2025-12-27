@@ -13,9 +13,6 @@
     wget
   ];
 
-  # 启用 Flakes 和新指令集
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
-
   # 设置你的用户
   users.users.eunoiacody = {
     isNormalUser = true;
