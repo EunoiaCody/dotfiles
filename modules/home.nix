@@ -4,12 +4,17 @@
   home.homeDirectory = if pkgs.stdenv.isDarwin then "/Users/eunoiacody" else "/home/eunoiacody";
   home.stateVersion = "23.11";
 
+  programs.git = {
+    enable = true;
+    userName = "EunoiaCody";
+    userEmail = "eunoiacody@gmail.com";
+  }
+
   # 无论在哪台电脑都想要安装的包
   home.packages = with pkgs; [
     neovim
     yazi
     bat
-    eza
     fd
     fzf
     ripgrep
