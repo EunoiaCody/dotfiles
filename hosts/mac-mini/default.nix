@@ -42,7 +42,7 @@
       "steamcmd"
       "telegram-desktop"
       "aerospace"
-      "autoraise"
+      "dimentium/autoraise/autoraiseapp"
     ];
   };
 
