@@ -29,6 +29,7 @@
 
     casks = [
       "google-chrome"
+      "webtorrent"
       "livewallpaper"
       "obs"
       "visual-studio-code"
