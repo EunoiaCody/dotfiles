@@ -17,6 +17,7 @@
 
   # 无论在哪台电脑都想要安装的包
   home.packages = with pkgs; [
+    lolcat
     btop
     luarocks
     rustc
