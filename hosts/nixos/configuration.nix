@@ -2,6 +2,9 @@
   # 允许非自由软件
   nixpkgs.config.allowUnfree = true;
 
+  # 开启 Flakes 和新版指令集
+  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+
   # 基础系统包
   environment.systemPackages = with pkgs; [
     vim
