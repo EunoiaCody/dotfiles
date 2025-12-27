@@ -128,6 +128,7 @@
                 nodejs
                 cmake
                 nerd-fonts.jetbrains-mono
+                copilot-cli
               ];
 
               # 你原来的文件映射
