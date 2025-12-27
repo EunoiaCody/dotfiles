@@ -44,8 +44,8 @@
     useDHCP = false;
     hostName = "nixos";
   };
-  services.resolved.enable = true;
-  systemd.network.enable = true;
+  # services.resolved.enable = true;
+  # systemd.network.enable = true;
 
   # 修复 systemd-networkd 报错：确保 eth0 被正确接管
   systemd.network.networks."10-eth0" = {
