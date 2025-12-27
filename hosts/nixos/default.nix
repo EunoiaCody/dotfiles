@@ -1,4 +1,9 @@
 { pkgs, ... }: {
+
+  import = [
+    <orbstack/nixos>
+  ];
+
   # 允许非自由软件
   nixpkgs.config.allowUnfree = true;
 
