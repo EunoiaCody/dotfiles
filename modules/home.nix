@@ -6,7 +6,7 @@
 
   # 设置全局风格
   catppuccin = {
-    enable = true;
+    enable = false;
     flavor = "mocha"; # 可选: latte, frappe, macchiato, mocha
     accent = "lavender";
 
