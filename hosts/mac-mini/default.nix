@@ -29,8 +29,8 @@
 
     casks = [
       "google-chrome"
-      "webtorrent"
       "livewallpaper"
+      "motrix"
       "obs"
       "visual-studio-code"
       "wechat"
