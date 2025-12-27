@@ -39,5 +39,16 @@
   # services.orbstack.enable = true;
   boot.loader.grub.enable = false;
 
+  # 显式开启网络管理，防止冲突
+  networks.networking.useDHCP = false; # 关闭全局 DHCP 避免冲突
+  services.resolved.enable = true;
+  systemd.network.enable = true;
+
+  # 修复 systemd-networkd 报错：确保 eth0 被正确接管
+  systemd.network.networks."10-eth0" = {
+    matchConfig.Name = "eth0";
+    networkConfig.DHCP = "yes";
+  };
+
   system.stateVersion = "23.11";
 }
