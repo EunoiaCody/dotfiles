@@ -1,9 +1,5 @@
 { pkgs, ... }: {
 
-  imports = [
-    <orbstack/nixos>
-  ];
-
   # 允许非自由软件
   nixpkgs.config.allowUnfree = true;
 
@@ -26,7 +22,7 @@
   };
 
   # 既然是 OrbStack，通常需要这个
-  services.orbstack.enable = true;
+  # services.orbstack.enable = true;
 
   system.stateVersion = "23.11";
 }
