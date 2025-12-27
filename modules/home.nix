@@ -48,15 +48,6 @@
     github-copilot-cli
   ];
 
-  programs = {
-    fish = {
-      plugins = with pkgs.fishPlugins; [
-        autopair
-        spark
-      ];
-    };
-  };
-
   # 配置文件映射
   # 注意：这里使用了相对路径 ../，指向你放在 dotfiles 根目录的配置夹
   xdg.configFile = {
