@@ -1,8 +1,5 @@
 if status is-interactive
     # Commands to run in interactive sessions can go here
-    if test -f /etc/static/fish/config.fish
-        source /etc/static/fish/config.fish
-    end
     set -gx EDITOR nvim
 end
 
