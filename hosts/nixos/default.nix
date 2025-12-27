@@ -40,7 +40,7 @@
   boot.loader.grub.enable = false;
 
   # 显式开启网络管理，防止冲突
-  networks.networking.useDHCP = false; # 关闭全局 DHCP 避免冲突
+  networking.networking.useDHCP = false; # 关闭全局 DHCP 避免冲突
   services.resolved.enable = true;
   systemd.network.enable = true;
 
