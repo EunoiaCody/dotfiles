@@ -11,8 +11,8 @@ return {
 					size = 15,
 				},
 				filetype = {
-					python = "cd $dir && python3 -u",
-					javascript = "cd $dir && node",
+					python = "cd $dir && python3 -u $fileName",
+					javascript = "cd $dir && node $fileName",
 					typescript = "cd $dir && tsc $fileName && node $fileNameWithoutExt.js",
 					rust = "cd $dir && rustc $fileName -o $fileNameWithoutExt && ./$fileNameWithoutExt",
 					go = "cd $dir && go run",
