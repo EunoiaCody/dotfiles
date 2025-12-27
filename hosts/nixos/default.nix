@@ -1,5 +1,11 @@
 { pkgs, ... }: {
 
+  # 1. 核心修复：必须引入 OrbStack 的硬件配置！
+  # 这会帮你自动配置好 fileSystems (根目录挂载)
+  imports = [
+    /etc/nixos/orbstack.nix
+  ];
+
   # 允许非自由软件
   nixpkgs.config.allowUnfree = true;
 
@@ -14,6 +20,8 @@
     wget
   ];
 
+  programs.fish.enable = true;
+
   # 设置你的用户
   users.users.eunoiacody = {
     isNormalUser = true;
@@ -23,6 +31,7 @@
 
   # 既然是 OrbStack，通常需要这个
   # services.orbstack.enable = true;
+  boot.loader.grub.enable = false;
 
   system.stateVersion = "23.11";
 }
