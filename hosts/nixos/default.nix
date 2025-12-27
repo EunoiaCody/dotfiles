@@ -30,10 +30,6 @@
   # 开启 Flakes 和新版指令集
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
-  # 启用 Cosmic 桌面环境
-  services.desktopManager.cosmic.enable = true;
-  services.displayManager.cosmic-greeter.enable = true;
-
   # 基础系统包
   environment.systemPackages = with pkgs; [
     vim
@@ -43,13 +39,6 @@
     curl
     wget
   ];
-
-  # 开放防火墙端口 (VNC 默认 5900)
-  networking.firewall.allowedTCPPorts = [ 5900 ];
-
-  # 配置虚拟输出 (Headless 模式)
-  # 由于 OrbStack 没有物理显卡输出，Cosmic 需要一个虚拟占位符
-  services.xserver.videoDrivers = [ "virtio" ];
 
   programs.fish.enable = true;
 
