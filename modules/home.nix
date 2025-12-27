@@ -12,6 +12,8 @@
 
   # 无论在哪台电脑都想要安装的包
   home.packages = with pkgs; [
+    rustc
+    cargo
     neovim
     yazi
     bat
