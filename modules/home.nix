@@ -4,16 +4,16 @@
   home.homeDirectory = if pkgs.stdenv.isDarwin then "/Users/eunoiacody" else "/home/eunoiacody";
   home.stateVersion = "23.11";
 
-  programs.git = {
-    enable = true;
-    userName = "EunoiaCody";
-    userEmail = "eunoiacody@gmail.com";
-  };
-
   # 设置全局风格
-  catppuccin.enable = true;
-  catppuccin.flavor = "mocha"; # 可选: latte, frappe, macchiato, mocha
-  catppuccin.accent = "lavender";
+  catppuccin = {
+    enable = true;
+    flavor = "mocha"; # 可选: latte, frappe, macchiato, mocha
+    accent = "lavender";
+
+    lazygit = {
+      enable = true;
+    };
+  };
 
   # 无论在哪台电脑都想要安装的包
   home.packages = with pkgs; [
@@ -50,7 +50,6 @@
 
   programs.lazygit = {
     enable = true;
-    catppuccin.enable = true;
   };
 
   # 配置文件映射
@@ -65,6 +64,12 @@
     "neovide".source = ../neovide;
     "aerospace".source = ../aerospace;
     "figlet".source = ../figlet;
+  };
+
+  programs.git = {
+    enable = true;
+    user.name = "EunoiaCody";
+    user.email = "eunoiacody@gmail.com";
   };
 
   programs.home-manager.enable = true;
