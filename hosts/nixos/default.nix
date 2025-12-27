@@ -1,6 +1,19 @@
 { pkgs, ... }: {
 
-  # 1. 核心修复：必须引入 OrbStack 的硬件配置！
+  # 设置系统语言环境
+  i18n.defaultLocale = "zh_CN.UTF-8";
+
+  # 设置中文字体（否则终端和应用可能会显示乱码/方块）
+  fonts = {
+    fontDir.enable = true;
+    packages = with pkgs; [
+      noto-fonts
+      noto-fonts-cjk-sans
+      noto-fonts-cjk-serif
+    ];
+  };
+
+  # 必须引入 OrbStack 的硬件配置！
   # 这会帮你自动配置好 fileSystems (根目录挂载)
   imports = [
     /etc/nixos/orbstack.nix
