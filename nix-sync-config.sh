@@ -14,6 +14,9 @@ echo (set_color green)"开始同步 dotfiles 流程 (先同步 Git，再应用�
 echo (set_color cyan)"清理嵌套的 .git 目录..."(set_color normal)
 find . -name ".git" -type d -not -path "./.git" -exec rm -rf {} + 2>/dev/null
 
+# 拉取最新配置
+git pull
+
 # 3. 检查并处理 Git 变更
 if not git diff --quiet; or not git diff --staged --quiet; or test -n (git ls-files --others --exclude-standard)
     echo (set_color yellow)"检测到本地变更，正在准备 Git 提交..."(set_color normal)
