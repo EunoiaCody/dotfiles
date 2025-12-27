@@ -13,6 +13,7 @@
   # 无论在哪台电脑都想要安装的包
   home.packages = with pkgs; [
     rustc
+    unzip
     cargo
     neovim
     yazi
