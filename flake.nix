@@ -37,6 +37,7 @@
                 catppuccin.homeModules.catppuccin
               ];
             };
+            home-manager.backupFileExtension = "bak";
           }
         ];
       };
