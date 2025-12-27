@@ -38,7 +38,6 @@
     yt-dlp
     ffmpeg
     mpv
-    fish
     figlet
     python3
     tree-sitter
@@ -59,12 +58,19 @@
     "nvim".source = ../nvim;
     "yazi".source = ../yazi;
     "sketchybar".source = ../sketchybar;
-    "fish".source = ../fish;
     "kitty".source = ../kitty;
     "mpv".source = ../mpv;
     "neovide".source = ../neovide;
     "aerospace".source = ../aerospace;
     "figlet".source = ../figlet;
+  };
+
+  programs.fish = {
+    enable = true;
+    interactiveShellInit = ''
+      set -gx EDITOR nvim
+      set PATH $PATH /Users/eunoiacody/.local/bin
+    '';
   };
 
   programs.git = {
