@@ -12,9 +12,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nixos-cosmic.url = "github:lilyinstarlight/nixos-cosmic";
+    catppuccin.url = "github:catppuccin/nix";
   };
 
-  outputs = { self, nixpkgs, nix-darwin, home-manager, nixos-cosmic, ... }@inputs:
+  outputs = { self, nixpkgs, nix-darwin, home-manager, catppuccin, ... }@inputs:
     let
       # 变量提取
       nodename = "EunoiadeMac-mini";
@@ -30,7 +31,12 @@
           {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
-            home-manager.users.eunoiacody = import ./modules/home.nix;
+            home-manager.users.eunoiacody = {
+              imports = [
+                ./modules/home.nix
+                catppuccin.homeModules.catppuccin
+              ];
+            };
           }
         ];
       };
@@ -41,11 +47,18 @@
         modules = [
           ./hosts/nixos/default.nix
 
+          catppuccin.nixosModules.catppuccin
+
           home-manager.nixosModules.home-manager
           {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
-            home-manager.users.eunoiacody = import ./modules/home.nix;
+            home-manager.users.eunoiacody = {
+              imports = [
+                ./modules/home.nix
+                catppuccin.homeModules.catppuccin
+              ];
+            };
           }
         ];
       };

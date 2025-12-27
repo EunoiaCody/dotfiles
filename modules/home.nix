@@ -10,6 +10,11 @@
     userEmail = "eunoiacody@gmail.com";
   };
 
+  # 设置全局风格
+  catppuccin.enable = true;
+  catppuccin.flavor = "mocha"; # 可选: latte, frappe, macchiato, mocha
+  catppuccin.accent = "lavender";
+
   # 无论在哪台电脑都想要安装的包
   home.packages = with pkgs; [
     btop
@@ -42,6 +47,11 @@
     nerd-fonts.jetbrains-mono
     github-copilot-cli
   ];
+
+  programs.lazygit = {
+    enable = true;
+    catppuccin.enable = true;
+  };
 
   # 配置文件映射
   # 注意：这里使用了相对路径 ../，指向你放在 dotfiles 根目录的配置夹
