@@ -62,7 +62,6 @@
               casks = [
                 "google-chrome"
                 "livewallpaper"
-                "copilot-cli"
                 "obs"
                 "visual-studio-code"
                 "wechat"
@@ -129,6 +128,7 @@
                 nodejs
                 cmake
                 nerd-fonts.jetbrains-mono
+                github-copilot-cli
               ];
 
               # 你原来的文件映射
