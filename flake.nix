@@ -54,7 +54,7 @@
               ];
 
               brews = [
-                "copilot-cli"
+                "copilot"
                 "mas"
                 "borders"
                 "sketchybar"
