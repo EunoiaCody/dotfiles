@@ -34,7 +34,19 @@
         ];
       };
 
-      # 将来如果你有了 NixOS，只需在这里添加一行 nixosConfigurations
-      # nixosConfigurations.my-pc = nixpkgs.lib.nixosSystem { ... };
+      nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
+        system = "aarch64-linux";
+        specialArgs = { inherit inputs; };
+        modules = [
+          ./hosts/nixos/default.nix
+
+          home-manager.nixosModules.home-manager
+          {
+            home-manager.useGlobalPkgs = true;
+            home-manager.useUserPackages = true;
+            home-manager.users.eunoiacody = import ./modules/home.nix;
+          }
+        ];
+      };
     };
 }
