@@ -28,6 +28,10 @@
         modules = [
           # --- 系统层级配置 ---
           ({ pkgs, ... }: {
+
+            # 允许安装非自由软件 (修复你当前的报错)
+            nixpkgs.config.allowUnfree = true;
+
             # 必须设置，用于告知 nix-darwin 这里的系统架构
             nixpkgs.hostPlatform = system;
 
