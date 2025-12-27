@@ -19,7 +19,7 @@ map("n", "<C-Left>", "<cmd>vertical resize -2<cr>", { desc = "减小窗口宽度
 map("n", "<C-Right>", "<cmd>vertical resize +2<cr>", { desc = "增加窗口宽度" })
 
 -- 打开lazy.nvim
-map("n", "<leader>l", "<CMD>Lazy<CR>", { desc = "[Lazy] Open lazy.nvim" })
+map("n", "<leader>lz", "<CMD>Lazy<CR>", { desc = "[Lazy] Open lazy.nvim" })
 
 -- Nvim Tree
 map("n", "<leader>nto", "<CMD>NvimTreeOpen<CR>", { desc = "打开 Nvim Tree" }) -- 打开 nvim-tree.nvim
@@ -38,31 +38,21 @@ map("n", "<leader>coc", "<CMD>CodeCompanionChat<CR>", { desc = "打开 Copilot C
 map("n", "<leader>to", "<CMD>ToggleTerm<CR>", { desc = "打开终端" })
 
 -- Code Runner
-vim.keymap.set("n", "<leader>rr", ":RunCode<CR>", { noremap = true, silent = false, desc = "运行代码" })
-vim.keymap.set("n", "<leader>rf", ":RunFile<CR>", { noremap = true, silent = false, desc = "运行当前文件" })
-vim.keymap.set(
+map("n", "<leader>rr", ":RunCode<CR>", { noremap = true, silent = false, desc = "运行代码" })
+map("n", "<leader>rf", ":RunFile<CR>", { noremap = true, silent = false, desc = "运行当前文件" })
+map(
 	"n",
 	"<leader>rft",
 	":RunFile tab<CR>",
 	{ noremap = true, silent = false, desc = "在新标签页运行当前文件" }
 )
-vim.keymap.set("n", "<leader>rp", ":RunProject<CR>", { noremap = true, silent = false, desc = "运行项目" })
-vim.keymap.set("n", "<leader>rc", ":RunClose<CR>", { noremap = true, silent = false, desc = "关闭运行窗口" })
-vim.keymap.set(
-	"n",
-	"<leader>crf",
-	":CRFiletype<CR>",
-	{ noremap = true, silent = false, desc = "选择文件类型运行器" }
-)
-vim.keymap.set(
-	"n",
-	"<leader>crp",
-	":CRProjects<CR>",
-	{ noremap = true, silent = false, desc = "选择项目运行器" }
-)
+map("n", "<leader>rp", ":RunProject<CR>", { noremap = true, silent = false, desc = "运行项目" })
+map("n", "<leader>rc", ":RunClose<CR>", { noremap = true, silent = false, desc = "关闭运行窗口" })
+map("n", "<leader>crf", ":CRFiletype<CR>", { noremap = true, silent = false, desc = "选择文件类型运行器" })
+map("n", "<leader>crp", ":CRProjects<CR>", { noremap = true, silent = false, desc = "选择项目运行器" })
 
 -- Mason
-vim.keymap.set("n", "<leader>ms", "<CMD>Mason<CR>", { desc = "open mason" })
+map("n", "<leader>ms", "<CMD>Mason<CR>", { desc = "open mason" })
 
 -- Snacks.nvim Dimming
 map("n", "<leader>sdo", function()
