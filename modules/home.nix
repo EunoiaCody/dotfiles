@@ -12,6 +12,7 @@
 
   # 无论在哪台电脑都想要安装的包
   home.packages = with pkgs; [
+    luarocks
     rustc
     unzip
     cargo
