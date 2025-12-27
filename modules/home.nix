@@ -51,8 +51,8 @@
   programs = {
     fish = {
       plugins = with pkgs.fishPlugins; [
-        fishPlugins.autopair
-        fishPlugins.spark
+        autopair
+        spark
       ];
     };
   };
