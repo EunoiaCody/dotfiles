@@ -113,6 +113,7 @@
                 yazi
                 bat
                 eza
+                gemini-cli-bin
                 fd
                 fzf
                 ripgrep
