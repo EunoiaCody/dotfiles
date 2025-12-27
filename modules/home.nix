@@ -68,9 +68,8 @@
 
   programs.git = {
     enable = true;
-    user.name = "EunoiaCody";
-    user.email = "eunoiacody@gmail.com";
+    userName = "EunoiaCody";
+    userEmail = "eunoiacody@gmail.com";
   };
-
   programs.home-manager.enable = true;
 }
