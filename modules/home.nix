@@ -24,6 +24,7 @@
     zoxide
     fastfetch
     lazygit
+    tree
     gh
     yt-dlp
     ffmpeg
