@@ -48,8 +48,14 @@
     github-copilot-cli
   ];
 
-  programs.lazygit = {
-    enable = true;
+  programs = {
+    fish = {
+      enable = true;
+      plugins = with pkgs.fishPlugins; [
+        fishPlugins.autopair
+        fishPlugins.spark
+      ];
+    };
   };
 
   # 配置文件映射
@@ -63,7 +69,7 @@
     "neovide".source = ../neovide;
     "aerospace".source = ../aerospace;
     "figlet".source = ../figlet;
-    
+
     "fish/completions/docker.fish".source = ../fish/completions/docker.fish;
     "fish/completions/kubectl.fish".source = ../fish/completions/kubectl.fish;
     "fish/completions/orbctl.fish".source = ../fish/completions/orbctl.fish;
@@ -71,7 +77,7 @@
 
   programs.fish = {
     enable = true;
-    
+
     interactiveShellInit = ''
       set -gx EDITOR nvim
       set PATH $PATH /Users/eunoiacody/.local/bin
@@ -84,11 +90,11 @@
     shellAbbrs = {
       # fish abbr
       fish-reload = "source ~/.config/fish/**/*.fish";
-      
+
       # General
       nvi = "neovide";
       yz = "yazi";
-      
+
       # dnf
       dnfu = "sudo dnf update; sudo dnf upgrade; sudo dnf autoremove";
       dnfi = "sudo dnf install";
@@ -96,31 +102,31 @@
       dnfs = "dnf search";
       dnfl = "dnf list --installed";
       dnfc = "sudo dnf clean all";
-      
+
       # pacman
       pacu = "sudo pacman -Syu";
       paci = "sudo pacman -S";
       pacr = "sudo pacman -R";
       pacs = "pacman -Ss";
-      
+
       # git
       gits = "git status";
       gitc = "git commit -m";
       gitp = "git push";
       gitpl = "git pull";
-      
+
       # homebrew
       brewi = "brew install";
       brewr = "brew uninstall";
       brewu = "brew upgrade";
       brews = "brew search";
-      
+
       # pkg(termux)
       pkgi = "pkg install";
       pkgr = "pkg uninstall";
       pkgs = "pkg search";
       pkgu = "pkg upgrade";
-      
+
       # apk(alpine)
       apki = "sudo apk add";
       apkr = "sudo apk del";
