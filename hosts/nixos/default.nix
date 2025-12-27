@@ -6,6 +6,12 @@
     /etc/nixos/orbstack.nix
   ];
 
+  fileSystems."/" = {
+    device = "/dev/vdb1";
+    fsType = "btrfs";
+    options = [ "subvol=/" "noatime" "ssd" ]; # 简化挂载参数，确保能跑通
+  };
+
   # 允许非自由软件
   nixpkgs.config.allowUnfree = true;
 
