@@ -30,6 +30,7 @@
     casks = [
       "google-chrome"
       "livewallpaper"
+      "realvnc-connect"
       "obs"
       "visual-studio-code"
       "wechat"
