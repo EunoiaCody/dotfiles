@@ -9,7 +9,6 @@
   fileSystems."/" = {
     device = "/dev/vdb1";
     fsType = "btrfs";
-    options = [ "subvol=/" "noatime" "ssd" ]; # 简化挂载参数，确保能跑通
   };
 
   # 允许非自由软件
@@ -31,27 +30,13 @@
   # 设置你的用户
   users.users.eunoiacody = {
     isNormalUser = true;
-    extraGroups = [ "wheel" "networkmanager" ];
+    extraGroups = [ "wheel" ];
     shell = pkgs.fish; # 既然你用了 fish
   };
 
   # 既然是 OrbStack，通常需要这个
   # services.orbstack.enable = true;
   boot.loader.grub.enable = false;
-
-  # 显式开启网络管理，防止冲突
-  networking = {
-    useDHCP = false;
-    hostName = "nixos";
-  };
-  # services.resolved.enable = true;
-  # systemd.network.enable = true;
-
-  # 修复 systemd-networkd 报错：确保 eth0 被正确接管
-  systemd.network.networks."10-eth0" = {
-    matchConfig.Name = "eth0";
-    networkConfig.DHCP = "yes";
-  };
 
   system.stateVersion = "23.11";
 }
