@@ -40,7 +40,10 @@
   boot.loader.grub.enable = false;
 
   # 显式开启网络管理，防止冲突
-  networking.networking.useDHCP = false; # 关闭全局 DHCP 避免冲突
+  networking = {
+    useDHCP = false;
+    hostName = "nixos";
+  };
   services.resolved.enable = true;
   systemd.network.enable = true;
 
