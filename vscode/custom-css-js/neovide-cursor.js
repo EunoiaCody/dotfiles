@@ -1,5 +1,5 @@
 // --- Configurations ---
-const cursorColor = "#C8D3F5"; // cursor color
+const cursorColor = "#b4befe"; // cursor color
 const cursorUpdatePollingRate = 500; // dom detecting time (ms)
 const useShadow = true; // cursor shadow
 const shadowColor = cursorColor; // cursor shadow color
