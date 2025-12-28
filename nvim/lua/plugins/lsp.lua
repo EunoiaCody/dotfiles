@@ -13,9 +13,7 @@ return {
 	},
 	{
 		"mason-org/mason-lspconfig.nvim",
-		opts = {
-			ensure_installed = { "rust_analyzer", "pyright" },
-		},
+		opts = {},
 		dependencies = {
 			{ "mason-org/mason.nvim", opts = {} },
 			"neovim/nvim-lspconfig",
