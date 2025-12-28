@@ -78,8 +78,7 @@ function fish_prompt
     set -l c_reset (set_color normal)
 
     # 2. 构建左侧内容
-    set -l left_str "$c_dec┌──$c_path $os_icon  $cwd "
-
+    set -l left_str "$c_dec┌──$c_path $os_icon  "(whoami)" $cwd "
     set -l git_info (fish_git_prompt | string trim -c ' ()')
     if test -n "$git_info"
         set left_str "$left_str$c_git─  $git_info"
