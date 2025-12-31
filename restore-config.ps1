@@ -3,21 +3,17 @@
 
 $ErrorActionPreference = "Stop"
 
-<<<<<<< HEAD
-Write-Host "Restoring config files to $env:LOCALAPPDATA ..." -ForegroundColor Green
-=======
 Write-Host "从 GitHub 拉取配置文件..." -ForegroundColor Green
 
 git pull
 
 Write-Host "开始还原配置文件到 $env:LOCALAPPDATA ..." -ForegroundColor Green
->>>>>>> cfd2dc126fed4c406d108c872eb1658122f482be
 
 # Get script directory
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 Set-Location $ScriptDir
 
-$ConfigDirs = @("kitty", "mpv", "neovide", "nvim", "fish")
+$ConfigDirs = @("mpv", "neovide", "nvim")
 
 foreach ($dir in $ConfigDirs) {
     $Src = Join-Path $ScriptDir $dir
