@@ -1,14 +1,14 @@
 local colors = require("colors")
 local settings = require("settings")
-local app_icons = require("helpers.app_icons")
+local icon_map = require("helpers.icon_map")
 
 local front_app = sbar.add("item", "front_app", {
     position = "left",
     icon = {
         drawing = true,
         font = {
-            family = settings.font.nerd,
-            style = "Bold",
+            family = "sketchybar-app-font",
+            style = "Regular",
             size = 16.0
         },
         color = colors.lavender
@@ -28,7 +28,7 @@ local front_app = sbar.add("item", "front_app", {
 })
 
 front_app:subscribe("front_app_switched", function(env)
-    local icon = app_icons[env.INFO] or app_icons["Default"]
+    local icon = icon_map[env.INFO] or ":default:"
     front_app:set({
         icon = {
             string = icon
