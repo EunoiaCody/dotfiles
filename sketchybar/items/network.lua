@@ -21,9 +21,11 @@ local last_down = 0
 local last_up = 0
 
 network:subscribe("routine", function(env)
-    sbar.exec("ifconfig -u | grep -v 'lo0' | head -n 1 | cut -d: -f1", function(iface)
-        -- Fallback or better detection could be used
-        iface = "en0" -- Default to en0 for now as async detection inside routine is tricky without state
+    sbar.exec("route get default | grep interface | awk '{print $2}'", function(iface)
+        if not iface or iface == "" then
+            iface = "en0"
+        end
+        iface = iface:gsub("%s+", "") -- trim whitespace
 
         sbar.exec("netstat -ibn | grep -e '^" .. iface .. "' -m 1 | awk '{print $7\" \"$10}'", function(output)
             local down, up = output:match("(%d+)%s+(%d+)")
@@ -41,6 +43,10 @@ network:subscribe("routine", function(env)
                     up_diff = 0
                 end
 
+                -- Calculate speed per second (since update_freq is 2)
+                local down_speed = down_diff / 2
+                local up_speed = up_diff / 2
+
                 local function format(bytes)
                     local kb = bytes / 1024
                     if kb > 1024 then
@@ -51,7 +57,7 @@ network:subscribe("routine", function(env)
                 end
 
                 network:set({
-                    label = "↓" .. format(down_diff) .. " ↑" .. format(up_diff)
+                    label = "↓" .. format(down_speed) .. " ↑" .. format(up_speed)
                 })
 
                 last_down = down

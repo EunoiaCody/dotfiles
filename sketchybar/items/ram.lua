@@ -19,12 +19,12 @@ local ram = sbar.add("item", "ram", {
 
 ram:subscribe("routine", function(env)
     sbar.exec("vm_stat", function(vm_stat)
+        local page_size = tonumber(vm_stat:match("page size of (%d+) bytes"))
         local pages_active = tonumber(vm_stat:match("Pages active:%s+(%d+)"))
         local pages_wired = tonumber(vm_stat:match("Pages wired down:%s+(%d+)"))
         local pages_compressed = tonumber(vm_stat:match("Pages occupied by compressor:%s+(%d+)"))
 
-        if pages_active and pages_wired and pages_compressed then
-            local page_size = 4096
+        if page_size and pages_active and pages_wired and pages_compressed then
             local used_mem = (pages_active + pages_wired + pages_compressed) * page_size
 
             sbar.exec("sysctl -n hw.memsize", function(total_mem)
