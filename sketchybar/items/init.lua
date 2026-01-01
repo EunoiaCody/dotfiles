@@ -1,6 +1,6 @@
-require("items.spaces")
 require("items.apple")
 require("items.front_app")
+require("items.spaces")
 require("items.clock")
 require("items.volume")
 require("items.network")
