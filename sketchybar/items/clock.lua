@@ -17,7 +17,9 @@ local clock = sbar.add("item", "clock", {
 })
 
 clock:subscribe("routine", function(env)
-    clock:set({
-        label = os.date("%H:%M")
-    })
+    sbar.animate("sin", 30, function()
+        clock:set({
+            label = os.date("%H:%M")
+        })
+    end)
 end)

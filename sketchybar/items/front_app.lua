@@ -29,12 +29,14 @@ local front_app = sbar.add("item", "front_app", {
 
 front_app:subscribe("front_app_switched", function(env)
     local icon = icon_map[env.INFO] or ":default:"
-    front_app:set({
-        icon = {
-            string = icon
-        },
-        label = {
-            string = env.INFO
-        }
-    })
+    sbar.animate("sin", 30, function()
+        front_app:set({
+            icon = {
+                string = icon
+            },
+            label = {
+                string = env.INFO
+            }
+        })
+    end)
 end)

@@ -26,10 +26,12 @@ local function update_volume(env)
         icon = "󰖀"
     end
 
-    volume:set({
-        icon = icon,
-        label = vol .. "%"
-    })
+    sbar.animate("sin", 30, function()
+        volume:set({
+            icon = icon,
+            label = vol .. "%"
+        })
+    end)
 end
 
 volume:subscribe("volume_change", update_volume)

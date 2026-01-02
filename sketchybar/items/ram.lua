@@ -36,9 +36,11 @@ ram:subscribe("routine", function(env)
                     return string.format("%.1fG", gb)
                 end
 
-                ram:set({
-                    label = format(used_mem) .. " (" .. percentage .. "%)"
-                })
+                sbar.animate("sin", 30, function()
+                    ram:set({
+                        label = format(used_mem) .. " (" .. percentage .. "%)"
+                    })
+                end)
             end)
         end
     end)

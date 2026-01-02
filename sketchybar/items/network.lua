@@ -56,9 +56,11 @@ network:subscribe("routine", function(env)
                     end
                 end
 
-                network:set({
-                    label = "↓" .. format(down_speed) .. " ↑" .. format(up_speed)
-                })
+                sbar.animate("sin", 30, function()
+                    network:set({
+                        label = "↓" .. format(down_speed) .. " ↑" .. format(up_speed)
+                    })
+                end)
 
                 last_down = down
                 last_up = up
