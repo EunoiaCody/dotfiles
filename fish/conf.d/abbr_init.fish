@@ -37,8 +37,14 @@ abbr --add pkgr "pkg uninstall"
 abbr --add pkgs "pkg search"
 abbr --add pkgu "pkg upgrade"
 
-# apk(alpine linux)
+# apk(alpine linux) abbr
 abbr --add apki "sudo apk add"
 abbr --add apkr "sudo apk del"
 abbr --add apku "sudo apk update && sudo apk upgrade"
 abbr --add apks "apk search"
+
+# paru(aur helper) abbr
+abbr --add parui "paru -S"
+abbr --add parur "paru -R"
+abbr --add paruu "paru -Syu"
+abbr --add parus "paru -Ss"
