@@ -20,7 +20,7 @@ local apple = sbar.add("item", "apple", {
     background = {
         color = colors.surface0,
         border_color = colors.lavender,
-        border_width = 2,
+        border_width = 3,
         corner_radius = 9
     },
     padding_left = 10,
@@ -29,7 +29,7 @@ local apple = sbar.add("item", "apple", {
         background = {
             color = colors.base,
             border_color = colors.lavender,
-            border_width = 2,
+            border_width = 3,
             corner_radius = 9
         }
     }
@@ -140,7 +140,7 @@ local function animate_open()
                 background = {
                     color = colors.base,
                     border_color = colors.lavender,
-                    border_width = 2,
+                    border_width = 3,
                     corner_radius = 9
                 }
             }
