@@ -48,3 +48,6 @@ abbr --add parui "paru -S"
 abbr --add parur "paru -R"
 abbr --add paruu "paru -Syu"
 abbr --add parus "paru -Ss"
+
+# hmcl(minecraft launcher) abbr
+abbr --add hmcl "java -jar ~/Applications/HMCL/HMCL.jar"
