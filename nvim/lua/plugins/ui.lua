@@ -165,11 +165,6 @@ return {
                     desc = "配置文件",
                     action = ":lua Snacks.dashboard.pick('files', {cwd = vim.fn.stdpath('config')})"
                 }, {
-                    icon = " ",
-                    key = "s",
-                    desc = "重置会话",
-                    section = "session"
-                }, {
                     icon = " ",
                     key = "q",
                     desc = "退出",
