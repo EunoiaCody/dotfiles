@@ -1,6 +1,5 @@
 ---
 theme: dracula
-# background: https://cover.sli.dev
 title: 我的 Dotfiles
 info: |
   ## 我的 Dotfiles 演示
