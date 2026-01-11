@@ -2,7 +2,6 @@
 require("config.nvim-config")
 require("config.keymap")
 
-
 -- neovide fontsize
 require("config.neovide-config")
 

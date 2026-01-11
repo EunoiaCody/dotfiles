@@ -1,5 +1,8 @@
 local opt = vim.opt
 
+vim.g.mapleader = " " -- 设置空格为leader键
+vim.g.maplocalleader = " " -- 设置空格为localleader键
+
 opt.number = true -- 显示行号
 opt.list = true -- 高亮当前选中的行
 

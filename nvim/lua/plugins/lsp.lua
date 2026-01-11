@@ -1,6 +1,7 @@
 return {
 	{
 		"mason-org/mason.nvim",
+		cmd = { "Mason", "MasonInstall", "MasonUninstall", "MasonUpdate" },
 		opts = {
 			ui = {
 				icons = {
@@ -13,6 +14,7 @@ return {
 	},
 	{
 		"mason-org/mason-lspconfig.nvim",
+		evevt = { "BufReadPre", "BufNewFile" },
 		opts = {},
 		dependencies = {
 			{ "mason-org/mason.nvim", opts = {} },
@@ -21,6 +23,7 @@ return {
 	},
 	{
 		"stevearc/conform.nvim",
+		event = { "BufWritePre" },
 		opts = {
 			formatters_by_ft = {
 				lua = { "stylua" },

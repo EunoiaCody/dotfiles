@@ -1,6 +1,7 @@
 return {
 	{
 		"nvim-tree/nvim-web-devicons",
+		lazy = true,
 		opts = {
 			override = {
 				copilot = {
@@ -13,6 +14,7 @@ return {
 	},
 	{
 		"nvim-lualine/lualine.nvim",
+		event = "VeryLazy",
 		dependencies = { "nvim-tree/nvim-web-devicons", "AndreM222/copilot-lualine" },
 		opts = {
 			options = {
@@ -35,6 +37,7 @@ return {
 	},
 	{
 		"romgrk/barbar.nvim",
+		event = "VeryLazy",
 		dependencies = {
 			"lewis6991/gitsigns.nvim", -- OPTIONAL: for git status
 			"nvim-tree/nvim-web-devicons", -- OPTIONAL: for file icons
@@ -53,6 +56,7 @@ return {
 	},
 	{
 		"nvim-tree/nvim-tree.lua",
+		cmd = { "NvimTreeToggle", "NvimTreeFocus" },
 		version = "*",
 		dependencies = { "nvim-tree/nvim-web-devicons" },
 		opts = {},
@@ -62,6 +66,7 @@ return {
 	},
 	{
 		"HiPhish/rainbow-delimiters.nvim",
+		event = { "BufReadPost", "BufNewFile" },
 		submodules = false,
 		main = "rainbow-delimiters.setup",
 		opts = {},
