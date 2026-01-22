@@ -1,0 +1,7 @@
+[[plugin.deps]]
+use = "yazi-rs/plugins:smart-filter"
+rev = "de33976"
+hash = "407d19bc4fb46eff5fa8ff8337644847"
+
+[flavor]
+deps = []
