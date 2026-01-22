@@ -21,11 +21,6 @@ map("n", "<C-Right>", "<cmd>vertical resize +2<cr>", { desc = "增加窗口宽�
 -- 打开lazy.nvim
 map("n", "<leader>lz", "<CMD>Lazy<CR>", { desc = "[Lazy] Open lazy.nvim" })
 
--- Nvim Tree
-map("n", "<leader>nto", "<CMD>NvimTreeOpen<CR>", { desc = "打开文件树" })
-map("n", "<leader>ntc", "<CMD>NvimTreeClose<CR>", { desc = "关闭文件树" })
-map("n", "<leader>ntg", "<CMD>NvimTreeToggle<CR>", { desc = "切换文件树" })
-
 -- 复制粘贴
 map("v", "<ctrl>C", '"+y', { desc = "复制到系统剪贴板" })
 map("x", "<ctrl>C", '"+yy', { desc = "复制到系统剪贴板" })

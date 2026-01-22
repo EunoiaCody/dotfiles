@@ -55,16 +55,6 @@ return {
 		version = "^1.0.0", -- optional: only update when a new 1.x version is released
 	},
 	{
-		"nvim-tree/nvim-tree.lua",
-		cmd = { "NvimTreeToggle", "NvimTreeFocus" },
-		version = "*",
-		dependencies = { "nvim-tree/nvim-web-devicons" },
-		opts = {},
-		config = function()
-			require("nvim-tree").setup({})
-		end,
-	},
-	{
 		"HiPhish/rainbow-delimiters.nvim",
 		event = { "BufReadPost", "BufNewFile" },
 		submodules = false,
