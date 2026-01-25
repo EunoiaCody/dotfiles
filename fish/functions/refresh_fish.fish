@@ -19,7 +19,7 @@ function refresh_fish --description "重载 Fish"
         set sys_info (set_color white)"Linux (General)"(set_color normal)
     end
 
-    echo (set_color cyan)"🚀 正在为 $sys_info 环境重载配置..."(set_color normal)
+    echo (set_color cyan)"正在为 $sys_info 环境重载配置..."(set_color normal)
 
     # 3. 核心逻辑：原地重塑进程
     # exec 会用新进程替换当前 shell，确保 conf.d/ 下的所有模块全量重新初始化

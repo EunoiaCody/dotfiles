@@ -2,7 +2,7 @@ local colors = require("colors")
 local settings = require("settings")
 
 local clock = sbar.add("item", "clock", {
-    position = "right",
+    position = "center",
     icon = {
         string = "",
         color = colors.lavender
@@ -19,7 +19,7 @@ local clock = sbar.add("item", "clock", {
 clock:subscribe("routine", function(env)
     sbar.animate("sin", 30, function()
         clock:set({
-            label = os.date("%H:%M")
+            label = os.date("%Y.%m.%d %H:%M")
         })
     end)
 end)

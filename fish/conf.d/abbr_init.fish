@@ -1,7 +1,7 @@
 # fish abbr
 abbr --add fish-reload "source ~/.config/fish/**/*.fish"
 
-# General abbr
+# neovim abbr
 abbr --add nvi neovide
 
 # dnf abbr
