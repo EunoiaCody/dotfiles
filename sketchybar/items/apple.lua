@@ -103,8 +103,6 @@ sbar.add("event", "apple_close")
 sbar.add("event", "apple_close_complete")
 
 create_popup_item("", "系统设置", "open -a 'System Settings'")
-create_popup_item("󰗼", "强制退出",
-    "open /System/Library/CoreServices/Applications/Force\\ Quit\\ Applications.app")
 create_popup_item("", "重新启动", "osascript -e 'tell app \"loginwindow\" to «event aevtrrst»'")
 create_popup_item("", "关机", "osascript -e 'tell app \"loginwindow\" to «event aevtshut»'")
 
