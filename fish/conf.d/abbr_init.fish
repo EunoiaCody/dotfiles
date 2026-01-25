@@ -3,7 +3,6 @@ abbr --add fish-reload "source ~/.config/fish/**/*.fish"
 
 # General abbr
 abbr --add nvi neovide
-abbr --add yz yazi
 
 # dnf abbr
 abbr --add dnfu "sudo dnf update; sudo dnf upgrade; sudo dnf autoremove "
