@@ -22,10 +22,8 @@ map("n", "<C-Right>", "<cmd>vertical resize +2<cr>", { desc = "增加窗口宽�
 map("n", "<leader>lz", "<CMD>Lazy<CR>", { desc = "[Lazy] Open lazy.nvim" })
 
 -- 复制粘贴
-map("v", "<ctrl>C", '"+y', { desc = "复制到系统剪贴板" })
-map("x", "<ctrl>C", '"+yy', { desc = "复制到系统剪贴板" })
-map("v", "<ctrl>V", '"+p', { desc = "粘贴自系统剪贴板" })
-map("x", "<ctrl>V", '"+pp', { desc = "粘贴自系统剪贴板" })
+map({ "v", "x" }, "<C-c>", '"+y', { desc = "复制到系统剪贴板" })
+map({ "v", "x" }, "<C-V>", '"+p', { desc = "粘贴自系统剪贴板" })
 
 -- 打开 Copilot Chat
 map("n", "<leader>coc", "<CMD>CodeCompanionChat<CR>", { desc = "打开 Copilot Chat" })
@@ -37,10 +35,10 @@ map("n", "<leader>to", "<CMD>ToggleTerm<CR>", { desc = "打开终端" })
 map("n", "<leader>rr", ":RunCode<CR>", { noremap = true, silent = false, desc = "运行代码" })
 map("n", "<leader>rf", ":RunFile<CR>", { noremap = true, silent = false, desc = "运行当前文件" })
 map(
-	"n",
-	"<leader>rft",
-	":RunFile tab<CR>",
-	{ noremap = true, silent = false, desc = "在新标签页运行当前文件" }
+  "n",
+  "<leader>rft",
+  ":RunFile tab<CR>",
+  { noremap = true, silent = false, desc = "在新标签页运行当前文件" }
 )
 map("n", "<leader>rp", ":RunProject<CR>", { noremap = true, silent = false, desc = "运行项目" })
 map("n", "<leader>rc", ":RunClose<CR>", { noremap = true, silent = false, desc = "关闭运行窗口" })
@@ -52,14 +50,17 @@ map("n", "<leader>ms", "<CMD>Mason<CR>", { desc = "open mason" })
 
 -- Snacks.nvim Dimming
 map("n", "<leader>sdo", function()
-	require("snacks").dim()
+  require("snacks").dim()
 end, { desc = "打开 Snacks Dimming" })
 
 map("n", "<leader>sdc", function()
-	require("snacks").dim.disable()
+  require("snacks").dim.disable()
 end, { desc = "关闭 Snacks Dimming" })
 
 -- barbar 配置
 map("n", "<leader>,", "<Cmd>BufferPrevious<CR>", { desc = "前一个标签页" })
 map("n", "<leader>.", "<Cmd>BufferNext<CR>", { desc = "后一个标签页" })
 map("n", "<leader>bc", "<Cmd>BufferClose<CR>", { desc = "关闭当前标签页" })
+
+-- 退出nvim
+map("n", "qq", "<Cmd>wq<CR>", { desc = "退出nvim" })
