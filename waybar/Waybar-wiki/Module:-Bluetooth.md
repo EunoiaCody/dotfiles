@@ -1,0 +1,104 @@
+The `bluetooth` module displays information about a bluetooth controller and its connections.
+
+### Config
+
+Addressed by `bluetooth`
+
+| option            | typeof  | default             | description |
+| ----------------- | ------- | ------------------- | ----------- |
+| `controller` | string |    | Use the controller with the defined alias. Otherwise a random controller is used. Recommended to define when there is more than 1 controller available to the system. |
+| `format-device-preference` | array |    | A ranking of bluetooth devices, addressed by their alias. The order is from `first displayed` to `last displayed`. If this config option is not defined or none of the devices in the list are connected, it will fall back to showing the last connected device. |
+| `format` | string | ` {status}` | The format, how information should be displayed. This format is used when other formats aren't specified.
+| `format-disabled` | string |    | This format is used when the displayed controller is disabled. |
+| `format-off` | string |    | This format is used when the displayed controller is turned off. |
+| `format-on` | string |    | This format is used when the displayed controller is turned on with no devices connected. |
+| `format-connected` | string |    | This format is used when the displayed controller is connected to at least 1 device. |
+| `format-no-controller` | string |    | This format is used when no Bluetooth controller is available. |
+| `rotate` | integer |    | Positive value to rotate the text label. |
+| `max-length` | integer |    | The maximum length in characters the module should display. |
+| `min-length` | integer |    | The minimum length in characters the module should take up. |
+| `align` | float |    | The alignment of the text, where 0 is left-aligned and 1 is right-aligned. If the module is rotated, it will follow the flow of the text. |
+| `on-click` | string |    | Command to execute when clicking on the module. |
+| `on-click-middle` | string |    | Command to execute when you middle click on the module using mousewheel. |
+| `on-click-right` | string |    | Command to execute when you right click on the module. |
+| `on-scroll-up` | string |    | Command to execute when scrolling up on the module. |
+| `on-scroll-down` | string |    | Command to execute when scrolling down on the module. |
+| `smooth-scrolling-threshold` | double |    | Threshold to be used when scrolling. |
+| `tooltip` | bool | `true` | Option to disable tooltip on hover. |
+| `tooltip-format` | string |    | The format, how information should be displayed in the tooltip. This format is used when other formats aren't specified. |
+| `tooltip-format-disabled` | string |    | This format is used when the displayed controller is disabled. |
+| `tooltip-format-off` | string |    | This format is used when the displayed controller is turned off. |
+| `tooltip-format-on` | string |    | This format is used when the displayed controller is turned on with no devices connected. |
+| `tooltip-format-connected` | string |    | This format is used when the displayed controller is connected to at least 1 device. |
+| `tooltip-format-enumerate-connected` | string |    | This format is used to define how each connected device should be displayed within the `device_enumerate` format replacement in the tooltip menu. |
+
+
+#### Format replacements:
+
+| string                | replacement |
+| ----------------------| ----------- |
+| `{status}` | Status of the bluetooth device. |
+| `{num_connections}` | Number of connections the displayed controller has. |
+| `{controller_address}` | Address of the displayed controller. |
+| `{controller_address_type}` | Address type of the displayed controller. |
+| `{controller_alias}` | Alias of the displayed controller. |
+| `{device_address}` | Address of the displayed device. |
+| `{device_address_type}` | Address type of the displayed device. |
+| `{device_alias}` | Alias of the displayed device. |
+| `{device_enumerate}` | Show a list of all connected devices, each on a seperate line. Define the format of each device with the `tooltip-format-enumerate-connected` and/or `tooltip-format-enumerate-connected-battery` config options. Can only be used in the tooltip related format options. |
+
+#### Experimental battery percentage feature:
+At the time of writing, the experimental features of BlueZ need to be turned on, for the battery percentage options listed below to work.
+
+##### Experimental format replacements
+| string                | replacement |
+| ----------------------| ----------- |
+| `{device_battery_percentage}` | Battery percentage of the displayed device if available. Use only in the config options defined below. |
+
+##### Experimental configuration
+
+| option            | typeof  | default             | description |
+| ----------------- | ------- | ------------------- | ----------- |
+| `format-connected-battery` | string |    | This format is used when the displayed device provides its battery percentage. |
+| `tooltip-format-connected-battery` | string |    | This format is used when the displayed device provides its battery percentage. |
+| `tooltip-format-enumerate-connected-battery` | string |    | This format is used to define how each connected device with a battery should be displayed within the `device_enumerate` format replacement option. When this config option is not defined, it will fall back on the `tooltip-format-enumerate-connected` config option. |
+
+
+#### Examples:
+
+```jsonc
+"bluetooth": {
+	// "controller": "controller1", // specify the alias of the controller if there are more than 1 on the system
+	"format": " {status}",
+	"format-disabled": "", // an empty format will hide the module
+	"format-connected": " {num_connections} connected",
+	"tooltip-format": "{controller_alias}\t{controller_address}",
+	"tooltip-format-connected": "{controller_alias}\t{controller_address}\n\n{device_enumerate}",
+	"tooltip-format-enumerate-connected": "{device_alias}\t{device_address}"
+}
+```
+
+```jsonc
+"bluetooth": {
+	"format": " {status}",
+	"format-connected": " {device_alias}",
+	"format-connected-battery": " {device_alias} {device_battery_percentage}%",
+	// "format-device-preference": [ "device1", "device2" ], // preference list deciding the displayed device
+	"tooltip-format": "{controller_alias}\t{controller_address}\n\n{num_connections} connected",
+	"tooltip-format-connected": "{controller_alias}\t{controller_address}\n\n{num_connections} connected\n\n{device_enumerate}",
+	"tooltip-format-enumerate-connected": "{device_alias}\t{device_address}",
+	"tooltip-format-enumerate-connected-battery": "{device_alias}\t{device_address}\t{device_battery_percentage}%"
+}
+```
+
+### Style
+
+- `#bluetooth`
+- `#bluetooth.disabled`
+- `#bluetooth.off`
+- `#bluetooth.on`
+- `#bluetooth.connected`
+- `#bluetooth.discoverable`
+- `#bluetooth.discovering`
+- `#bluetooth.pairable`
+- `#bluetooth.no-controller`
