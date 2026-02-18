@@ -1,20 +1,24 @@
 // -*- mode: jsonc -*-
+// Waybar 官方示例配置 - 注释已翻译为中文，[由翻译者添加] 标注的注释为额外补充
 {
-  // "layer": "top", // Waybar at top layer
-  // "position": "bottom", // Waybar position (top|bottom|left|right)
-  "height": 30, // Waybar height (to be removed for auto height)
-  // "width": 1280, // Waybar width
-  "spacing": 4, // Gaps between modules (4px)
-  // Choose the order of the modules
+  // "layer": "top", // Waybar 置于顶层
+  // "position": "bottom", // Waybar 位置（top|bottom|left|right）
+  "height": 30, // Waybar 高度（移除此项以启用自动高度）
+  // "width": 1280, // Waybar 宽度
+  "spacing": 4, // 模块之间的间距（4px）
+  // 选择模块的排列顺序
+  // [由翻译者添加] modules-left: 左侧模块区域
   "modules-left": [
     "sway/workspaces",
     "sway/mode",
     "sway/scratchpad",
     "custom/media"
   ],
+  // [由翻译者添加] modules-center: 中间模块区域
   "modules-center": [
     "sway/window"
   ],
+  // [由翻译者添加] modules-right: 右侧模块区域
   "modules-right": [
     "mpd",
     "idle_inhibitor",
@@ -33,7 +37,7 @@
     "tray",
     "custom/power"
   ],
-  // Modules configuration
+  // 模块配置
   // "sway/workspaces": {
   //     "disable-scroll": true,
   //     "all-outputs": true,
@@ -50,6 +54,7 @@
   //         "default": ""
   //     }
   // },
+  // [由翻译者添加] 键盘状态模块 - 显示 Num Lock 和 Caps Lock 状态
   "keyboard-state": {
     "numlock": true,
     "capslock": true,
@@ -59,9 +64,11 @@
       "unlocked": ""
     }
   },
+  // [由翻译者添加] Sway 模式模块 - 显示当前 Sway 窗口管理器的模式（如 resize 模式）
   "sway/mode": {
     "format": "<span style=\"italic\">{}</span>"
   },
+  // [由翻译者添加] Sway 暂存区模块 - 显示暂存区中的窗口数量
   "sway/scratchpad": {
     "format": "{icon} {count}",
     "show-empty": false,
@@ -72,6 +79,7 @@
     "tooltip": true,
     "tooltip-format": "{app}: {title}"
   },
+  // [由翻译者添加] MPD 音乐播放器模块 - 显示 Music Player Daemon 的播放状态
   "mpd": {
     "format": "{stateIcon} {consumeIcon}{randomIcon}{repeatIcon}{singleIcon}{artist} - {album} - {title} ({elapsedTime:%M:%S}/{totalTime:%M:%S}) ⸨{songPosition}|{queueLength}⸩ {volume}% ",
     "format-disconnected": "Disconnected ",
@@ -98,6 +106,7 @@
     "tooltip-format": "MPD (connected)",
     "tooltip-format-disconnected": "MPD (disconnected)"
   },
+  // [由翻译者添加] 空闲抑制器模块 - 防止系统在特定情况下进入空闲/休眠状态
   "idle_inhibitor": {
     "format": "{icon}",
     "format-icons": {
@@ -105,6 +114,7 @@
       "deactivated": ""
     }
   },
+  // [由翻译者添加] 系统托盘模块
   "tray": {
     // "icon-size": 21,
     "spacing": 10,
@@ -113,18 +123,22 @@
     //   "TelegramDesktop": "$HOME/.local/share/icons/hicolor/16x16/apps/telegram.png"
     // }
   },
+  // [由翻译者添加] 时钟模块
   "clock": {
     // "timezone": "America/New_York",
     "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>",
     "format-alt": "{:%Y-%m-%d}"
   },
+  // [由翻译者添加] CPU 使用率模块
   "cpu": {
     "format": "{usage}% ",
     "tooltip": false
   },
+  // [由翻译者添加] 内存使用率模块
   "memory": {
     "format": "{}% "
   },
+  // [由翻译者添加] 温度监控模块
   "temperature": {
     // "thermal-zone": 2,
     // "hwmon-path": "/sys/class/hwmon/hwmon2/temp1_input",
@@ -137,6 +151,7 @@
       ""
     ]
   },
+  // [由翻译者添加] 屏幕背光亮度模块
   "backlight": {
     // "device": "acpi_video1",
     "format": "{percent}% {icon}",
@@ -152,6 +167,7 @@
       ""
     ]
   },
+  // [由翻译者添加] 电池模块
   "battery": {
     "states": {
       // "good": 95,
@@ -163,7 +179,7 @@
     "format-charging": "{capacity}% ",
     "format-plugged": "{capacity}% ",
     "format-alt": "{time} {icon}",
-    // "format-good": "", // An empty format will hide the module
+    // "format-good": "", // 空的格式字符串将隐藏该模块
     // "format-full": "",
     "format-icons": [
       "",
@@ -173,9 +189,11 @@
       ""
     ]
   },
+  // [由翻译者添加] 第二块电池模块
   "battery#bat2": {
     "bat": "BAT2"
   },
+  // [由翻译者添加] 电源配置模块 - 显示当前电源管理策略
   "power-profiles-daemon": {
     "format": "{icon}",
     "tooltip-format": "Power profile: {profile}\nDriver: {driver}",
@@ -187,8 +205,9 @@
       "power-saver": ""
     }
   },
+  // [由翻译者添加] 网络模块 - 显示网络连接状态
   "network": {
-    // "interface": "wlp2*", // (Optional) To force the use of this interface
+    // "interface": "wlp2*", //（可选）强制使用此网络接口
     "format-wifi": "{essid} ({signalStrength}%) ",
     "format-ethernet": "{ipaddr}/{cidr} ",
     "tooltip-format": "{ifname} via {gwaddr} ",
@@ -196,8 +215,9 @@
     "format-disconnected": "Disconnected ⚠",
     "format-alt": "{ifname}: {ipaddr}/{cidr}"
   },
+  // [由翻译者添加] 音频模块（PulseAudio）- 显示音量和音频设备状态
   "pulseaudio": {
-    // "scroll-step": 1, // %, can be a float
+    // "scroll-step": 1, // 百分比，可以是浮点数
     "format": "{volume}% {icon} {format_source}",
     "format-bluetooth": "{volume}% {icon} {format_source}",
     "format-bluetooth-muted": " {icon} {format_source}",
@@ -219,6 +239,7 @@
     },
     "on-click": "pavucontrol"
   },
+  // [由翻译者添加] 自定义媒体模块 - 显示当前正在播放的媒体信息
   "custom/media": {
     "format": "{icon} {text}",
     "return-type": "json",
@@ -228,14 +249,15 @@
       "default": "🎜"
     },
     "escape": true,
-    "exec": "$HOME/.config/waybar/mediaplayer.py 2> /dev/null" // Script in resources folder
-    // "exec": "$HOME/.config/waybar/mediaplayer.py --player spotify 2> /dev/null" // Filter player based on name
+    "exec": "$HOME/.config/waybar/mediaplayer.py 2> /dev/null" // 脚本位于 resources 文件夹中
+    // "exec": "$HOME/.config/waybar/mediaplayer.py --player spotify 2> /dev/null" // 根据播放器名称进行过滤
   },
+  // [由翻译者添加] 自定义电源菜单模块 - 提供关机、重启、挂起、休眠等选项
   "custom/power": {
     "format": "⏻ ",
     "tooltip": false,
     "menu": "on-click",
-    "menu-file": "$HOME/.config/waybar/power_menu.xml", // Menu file in resources folder
+    "menu-file": "$HOME/.config/waybar/power_menu.xml", // 菜单文件位于 resources 文件夹中
     "menu-actions": {
       "shutdown": "shutdown",
       "reboot": "reboot",
@@ -243,41 +265,4 @@
       "hibernate": "systemctl hibernate"
     }
   }
-}
-}
-}
-}
-}
-}
-}
-}
-}
-}
-}
-}
-}
-}
-}
-}
-}
-}
-}
-}
-}
-}
-}
-}
-}
-}
-}
-}
-}
-}
-}
-}
-}
-}
-]
-]
-]
 }
