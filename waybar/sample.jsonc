@@ -1,4 +1,5 @@
 // -*- mode: jsonc -*-
+// Waybar 官方示例配置 - 注释已翻译为中文，[由翻译者添加] 标注的注释为额外补充
 {
   // "layer": "top", // Waybar 置于顶层
   // "position": "bottom", // Waybar 位置（top|bottom|left|right）
