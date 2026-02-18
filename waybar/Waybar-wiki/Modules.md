@@ -1,0 +1,1 @@
+There aren't any valid CSS classes here yet. Click [here](https://github.com/Alexays/Waybar/wiki/Styling) to go to the Styling page.
