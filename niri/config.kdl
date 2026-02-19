@@ -36,9 +36,6 @@ input {
         accel-profile "flat"
     }
 
-    // 切换工作区时鼠标跟随焦点（与 AeroSpace 的 move-mouse monitor-lazy-center 一致）
-    warp-mouse-to-focus
-
     // 鼠标移入窗口时自动聚焦
     focus-follows-mouse
 
@@ -117,8 +114,6 @@ layout {
 // -------------------- 环境变量 --------------------
 
 environment {
-    // 显示服务器类型
-    DISPLAY ":0"
     // Electron 应用使用 Wayland
     ELECTRON_OZONE_PLATFORM_HINT "auto"
 }

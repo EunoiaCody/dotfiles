@@ -204,8 +204,8 @@
         "format": "⏻",
         // 鼠标悬停提示
         "tooltip-format": "电源菜单",
-        // 点击执行关机菜单
-        "on-click": "niri msg action quit",
+        // 点击打开电源菜单（需安装 wlogout）
+        "on-click": "wlogout",
         "tooltip": true
     }
 }
