@@ -27,6 +27,8 @@
 - **fish** - Fish shell 配置
 - **aerospace** - macOS 平铺窗口管理器配置
 - **sketchybar** - macOS 状态栏配置
+- **niri** - Wayland 平铺窗口管理器配置（Arch Linux）
+- **waybar** - Wayland 状态栏配置（搭配 niri 使用）
 
 ## 目录结构
 
@@ -37,8 +39,10 @@ dotfiles/
 ├── neovide/            # Neovide GUI 配置
 ├── nvim/               # Neovim 编辑器配置
 ├── fish/               # Fish shell 配置
-├── aerospace/          # AeroSpace 窗口管理器配置
-├── sketchybar/         # SketchyBar 状态栏配置
+├── aerospace/          # AeroSpace 窗口管理器配置（macOS）
+├── sketchybar/         # SketchyBar 状态栏配置（macOS）
+├── niri/               # Niri 窗口管理器配置（Arch Linux / Wayland）
+├── waybar/             # Waybar 状态栏配置（Arch Linux / Wayland）
 ├── restore-config.sh   # Linux/macOS 配置还原脚本
 ├── restore-config.ps1  # Windows 配置还原脚本
 ├── sync-config.sh      # Linux/macOS 配置同步脚本
@@ -59,6 +63,8 @@ dotfiles/
 | **Fish** | `apt install fish` | `dnf install fish` | `pacman -S fish` | `brew install fish` | N/A |
 | **AeroSpace** | N/A | N/A | N/A | `brew install --cask nikitabobko/tap/aerospace` | N/A |
 | **SketchyBar** | N/A | N/A | N/A | `brew tap FelixKratz/formulae && brew install sketchybar` | N/A |
+| **Niri** | N/A | `dnf install niri` | `pacman -S niri` | N/A | N/A |
+| **Waybar** | `apt install waybar` | `dnf install waybar` | `pacman -S waybar` | N/A | N/A |
 
 \* Ubuntu/Debian 推荐使用 PPA：`sudo add-apt-repository ppa:neovim-ppa/stable && sudo apt update`
 
@@ -252,6 +258,23 @@ powershell.exe -ExecutionPolicy Bypass -File ".\sync-config.ps1"
 - Catppuccin Mocha 主题配置
 - 自定义插件和组件
 - 状态栏布局设置
+
+### Niri 窗口管理器（Arch Linux / Wayland）
+
+- 从 AeroSpace 迁移的快捷键配置（Mod+H/J/K/L 导航）
+- 9 个工作区，支持快速切换和窗口移动
+- Catppuccin Mocha 主题边框配色
+- 平滑动画和窗口圆角
+- 触摸板和鼠标手势支持
+- 搭配 waybar、mako、fuzzel 等组件使用
+
+### Waybar 状态栏（Arch Linux / Wayland）
+
+- 从 SketchyBar 迁移的状态栏布局
+- Catppuccin Mocha 主题样式
+- 模块：工作区、活动窗口、时钟、CPU、内存、网络、音量、电池、系统托盘
+- 支持 niri 工作区集成
+- 中文提示信息
 
 ## 版本控制说明
 
