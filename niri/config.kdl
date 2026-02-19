@@ -164,9 +164,9 @@ binds {
     // 聚焦左侧列
     Mod+H { focus-column-left; }
     // 聚焦下方窗口
-    Mod+J { focus-window-or-workspace-down; }
+    Mod+J { focus-window-down; }
     // 聚焦上方窗口
-    Mod+K { focus-window-or-workspace-up; }
+    Mod+K { focus-window-up; }
     // 聚焦右侧列
     Mod+L { focus-column-right; }
 
@@ -175,9 +175,9 @@ binds {
     // 将窗口移到左侧
     Mod+Shift+H { move-column-left; }
     // 将窗口移到下方
-    Mod+Shift+J { move-window-down-or-to-workspace-down; }
+    Mod+Shift+J { move-window-down; }
     // 将窗口移到上方
-    Mod+Shift+K { move-window-up-or-to-workspace-up; }
+    Mod+Shift+K { move-window-up; }
     // 将窗口移到右侧
     Mod+Shift+L { move-column-right; }
 
