@@ -62,8 +62,13 @@ Item {
             id: memText
             anchors.centerIn: parent
             // Nerd Font 内存图标 + 使用率（与 SketchyBar 格式一致）
-            text: "  " + memoryUsagePercent.toFixed(0) + "%"
-            color: Theme.mauve
+            text: "  " + root.memoryUsagePercent.toFixed(0) + "%"
+            // 颜色随使用率变化（参考 Quickshell 标准写法）
+            color: {
+                if (root.memoryUsagePercent >= 85) return Theme.red
+                if (root.memoryUsagePercent >= 60) return Theme.yellow
+                return Theme.mauve
+            }
             font.family: Theme.fontFamily
             font.pixelSize: Theme.fontSize
 
@@ -72,18 +77,4 @@ Item {
             }
         }
     }
-
-    // 高使用率时变色
-    states: [
-        State {
-            name: "warning"
-            when: memoryUsagePercent >= 85
-            PropertyChanges { target: memText; color: Theme.red }
-        },
-        State {
-            name: "high"
-            when: memoryUsagePercent >= 60
-            PropertyChanges { target: memText; color: Theme.yellow }
-        }
-    ]
 }

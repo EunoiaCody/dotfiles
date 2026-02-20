@@ -40,7 +40,7 @@ Item {
                 root.windowBuffer += data
             }
         }
-        onExited: (exitCode, exitStatus) => {
+        onExited: (exitCode) => {
             if (exitCode === 0 && root.windowBuffer.length > 0) {
                 try {
                     const parsed = JSON.parse(root.windowBuffer)
@@ -81,18 +81,5 @@ Item {
         elide: Text.ElideRight
         maximumLineCount: 1
         width: Math.min(implicitWidth, 300)
-
-        // 标题切换动画
-        Behavior on text {
-            enabled: false
-        }
-
-        // 透明度过渡（切换窗口时的淡入效果）
-        opacity: 1.0
-        Behavior on opacity {
-            NumberAnimation {
-                duration: Theme.animationDurationFast
-            }
-        }
     }
 }

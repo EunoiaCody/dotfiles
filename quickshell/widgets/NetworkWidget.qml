@@ -41,7 +41,7 @@ Item {
                 root.netBuffer += data
             }
         }
-        onExited: (exitCode, exitStatus) => {
+        onExited: (exitCode) => {
             if (exitCode === 0 && root.netBuffer.trim().length > 0) {
                 try {
                     const parsed = JSON.parse(root.netBuffer)

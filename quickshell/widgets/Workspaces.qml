@@ -44,7 +44,7 @@ Item {
                 root.wsBuffer += data
             }
         }
-        onExited: (exitCode, exitStatus) => {
+        onExited: (exitCode) => {
             if (exitCode === 0 && root.wsBuffer.length > 0) {
                 try {
                     const parsed = JSON.parse(root.wsBuffer)

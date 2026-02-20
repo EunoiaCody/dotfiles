@@ -38,8 +38,8 @@ QtObject {
     // -------------------- 透明色 --------------------
 
     readonly property color transparent: "transparent"
-    // 状态栏半透明背景
-    readonly property color barBackground: Qt.rgba(30/255, 30/255, 46/255, 0.9)
+    // 状态栏半透明背景（注意使用浮点数避免整数除法）
+    readonly property color barBackground: Qt.rgba(30.0/255, 30.0/255, 46.0/255, 0.9)
 
     // -------------------- 字体配置 --------------------
 

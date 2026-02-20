@@ -75,29 +75,19 @@ Item {
             id: cpuText
             anchors.centerIn: parent
             // Nerd Font CPU 图标
-            text: "  " + cpuUsagePercent.toFixed(0) + "%"
-            color: Theme.sky
+            text: "  " + root.cpuUsagePercent.toFixed(0) + "%"
+            // 颜色随使用率变化（参考 Quickshell 标准写法）
+            color: {
+                if (root.cpuUsagePercent >= 80) return Theme.red
+                if (root.cpuUsagePercent >= 50) return Theme.yellow
+                return Theme.sky
+            }
             font.family: Theme.fontFamily
             font.pixelSize: Theme.fontSize
 
-            // 颜色随使用率变化
             Behavior on color {
                 ColorAnimation { duration: Theme.animationDuration }
             }
         }
     }
-
-    // 高使用率时变色
-    states: [
-        State {
-            name: "warning"
-            when: cpuUsagePercent >= 80
-            PropertyChanges { target: cpuText; color: Theme.red }
-        },
-        State {
-            name: "high"
-            when: cpuUsagePercent >= 50
-            PropertyChanges { target: cpuText; color: Theme.yellow }
-        }
-    ]
 }

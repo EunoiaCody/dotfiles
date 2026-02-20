@@ -21,43 +21,65 @@ Item {
         spacing: 4
 
         Repeater {
-            model: SystemTray.items
+            // 使用 .values 获取托盘项列表（Quickshell ObjectModel API）
+            model: SystemTray.items ? SystemTray.items.values : []
 
             // 单个托盘图标
-            Image {
-                id: trayIcon
+            Item {
+                id: trayItemContainer
 
                 required property var modelData
+                required property int index
 
-                width: 16
-                height: 16
+                width: 20
+                height: 20
                 anchors.verticalCenter: parent.verticalCenter
 
-                source: modelData.icon ?? ""
-                sourceSize.width: 16
-                sourceSize.height: 16
+                Image {
+                    id: trayIcon
+                    anchors.centerIn: parent
+                    width: 16
+                    height: 16
 
-                // 悬停效果
-                opacity: trayMouse.containsMouse ? 1.0 : 0.8
-                Behavior on opacity {
-                    NumberAnimation { duration: Theme.animationDurationFast }
-                }
+                    source: modelData?.icon ?? ""
+                    sourceSize.width: 16
+                    sourceSize.height: 16
+                    smooth: true
+                    visible: status === Image.Ready
 
-                MouseArea {
-                    id: trayMouse
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
+                    // 悬停效果
+                    opacity: trayMouse.containsMouse ? 1.0 : 0.8
+                    Behavior on opacity {
+                        NumberAnimation { duration: Theme.animationDurationFast }
+                    }
 
-                    onClicked: (mouse) => {
-                        if (mouse.button === Qt.LeftButton) {
-                            modelData.activate()
-                        } else if (mouse.button === Qt.MiddleButton) {
-                            modelData.secondaryActivate()
-                        } else if (mouse.button === Qt.RightButton) {
-                            modelData.activate()
+                    MouseArea {
+                        id: trayMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
+
+                        onClicked: function(mouse) {
+                            if (!modelData) return
+                            if (mouse.button === Qt.LeftButton) {
+                                modelData.activate()
+                            } else if (mouse.button === Qt.MiddleButton) {
+                                modelData.secondaryActivate()
+                            } else if (mouse.button === Qt.RightButton) {
+                                modelData.activate()
+                            }
                         }
                     }
+                }
+
+                // 图标加载失败时的备用文字
+                Text {
+                    anchors.centerIn: parent
+                    text: "?"
+                    color: Theme.overlay1
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSizeSmall
+                    visible: trayIcon.status !== Image.Ready
                 }
             }
         }
