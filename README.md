@@ -28,7 +28,7 @@
 - **aerospace** - macOS 平铺窗口管理器配置
 - **sketchybar** - macOS 状态栏配置
 - **niri** - Wayland 平铺窗口管理器配置（Arch Linux）
-- **waybar** - Wayland 状态栏配置（搭配 niri 使用）
+- **quickshell** - Wayland 状态栏配置（Qt6/QML，搭配 niri 使用）
 
 ## 目录结构
 
@@ -42,7 +42,7 @@ dotfiles/
 ├── aerospace/          # AeroSpace 窗口管理器配置（macOS）
 ├── sketchybar/         # SketchyBar 状态栏配置（macOS）
 ├── niri/               # Niri 窗口管理器配置（Arch Linux / Wayland）
-├── waybar/             # Waybar 状态栏配置（Arch Linux / Wayland）
+├── quickshell/         # Quickshell 状态栏配置（Qt6/QML，Arch Linux / Wayland）
 ├── restore-config.sh   # Linux/macOS 配置还原脚本
 ├── restore-config.ps1  # Windows 配置还原脚本
 ├── sync-config.sh      # Linux/macOS 配置同步脚本
@@ -64,7 +64,7 @@ dotfiles/
 | **AeroSpace** | N/A | N/A | N/A | `brew install --cask nikitabobko/tap/aerospace` | N/A |
 | **SketchyBar** | N/A | N/A | N/A | `brew tap FelixKratz/formulae && brew install sketchybar` | N/A |
 | **Niri** | N/A | `dnf install niri` | `pacman -S niri` | N/A | N/A |
-| **Waybar** | `apt install waybar` | `dnf install waybar` | `pacman -S waybar` | N/A | N/A |
+| **Quickshell** | N/A | N/A | `paru -S quickshell-git` | N/A | N/A |
 
 \* Ubuntu/Debian 推荐使用 PPA：`sudo add-apt-repository ppa:neovim-ppa/stable && sudo apt update`
 
@@ -266,14 +266,17 @@ powershell.exe -ExecutionPolicy Bypass -File ".\sync-config.ps1"
 - Catppuccin Mocha 主题边框配色
 - 平滑动画和窗口圆角
 - 触摸板和鼠标手势支持
-- 搭配 waybar、mako、fuzzel 等组件使用
+- 搭配 quickshell、mako、fuzzel 等组件使用
 
-### Waybar 状态栏（Arch Linux / Wayland）
+### Quickshell 状态栏（Arch Linux / Wayland）
 
-- 从 SketchyBar 迁移的状态栏布局
-- Catppuccin Mocha 主题样式
-- 模块：工作区、活动窗口、时钟、CPU、内存、网络、音量、电池、系统托盘
-- 支持 niri 工作区集成
+- 基于 Qt6/QML 的高度可定制状态栏，替代 Waybar
+- 从 SketchyBar 迁移的状态栏布局和功能
+- Catppuccin Mocha 主题配色（与 SketchyBar colors.lua 完全一致）
+- 丰富的 QML 动画效果（颜色过渡、缩放、淡入淡出）
+- 模块化组件：工作区（Niri IPC）、活动窗口、时钟、CPU、内存、网络、音量（WirePlumber）、亮度、电池、系统托盘、电源菜单
+- 滚轮调节音量和亮度
+- 多显示器支持
 - 中文提示信息
 
 ## 版本控制说明

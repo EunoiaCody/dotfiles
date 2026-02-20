@@ -104,9 +104,9 @@ layout {
         color "#00000070"
     }
 
-    // 外边距（为 waybar 状态栏留出空间）
+    // 外边距（为 Quickshell 状态栏留出空间）
     struts {
-        // 顶部留出空间给 waybar
+        // 顶部留出空间给 Quickshell
         // top 40
     }
 }
@@ -120,8 +120,8 @@ environment {
 
 // -------------------- 启动命令 --------------------
 
-// 启动 waybar 状态栏（对应 AeroSpace 启动 sketchybar）
-spawn-at-startup "waybar"
+// 启动 Quickshell 状态栏（替代 waybar，提供更丰富的动画和自定义能力）
+spawn-at-startup "quickshell"
 
 // 启动 xwayland-satellite（支持 X11 应用）
 spawn-at-startup "xwayland-satellite"
