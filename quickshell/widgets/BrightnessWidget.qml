@@ -25,17 +25,34 @@ Item {
         onTriggered: brightnessProcess.running = true
     }
 
-    Component.onCompleted: brightnessProcess.running = true
+    Component.onCompleted: {
+        brightnessMaxProcess.running = true
+        brightnessProcess.running = true
+    }
 
     // -------------------- 获取亮度 --------------------
+    // 使用 brightnessctl get 直接获取当前亮度值，再用 max 计算百分比
     Process {
-        id: brightnessProcess
-        command: ["sh", "-c", "brightnessctl info 2>/dev/null | awk '/Current brightness/ {gsub(/[^0-9]/, \"\", $NF); print $NF}'"]
+        id: brightnessMaxProcess
+        command: ["brightnessctl", "max"]
         stdout: SplitParser {
             onRead: data => {
                 const val = parseInt(data.trim())
-                if (!isNaN(val)) {
-                    root.brightness = val
+                if (!isNaN(val) && val > 0) {
+                    root.maxBrightness = val
+                }
+            }
+        }
+    }
+
+    Process {
+        id: brightnessProcess
+        command: ["brightnessctl", "get"]
+        stdout: SplitParser {
+            onRead: data => {
+                const val = parseInt(data.trim())
+                if (!isNaN(val) && root.maxBrightness > 0) {
+                    root.brightness = Math.round(val * 100 / root.maxBrightness)
                 }
             }
         }

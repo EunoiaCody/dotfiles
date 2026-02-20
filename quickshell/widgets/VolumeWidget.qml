@@ -53,7 +53,8 @@ Item {
     }
 
     function setVolume(delta) {
-        const cmd = delta > 0 ? (delta + "%+") : ((-delta) + "%-")
+        const absDelta = Math.abs(delta)
+        const cmd = delta > 0 ? (absDelta + "%+") : (absDelta + "%-")
         volumeSetProcess.command = ["wpctl", "set-volume", "@DEFAULT_AUDIO_SINK@", cmd]
         volumeSetProcess.running = true
         // 立即刷新

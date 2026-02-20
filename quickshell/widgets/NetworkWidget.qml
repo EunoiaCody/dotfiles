@@ -80,14 +80,16 @@ Item {
     }
 
     // -------------------- 获取 WiFi 名称 --------------------
+    // 使用 nmcli 获取当前 WiFi 连接名称（比 iwctl 管道更简洁可靠）
     Process {
         id: wifiNameProcess
-        command: ["sh", "-c", "iwctl station list 2>/dev/null | awk 'NR>4 {print $1; exit}' | xargs -I{} iwctl station {} show 2>/dev/null | awk '/Connected network/ {print $NF}'"]
+        command: ["nmcli", "-t", "-f", "active,ssid", "dev", "wifi"]
         stdout: SplitParser {
             onRead: data => {
-                const name = data.trim()
-                if (name.length > 0) {
-                    root.networkName = name
+                // 输出格式: "yes:MyWiFi" 或 "no:OtherWiFi"
+                const line = data.trim()
+                if (line.startsWith("yes:")) {
+                    root.networkName = line.substring(4)
                 }
             }
         }

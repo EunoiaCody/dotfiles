@@ -25,7 +25,7 @@ Item {
 
     // -------------------- 定时轮询 --------------------
     Timer {
-        interval: 100
+        interval: 250
         running: true
         repeat: true
         onTriggered: workspacesProcess.running = true
