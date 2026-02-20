@@ -66,7 +66,8 @@ Item {
                             } else if (mouse.button === Qt.MiddleButton) {
                                 modelData.secondaryActivate()
                             } else if (mouse.button === Qt.RightButton) {
-                                modelData.activate()
+                                // 右键触发二级操作（通常为上下文菜单）
+                                modelData.secondaryActivate()
                             }
                         }
                     }
