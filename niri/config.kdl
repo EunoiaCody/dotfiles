@@ -191,6 +191,7 @@ environment {
   XMODIFIERS "@im=fcitx"
   QT_IM_MODULES "wayland;fcitx"
   QT_IM_MODULE "fcitx"
+  XDG_DATA_DIRS "/var/lib/flatpak/exports/share:/usr/local/share:/usr/share"
 }
 hotkey-overlay {
     skip-at-startup
