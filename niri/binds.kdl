@@ -45,4 +45,7 @@ binds {
     Mod+Shift+Down  { move-window-down; }
     Mod+Shift+Up    { move-window-up; }
     Mod+Shift+Right { move-column-right; }
+
+    // 截图（区域选择，保存到剪贴板）
+    Mod+Shift+S { screenshot; }
 }
