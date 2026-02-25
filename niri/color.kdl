@@ -1,13 +1,17 @@
-layout{
-    focus-ring{
-        active-gradient from="#88d6bbcc" to="#a8cbe2cc" angle=135
-        urgent-color "#ffb4ab"
-
-        }
-}
-recent-windows {    
-    highlight {
-        active-color "#343b38"
-        urgent-color "#ffb4ab"
+layout {
+    focus-ring {
+        // 使用 Lavender (#b4befe) 到 Mauve (#cba6f7) 的渐变
+        active-gradient from="#b4befe" to="#cba6f7" angle=135
+        // 使用 Red (#f38ba8) 作为紧急颜色
+        urgent-color "#f38ba8"
     }
 }
+
+recent-windows {    
+    highlight {
+        // 使用 Lavender 作为活动高亮色
+        active-color "#b4befe"
+        urgent-color "#f38ba8"
+    }
+}
+
