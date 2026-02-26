@@ -19,7 +19,7 @@ PanelWindow {
 	exclusiveZone: -1
 	margins {
 		top: 0
-		right: 180
+		right: 172
 	}
 
 	implicitWidth: netPill.width + 4

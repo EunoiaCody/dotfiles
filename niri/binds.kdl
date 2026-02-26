@@ -21,11 +21,11 @@ binds {
     Mod+Space { spawn "fuzzel"; }
 
     // 随机切换 ~/Wallpapers/ 下的壁纸并添加过渡效果
-    Mod+W { spawn "sh" "-c" "swww img $(find ~/Wallpapers -type f | shuf -n 1) --transition-type center --transition-step 90 --transition-fps 120"; }
+    Mod+W { spawn "fish" "-c" "/home/eunoia/.config/niri/scripts/random-wallpaper.fish"; }
 
     // 最大化和全屏
-    Mod+F { maximize-column; }
-    Mod+Shift+F { fullscreen-window; }
+    Mod+M { maximize-column; }
+    Mod+Shift+M { fullscreen-window; }
 
     // 使用 Mod + 鼠标滚轮切换工作区
     Mod+WheelScrollUp   { focus-workspace-up; }
@@ -48,4 +48,11 @@ binds {
 
     // 截图（区域选择，保存到剪贴板）
     Mod+Shift+S { screenshot; }
+
+    // 切换当前窗口为浮动模式
+    Mod+F { toggle-window-floating; }
+
+    // 改变窗口大小
+    Mod+Minus { set-column-width "-10%"; }
+    Mod+Equal { set-column-width "+10%"; }
 }

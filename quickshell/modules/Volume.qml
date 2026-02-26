@@ -149,7 +149,7 @@ PanelWindow {
 				right: 3
 			}
 
-			implicitWidth: 320
+			implicitWidth: 340
 			implicitHeight: panelCol.implicitHeight + 32
 			color: "transparent"
 

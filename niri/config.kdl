@@ -5,9 +5,9 @@
 
 spawn-at-startup "/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1"
 spawn-at-startup "swww-daemon"
-// 启动时从 ~/Wallpapers/ 随机设置一张壁纸
+// 启动时随机设置一张壁纸
 spawn-at-startup "sh" "-c" "swww img $(find ~/Wallpapers -type f | shuf -n 1)"
-spawn-at-startup "quickshell"
+spawn-at-startup "qs"
 
 config-notification {
     disable-failed
@@ -127,7 +127,6 @@ input {
 // Find more information on the wiki:
 // https://github.com/YaLTeR/niri/wiki/Configuration:-Layout
 layout {
-    // Set gaps around windows in logical pixels.
     background-color "transparent"
     // When to center a column when changing focus, options are:
     // - "never", default behavior, focusing an off-screen column will keep at the left
@@ -183,10 +182,19 @@ layer-rule {
     match namespace="^quickshell$"
     place-within-backdrop true
 }
+layer-rule {
+    match namespace="^wallpaper$"
+    place-within-backdrop true
+}
+layer-rule {
+    match namespace="^overlay$"
+    place-within-backdrop true
+}
 overview {
     workspace-shadow {
         off
     }
+    backdrop-color "#1e1e2e"
 }
 // Add lines like this to spawn processes at startup.
 // Note that running niri as a session supports xdg-desktop-autostart,

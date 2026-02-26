@@ -1,3 +1,5 @@
+//@ pragma UseQApplication
+
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
@@ -39,5 +41,11 @@ ShellRoot {
 		model: Quickshell.screens
 
 		Modules.Network {}
+	}
+
+	Variants {
+		model: Quickshell.screens
+
+		Modules.SystemTray {}
 	}
 }
