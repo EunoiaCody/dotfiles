@@ -26,7 +26,7 @@ PanelWindow {
 	implicitHeight: pill.height + 16
 	color: "transparent"
 
-	WlrLayershell.layer: WlrLayer.Overlay
+	WlrLayershell.layer: WlrLayer.Top
 
 	// Workspace data model
 	ListModel {

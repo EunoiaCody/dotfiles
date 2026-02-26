@@ -26,7 +26,7 @@ PanelWindow {
     implicitHeight: trayPill.height + 12
     color: "transparent"
 
-    WlrLayershell.layer: WlrLayer.Overlay
+    WlrLayershell.layer: WlrLayer.Top
 
     // We'll use the local TrayMenu.qml for styled menus (see Modules/Bar/Tray/TrayMenu.qml)
 

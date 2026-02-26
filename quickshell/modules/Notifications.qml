@@ -27,7 +27,7 @@ PanelWindow {
 	implicitHeight: notifBtn.height + 12
 	color: "transparent"
 
-	WlrLayershell.layer: WlrLayer.Overlay
+	WlrLayershell.layer: WlrLayer.Top
 
 	property bool panelOpen: false
 	property bool _panelClosing: false
