@@ -32,20 +32,23 @@ PanelWindow {
 
     Rectangle {
         id: trayPill
-        anchors.centerIn: parent
+        anchors.verticalCenter: parent.verticalCenter
+        anchors.right: parent.right
+        anchors.rightMargin: 2
         width: trayRow.width + 12
         height: 40
         radius: height / 2
         color: Root.Color.base
-        // visible: SystemTray.items.count > 0
 
         RowLayout {
             id: trayRow
             anchors.verticalCenter: parent.verticalCenter
-            anchors.left: parent.left
-            anchors.leftMargin: 6
+            anchors.right: parent.right
+            anchors.rightMargin: 6
             height: parent.height - 12
             spacing: 4
+
+            layoutDirection: Qt.RightToLeft
 
             Repeater {
                 model: SystemTray.items // Correct model
