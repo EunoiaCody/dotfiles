@@ -1,1 +1,0 @@
-![250809-091208](https://raw.githubusercontent.com/berthosefin/dots/main/previews/2025-08-09-091208_hyprshot.png)
