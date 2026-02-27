@@ -22,7 +22,7 @@ function fish_prompt
             set os_icon "󰀲" # Android
         else
             # 区分 Linux 发行版
-            set -l distro_id (cat /etc/os-release 2>/dev/null | grep '^ID=' | string replace --regex '^ID="?([a-z0-9-]+)"?$' '\1')
+            set -l distro_id (cat /etc/os-release 2>/dev/null | grep '^ID=' | string replace --regex '^ID="?([a-z0-9-]+)"?$' '$1')
 
             switch $distro_id
                 case ubuntu "ubuntu*"
