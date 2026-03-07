@@ -54,11 +54,16 @@ PanelWindow {
 	Timer {
 		id: closeDelayTimer
 		interval: 380
-		onTriggered: root._panelClosing = false
+		onTriggered: {
+			Root.PanelStack.panelClosed("volume");
+			root._panelClosing = false;
+		}
 	}
 
 	onPanelOpenChanged: {
-		if (!panelOpen) {
+		if (panelOpen) {
+			Root.PanelStack.panelOpened("volume", 0);
+		} else {
 			root._panelClosing = true;
 			closeDelayTimer.start();
 		}
@@ -138,6 +143,11 @@ PanelWindow {
 			id: slidePanel
 			screen: root.screen
 
+			property real panelTop: Root.PanelStack.topFor("volume")
+			Behavior on panelTop {
+				NumberAnimation { duration: 350; easing.type: Easing.OutCubic }
+			}
+
 			anchors {
 				top: true
 				right: true
@@ -145,7 +155,7 @@ PanelWindow {
 
 			exclusiveZone: -1
 			margins {
-				top: 56
+				top: Math.round(slidePanel.panelTop)
 				right: 3
 			}
 
@@ -155,6 +165,9 @@ PanelWindow {
 
 			WlrLayershell.layer: WlrLayer.Overlay
 			WlrLayershell.namespace: "volume-panel"
+
+			onImplicitHeightChanged: Root.PanelStack.updateHeight("volume", implicitHeight)
+			Component.onCompleted: Root.PanelStack.updateHeight("volume", implicitHeight)
 
 			Item {
 				anchors.fill: parent

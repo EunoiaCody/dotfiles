@@ -36,11 +36,16 @@ PanelWindow {
 	Timer {
 		id: closeDelayTimer
 		interval: 380
-		onTriggered: root._panelClosing = false
+		onTriggered: {
+			Root.PanelStack.panelClosed("notifications");
+			root._panelClosing = false;
+		}
 	}
 
 	onPanelOpenChanged: {
-		if (!panelOpen) {
+		if (panelOpen) {
+			Root.PanelStack.panelOpened("notifications", 0);
+		} else {
 			root._panelClosing = true;
 			closeDelayTimer.start();
 		}
@@ -272,6 +277,11 @@ PanelWindow {
 			id: slidePanel
 			screen: root.screen
 
+			property real panelTop: Root.PanelStack.topFor("notifications")
+			Behavior on panelTop {
+				NumberAnimation { duration: 350; easing.type: Easing.OutCubic }
+			}
+
 			anchors {
 				top: true
 				right: true
@@ -279,7 +289,7 @@ PanelWindow {
 
 			exclusiveZone: -1
 			margins {
-				top: 56
+				top: Math.round(slidePanel.panelTop)
 				right: 3
 			}
 
@@ -289,6 +299,9 @@ PanelWindow {
 
 			WlrLayershell.layer: WlrLayer.Overlay
 			WlrLayershell.namespace: "notification-panel"
+
+			onImplicitHeightChanged: Root.PanelStack.updateHeight("notifications", implicitHeight)
+			Component.onCompleted: Root.PanelStack.updateHeight("notifications", implicitHeight)
 
 			Item {
 				anchors.fill: parent

@@ -12,14 +12,13 @@ PopupWindow {
     property string trayName: ""
 
     implicitWidth: 280
-    implicitHeight: Math.min(640, mainLayout.implicitHeight + 20)
+    implicitHeight: Math.min(640, headerRect.implicitHeight + flickArea.contentHeight + 36)
     color: "transparent"
 
     // Appear animation (dropdown from above)
     ParallelAnimation {
         id: popupIn
         running: false
-        // Animate the background's 'y' (relative) because PopupWindow doesn't expose a writable 'y'
         NumberAnimation { id: animY; target: bg; property: "y"; duration: 340; easing.type: Easing.OutBack }
         NumberAnimation { id: animOpacity; target: bg; property: "opacity"; duration: 220; from: 0; to: 1; easing.type: Easing.OutCubic }
     }
@@ -31,14 +30,12 @@ PopupWindow {
         NumberAnimation { target: bg; property: "y"; duration: 240; to: -12; easing.type: Easing.InCubic }
         NumberAnimation { target: bg; property: "opacity"; duration: 180; to: 0; easing.type: Easing.InCubic }
         onStopped: {
-            // actually hide the window after animation
             root.visible = false
         }
     }
 
     function close() {
         if (!root.visible) return
-        // stop any opening animation
         if (popupIn.running) popupIn.stop()
         popupOut.start()
     }
@@ -47,7 +44,6 @@ PopupWindow {
         if (visible) {
             menuStack.clear()
             if (bg) bg.opacity = 0
-                // start the background slightly above and animate it down to its normal position (0)
                 var finalY = 0
                 bg.y = -12
                 animY.to = finalY
@@ -105,10 +101,12 @@ PopupWindow {
 
         ColumnLayout {
             id: mainLayout
-            width: parent.width
+            anchors.fill: parent
             spacing: 0
 
+            // Header
             Rectangle {
+                id: headerRect
                 Layout.fillWidth: true
                 Layout.preferredHeight: 44
                 color: "transparent"
@@ -124,6 +122,35 @@ PopupWindow {
                     elide: Text.ElideRight
                 }
 
+                // Back button for submenus
+                Rectangle {
+                    visible: menuStack.count > 0
+                    anchors.left: parent.left
+                    anchors.leftMargin: 8
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: 30
+                    height: 30
+                    radius: width / 2
+                    color: backMouse.containsMouse ? Root.Color.surface1 : "transparent"
+
+                    Behavior on color { ColorAnimation { duration: 140 } }
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: "‹"
+                        font.pixelSize: 20
+                        color: Root.Color.overlay1
+                    }
+
+                    MouseArea {
+                        id: backMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: root.navigateBack()
+                    }
+                }
+
                 Rectangle {
                     anchors.bottom: parent.bottom
                     width: parent.width
@@ -133,81 +160,91 @@ PopupWindow {
                 }
             }
 
-            ColumnLayout {
+            // Scrollable menu items area
+            Flickable {
+                id: flickArea
                 Layout.fillWidth: true
+                Layout.fillHeight: true
                 Layout.margins: 8
-                spacing: 6
+                contentHeight: menuItemsCol.implicitHeight
+                clip: true
+                boundsBehavior: Flickable.StopAtBounds
 
-                property var currentModel: (menuStack.count === 0) ? (rootOpener.children ? rootOpener.children.values : []) : (subOpener.children ? subOpener.children.values : [])
+                ColumnLayout {
+                    id: menuItemsCol
+                    width: flickArea.width
+                    spacing: 6
 
-                Text {
-                    visible: (!parent.currentModel || parent.currentModel.length === 0)
-                    text: (menuStack.count > 0) ? "Loading..." : "No Items"
-                    color: Root.Color.subtext0
-                    font.italic: true
-                    Layout.alignment: Qt.AlignHCenter
-                    Layout.margins: 10
-                }
+                    property var currentModel: (menuStack.count === 0) ? (rootOpener.children ? rootOpener.children.values : []) : (subOpener.children ? subOpener.children.values : [])
 
-                Repeater {
-                    model: parent.currentModel
-                    delegate: Rectangle {
-                        id: menuItem
-                        property bool isSeparator: (modelData.isSeparator === true || modelData.text === "")
-                        property bool hasSubMenu: (modelData.hasChildren === true)
-                        property var effectiveHandle: (modelData.menu) ? modelData.menu : modelData
-                        property int hoverOffset: 0
+                    Text {
+                        visible: (!parent.currentModel || parent.currentModel.length === 0)
+                        text: (menuStack.count > 0) ? "Loading..." : "No Items"
+                        color: Root.Color.subtext0
+                        font.italic: true
+                        Layout.alignment: Qt.AlignHCenter
+                        Layout.margins: 10
+                    }
 
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: isSeparator ? 10 : 44
-                        radius: 10
-                        // default item bg different from menu bg
-                        color: isSeparator ? "transparent" : (menuItem.hoverOffset !== 0 ? Root.Color.surface1 : Root.Color.mantle)
+                    Repeater {
+                        model: parent.currentModel
+                        delegate: Rectangle {
+                            id: menuItem
+                            property bool isSeparator: (modelData.isSeparator === true || modelData.text === "")
+                            property bool hasSubMenu: (modelData.hasChildren === true)
+                            property var effectiveHandle: (modelData.menu) ? modelData.menu : modelData
+                            property int hoverOffset: 0
 
-                        Behavior on color { ColorAnimation { duration: 140; easing.type: Easing.OutCubic } }
-                        Behavior on y { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: isSeparator ? 10 : 44
+                            radius: 10
+                            color: isSeparator ? "transparent" : (menuItem.hoverOffset !== 0 ? Root.Color.surface1 : Root.Color.mantle)
 
-                        RowLayout {
-                            visible: !parent.isSeparator
-                            anchors.fill: parent
-                            anchors.leftMargin: 14
-                            anchors.rightMargin: 14
-                            spacing: 12
+                            Behavior on color { ColorAnimation { duration: 140; easing.type: Easing.OutCubic } }
+                            Behavior on y { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
 
-                            Item { Layout.preferredWidth: 18; Layout.preferredHeight: 18; visible: (modelData.icon||"") !== "";
-                                Image { anchors.fill: parent; source: modelData.icon || ""; fillMode: Image.PreserveAspectFit }
-                            }
+                            RowLayout {
+                                visible: !parent.isSeparator
+                                anchors.fill: parent
+                                anchors.leftMargin: 14
+                                anchors.rightMargin: 14
+                                spacing: 12
 
-                            Text {
-                                text: modelData.text || ""
-                                Layout.fillWidth: true
-                                elide: Text.ElideRight
-                                color: (modelData.enabled === false) ? Root.Color.overlay1 : Root.Color.text
-                                font.pixelSize: 15
-                            }
-
-                            Text { visible: hasSubMenu; text: "›"; font.pixelSize: 18; color: Root.Color.overlay1 }
-                        }
-
-                        MouseArea {
-                            id: itemMa
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            enabled: modelData.enabled !== false
-
-                            onEntered: { menuItem.hoverOffset = -4 }
-                            onExited: { menuItem.hoverOffset = 0 }
-
-                            onPressed: {
-                                if (!hasSubMenu) {
-                                    if (typeof modelData.triggered === 'function') modelData.triggered();
-                                    root.visible = false
+                                Item { Layout.preferredWidth: 18; Layout.preferredHeight: 18; visible: (modelData.icon||"") !== "";
+                                    Image { anchors.fill: parent; source: modelData.icon || ""; fillMode: Image.PreserveAspectFit }
                                 }
+
+                                Text {
+                                    text: modelData.text || ""
+                                    Layout.fillWidth: true
+                                    elide: Text.ElideRight
+                                    color: (modelData.enabled === false) ? Root.Color.overlay1 : Root.Color.text
+                                    font.pixelSize: 15
+                                }
+
+                                Text { visible: hasSubMenu; text: "›"; font.pixelSize: 18; color: Root.Color.overlay1 }
                             }
 
-                            onClicked: {
-                                if (hasSubMenu) root.navigateToSubmenu(effectiveHandle, modelData.text)
+                            MouseArea {
+                                id: itemMa
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                enabled: modelData.enabled !== false
+
+                                onEntered: { menuItem.hoverOffset = -4 }
+                                onExited: { menuItem.hoverOffset = 0 }
+
+                                onPressed: {
+                                    if (!hasSubMenu) {
+                                        if (typeof modelData.triggered === 'function') modelData.triggered();
+                                        root.visible = false
+                                    }
+                                }
+
+                                onClicked: {
+                                    if (hasSubMenu) root.navigateToSubmenu(effectiveHandle, modelData.text)
+                                }
                             }
                         }
                     }

@@ -230,17 +230,21 @@ PanelWindow {
 	Timer {
 		id: closeDelayTimer
 		interval: 380
-		onTriggered: root._panelClosing = false
+		onTriggered: {
+			Root.PanelStack.panelClosed("network");
+			root._panelClosing = false;
+		}
 	}
 
 	onPanelOpenChanged: {
-		if (!panelOpen) {
+		if (panelOpen) {
+			Root.PanelStack.panelOpened("network", 0);
+			scanWifi();
+		} else {
 			root._panelClosing = true;
 			root.showPasswordInput = false;
 			root.pendingSSID = "";
 			closeDelayTimer.start();
-		} else {
-			scanWifi();
 		}
 	}
 
@@ -304,6 +308,11 @@ PanelWindow {
 			id: slidePanel
 			screen: root.screen
 
+			property real panelTop: Root.PanelStack.topFor("network")
+			Behavior on panelTop {
+				NumberAnimation { duration: 350; easing.type: Easing.OutCubic }
+			}
+
 			anchors {
 				top: true
 				right: true
@@ -311,7 +320,7 @@ PanelWindow {
 
 			exclusiveZone: -1
 			margins {
-				top: 56
+				top: Math.round(slidePanel.panelTop)
 				right: 3
 			}
 
@@ -321,6 +330,9 @@ PanelWindow {
 
 			WlrLayershell.layer: WlrLayer.Overlay
 			WlrLayershell.namespace: "network-panel"
+
+			onImplicitHeightChanged: Root.PanelStack.updateHeight("network", implicitHeight)
+			Component.onCompleted: Root.PanelStack.updateHeight("network", implicitHeight)
 
 			Item {
 				anchors.fill: parent

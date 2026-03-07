@@ -1,1 +1,2 @@
 singleton Color Color.qml
+singleton PanelStack PanelStack.qml

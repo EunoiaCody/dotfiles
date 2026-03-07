@@ -28,7 +28,26 @@ PanelWindow {
 
 	WlrLayershell.layer: WlrLayer.Top
 
-	property bool menuOpen: false
+	property bool panelOpen: false
+	property bool _panelClosing: false
+
+	Timer {
+		id: closeDelayTimer
+		interval: 380
+		onTriggered: {
+			Root.PanelStack.panelClosed("power");
+			root._panelClosing = false;
+		}
+	}
+
+	onPanelOpenChanged: {
+		if (panelOpen) {
+			Root.PanelStack.panelOpened("power", 0);
+		} else {
+			root._panelClosing = true;
+			closeDelayTimer.start();
+		}
+	}
 
 	// Power button (circle with power icon)
 	Rectangle {
@@ -59,143 +78,159 @@ PanelWindow {
 			anchors.fill: parent
 			hoverEnabled: true
 			cursorShape: Qt.PointingHandCursor
-			onClicked: {
-				root.menuOpen = !root.menuOpen;
-			}
+			onClicked: root.panelOpen = !root.panelOpen
 		}
 	}
 
-	// Popup menu (centered on screen)
+	// ===== Slide-in panel =====
 	LazyLoader {
-		id: menuLoader
-		active: root.menuOpen
+		id: panelLoader
+		active: root.panelOpen || root._panelClosing
 
 		PanelWindow {
-			id: menuWindow
+			id: slidePanel
 			screen: root.screen
+
+			property real panelTop: Root.PanelStack.topFor("power")
+			Behavior on panelTop {
+				NumberAnimation { duration: 350; easing.type: Easing.OutCubic }
+			}
 
 			anchors {
 				top: true
-				bottom: true
-				left: true
 				right: true
 			}
 
 			exclusiveZone: -1
-			color: "#80000000"
+			margins {
+				top: Math.round(slidePanel.panelTop)
+				right: 3
+			}
+
+			implicitWidth: 340
+			implicitHeight: menuColumn.implicitHeight + 48
+			color: "transparent"
 
 			WlrLayershell.layer: WlrLayer.Overlay
 			WlrLayershell.namespace: "power-menu"
 
-			// Click backdrop to close
-			MouseArea {
+			onImplicitHeightChanged: Root.PanelStack.updateHeight("power", implicitHeight)
+			Component.onCompleted: Root.PanelStack.updateHeight("power", implicitHeight)
+
+			Item {
 				anchors.fill: parent
-				onClicked: root.menuOpen = false
-			}
+				clip: true
 
-			// Menu card
-			Rectangle {
-				id: menuCard
-				anchors.centerIn: parent
-				width: menuColumn.width + 48
-				height: menuColumn.height + 48
-				radius: 20
-				color: Root.Color.base
+				Rectangle {
+					id: panelContent
+					width: parent.width
+					height: parent.height
+					radius: 16
+					color: Root.Color.base
+					border.width: 3
+					border.color: Root.Color.lavender
+					clip: true
 
-				// Appear animation
-				scale: 0.8
-				opacity: 0
+					property bool _showContent: false
 
-				Component.onCompleted: {
-					scale = 1.0;
-					opacity = 1.0;
-				}
+					Component.onCompleted: _showContent = true
 
-				Behavior on scale {
-					NumberAnimation {
-						duration: 250
-						easing.type: Easing.OutCubic
+					Connections {
+						target: root
+						function onPanelOpenChanged() {
+							if (!root.panelOpen) panelContent._showContent = false
+						}
 					}
-				}
 
-				Behavior on opacity {
-					NumberAnimation {
-						duration: 250
-						easing.type: Easing.OutCubic
+					x: _showContent ? 0 : width
+
+					Behavior on x {
+						NumberAnimation {
+							duration: 350
+							easing.type: panelContent._showContent ? Easing.OutCubic : Easing.InCubic
+						}
 					}
-				}
 
-				// Stop clicks from passing through to backdrop
-				MouseArea {
-					anchors.fill: parent
-				}
+					ColumnLayout {
+						id: menuColumn
+						anchors {
+							left: parent.left
+							right: parent.right
+							top: parent.top
+							margins: 16
+						}
+						spacing: 12
 
-				ColumnLayout {
-					id: menuColumn
-					anchors.centerIn: parent
-					spacing: 8
-
-					Repeater {
-						model: [
-							{ label: "关机", icon: "⏻", cmd: "systemctl poweroff" },
-							{ label: "重启", icon: "↻", cmd: "systemctl reboot" },
-							{ label: "锁定", icon: "🔒", cmd: "loginctl lock-session" },
-							{ label: "注销", icon: "↩", cmd: "niri msg action quit" }
-						]
-
-						Rectangle {
-							required property var modelData
-							required property int index
-
+						// Header
+						Text {
+							text: "电源菜单"
+							font.pointSize: 14
+							font.bold: true
+							color: Root.Color.lavender
 							Layout.fillWidth: true
-							implicitWidth: 220
-							implicitHeight: 44
-							radius: height / 2
-							color: itemMouse.containsMouse ? Root.Color.lavender : "transparent"
+						}
 
-							Behavior on color {
-								ColorAnimation { duration: 150 }
-							}
+						Repeater {
+							model: [
+								{ label: "关机", icon: "⏻", cmd: "systemctl poweroff" },
+								{ label: "重启", icon: "↻", cmd: "systemctl reboot" },
+								{ label: "锁定", icon: "🔒", cmd: "loginctl lock-session" },
+								{ label: "注销", icon: "↩", cmd: "niri msg action quit" }
+							]
 
-							RowLayout {
-								anchors {
-									fill: parent
-									leftMargin: 20
-									rightMargin: 20
+							Rectangle {
+								required property var modelData
+								required property int index
+
+								Layout.fillWidth: true
+								implicitHeight: 44
+								radius: height / 2
+								color: itemMouse.containsMouse ? (modelData.cmd === "systemctl poweroff" ? Root.Color.red : Root.Color.lavender) : Root.Color.mantle
+
+								Behavior on color {
+									ColorAnimation { duration: 150 }
 								}
-								spacing: 12
 
-								Text {
-									text: modelData.icon
-									font.pointSize: 14
-									color: itemMouse.containsMouse ? Root.Color.base : Root.Color.lavender
+								RowLayout {
+									anchors {
+										fill: parent
+										leftMargin: 20
+										rightMargin: 20
+									}
+									spacing: 12
 
-									Behavior on color {
-										ColorAnimation { duration: 150 }
+									Text {
+										text: modelData.icon
+										font.pointSize: 14
+										color: itemMouse.containsMouse ? Root.Color.base : Root.Color.lavender
+
+										Behavior on color {
+											ColorAnimation { duration: 150 }
+										}
+									}
+
+									Text {
+										text: modelData.label
+										font.pointSize: 13
+										color: itemMouse.containsMouse ? Root.Color.base : Root.Color.lavender
+										Layout.fillWidth: true
+
+										Behavior on color {
+											ColorAnimation { duration: 150 }
+										}
 									}
 								}
 
-								Text {
-									text: modelData.label
-									font.pointSize: 13
-									color: itemMouse.containsMouse ? Root.Color.base : Root.Color.lavender
-									Layout.fillWidth: true
-
-									Behavior on color {
-										ColorAnimation { duration: 150 }
+								MouseArea {
+									id: itemMouse
+									anchors.fill: parent
+									hoverEnabled: true
+									cursorShape: Qt.PointingHandCursor
+									onClicked: {
+										root.panelOpen = false;
+										actionProcess.command = ["bash", "-c", modelData.cmd];
+										actionProcess.running = true;
 									}
-								}
-							}
-
-							MouseArea {
-								id: itemMouse
-								anchors.fill: parent
-								hoverEnabled: true
-								cursorShape: Qt.PointingHandCursor
-								onClicked: {
-									root.menuOpen = false;
-									actionProcess.command = ["bash", "-c", modelData.cmd];
-									actionProcess.running = true;
 								}
 							}
 						}
