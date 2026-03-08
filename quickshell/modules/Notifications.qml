@@ -20,12 +20,15 @@ PanelWindow {
 	exclusiveZone: -1
 	margins {
 		top: 0
-		right: 52
+		right: Root.BarLayout.rightMarginFor("notifications")
 	}
 
 	implicitWidth: notifBtn.width + 4
 	implicitHeight: notifBtn.height + 12
 	color: "transparent"
+
+	onImplicitWidthChanged: Root.BarLayout.updateWidth("notifications", implicitWidth)
+	Component.onCompleted: Root.BarLayout.updateWidth("notifications", implicitWidth)
 
 	WlrLayershell.layer: WlrLayer.Top
 

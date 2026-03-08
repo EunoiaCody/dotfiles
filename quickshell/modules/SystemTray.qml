@@ -19,12 +19,15 @@ PanelWindow {
     exclusiveZone: -1
     margins {
         top: 0
-        right: 258
+        right: Root.BarLayout.rightMarginFor("systemtray")
     }
 
     implicitWidth: trayPill.width + 4
     implicitHeight: trayPill.height + 12
     color: "transparent"
+
+    onImplicitWidthChanged: Root.BarLayout.updateWidth("systemtray", implicitWidth)
+    Component.onCompleted: Root.BarLayout.updateWidth("systemtray", implicitWidth)
 
     WlrLayershell.layer: WlrLayer.Top
 

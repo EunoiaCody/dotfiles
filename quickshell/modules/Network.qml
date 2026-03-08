@@ -19,12 +19,15 @@ PanelWindow {
 	exclusiveZone: -1
 	margins {
 		top: 0
-		right: 172
+		right: Root.BarLayout.rightMarginFor("network")
 	}
 
 	implicitWidth: netPill.width + 4
 	implicitHeight: netPill.height + 12
 	color: "transparent"
+
+	onImplicitWidthChanged: Root.BarLayout.updateWidth("network", implicitWidth)
+	Component.onCompleted: Root.BarLayout.updateWidth("network", implicitWidth)
 
 	WlrLayershell.layer: WlrLayer.Top
 
@@ -73,7 +76,7 @@ PanelWindow {
 
 			// Auto-scan if panel is open
 			if (root.panelOpen) {
-				scanWifi.start();
+					scanWifi();
 			}
 		}
 

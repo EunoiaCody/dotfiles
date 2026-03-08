@@ -26,6 +26,9 @@ PanelWindow {
 	implicitHeight: powerBtn.height + 12
 	color: "transparent"
 
+	onImplicitWidthChanged: Root.BarLayout.updateWidth("powermenu", implicitWidth)
+	Component.onCompleted: Root.BarLayout.updateWidth("powermenu", implicitWidth)
+
 	WlrLayershell.layer: WlrLayer.Top
 
 	property bool panelOpen: false

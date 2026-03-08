@@ -40,6 +40,12 @@ ShellRoot {
 	Variants {
 		model: Quickshell.screens
 
+		Modules.Bluetooth {}
+	}
+
+	Variants {
+		model: Quickshell.screens
+
 		Modules.Network {}
 	}
 
