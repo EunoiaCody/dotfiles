@@ -4,6 +4,8 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 INSTALL_SCRIPT="$SCRIPT_DIR/install.py"
+REPO_URL="https://github.com/EunoiaCody/dotfiles.git"
+CLONE_DIR="${DOTFILES_CLONE_DIR:-$HOME/.local/share/dotfiles}"
 
 log() {
 	echo "[BOOTSTRAP] $*"
@@ -12,6 +14,40 @@ log() {
 fail() {
 	echo "[BOOTSTRAP][ERROR] $*" >&2
 	exit 1
+}
+
+prepare_install_script() {
+	if [[ -f "$INSTALL_SCRIPT" ]]; then
+		return
+	fi
+
+	log "install.py not found next to bootstrap.sh, preparing repository clone..."
+
+	if ! command -v git >/dev/null 2>&1; then
+		fail "git is required to clone dotfiles repository when install.py is missing."
+	fi
+
+	mkdir -p "$(dirname "$CLONE_DIR")"
+
+	if [[ -d "$CLONE_DIR/.git" ]]; then
+		log "Found existing dotfiles repo at $CLONE_DIR, pulling latest changes..."
+		git -C "$CLONE_DIR" pull --ff-only || fail "Failed to update existing repository at $CLONE_DIR"
+	else
+		if [[ -d "$CLONE_DIR" ]]; then
+			log "Directory $CLONE_DIR exists but is not a git repo. Reusing local files."
+		else
+			log "Cloning dotfiles repository into $CLONE_DIR..."
+			git clone "$REPO_URL" "$CLONE_DIR" || fail "Failed to clone dotfiles repository"
+		fi
+	fi
+
+	if [[ ! -f "$CLONE_DIR/install.py" ]]; then
+		fail "install.py is still missing after repository preparation at $CLONE_DIR"
+	fi
+
+	SCRIPT_DIR="$CLONE_DIR"
+	INSTALL_SCRIPT="$SCRIPT_DIR/install.py"
+	log "Using install script at $INSTALL_SCRIPT"
 }
 
 ensure_linux() {
@@ -157,6 +193,7 @@ main() {
 
 	require_sudo_if_needed
 	install_base_packages
+	prepare_install_script
 	run_main_installer "$@"
 }
 
