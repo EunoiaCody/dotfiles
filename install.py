@@ -14,6 +14,15 @@ from pathlib import Path
 from typing import List, Tuple
 
 
+USE_COLOR = sys.stdout.isatty() and not os.environ.get("NO_COLOR")
+RESET = "\033[0m" if USE_COLOR else ""
+LAVENDER = "\033[38;2;180;190;254m" if USE_COLOR else ""
+GREEN = "\033[38;2;166;227;161m" if USE_COLOR else ""
+YELLOW = "\033[38;2;249;226;175m" if USE_COLOR else ""
+RED = "\033[38;2;243;139;168m" if USE_COLOR else ""
+SUB = "\033[38;2;186;194;222m" if USE_COLOR else ""
+
+
 COMPONENTS = [
 	"kitty",
 	"mpv",
@@ -38,11 +47,24 @@ class InstallResult:
 
 
 def log(message: str) -> None:
-	print(f"[INSTALL] {message}")
+	print(f"{LAVENDER}[INSTALL]{RESET} {message}")
+
+
+def ok(message: str) -> None:
+	print(f"{GREEN}[INSTALL][OK]{RESET} {message}")
+
+
+def warn(message: str) -> None:
+	print(f"{YELLOW}[INSTALL][WARN]{RESET} {message}")
+
+
+def section(message: str) -> None:
+	print()
+	print(f"{LAVENDER}==>{RESET} {SUB}{message}{RESET}")
 
 
 def fail(message: str) -> int:
-	print(f"[INSTALL][ERROR] {message}", file=sys.stderr)
+	print(f"{RED}[INSTALL][ERROR]{RESET} {message}", file=sys.stderr)
 	return 1
 
 
@@ -135,10 +157,10 @@ def install_packages(pkg_manager: str, packages: List[str], root_prefix: List[st
 
 		try:
 			run_command(cmd, check=True, quiet=True)
-			log(f"Installed or already present package: {pkg}")
+			ok(f"Installed or already present package: {pkg}")
 		except subprocess.CalledProcessError:
 			if best_effort:
-				log(f"Skipped unavailable package: {pkg}")
+				warn(f"Skipped unavailable package: {pkg}")
 			else:
 				raise RuntimeError(f"Failed to install required package: {pkg}")
 
@@ -161,7 +183,7 @@ def setup_archlinuxcn(root_prefix: List[str]) -> None:
 		else:
 			with pacman_conf.open("a", encoding="utf-8") as handle:
 				handle.write(repo_block)
-		log("Added archlinuxcn repository")
+		ok("Added archlinuxcn repository")
 	else:
 		log("archlinuxcn repository already configured")
 
@@ -191,19 +213,20 @@ def install_quickshell_arch(root_prefix: List[str]) -> None:
 		install_packages("pacman", ["quickshell"], root_prefix, best_effort=False)
 		return
 	except RuntimeError:
-		log("quickshell not available in pacman repos, trying paru fallback")
+		warn("quickshell not available in pacman repos, trying paru fallback")
 
 	if not command_exists("paru"):
 		raise RuntimeError("paru not available for quickshell fallback")
 
 	try:
 		run_command(["paru", "-S", "--noconfirm", "--needed", "quickshell"], check=True, quiet=True)
-		log("Installed quickshell via paru")
+		ok("Installed quickshell via paru")
 	except subprocess.CalledProcessError as exc:
 		raise RuntimeError("Failed to install quickshell via paru") from exc
 
 
 def install_system_packages(pkg_manager: str) -> None:
+	section("Installing system packages and fonts")
 	root_prefix = build_root_prefix()
 	if os.geteuid() != 0 and not root_prefix:
 		raise RuntimeError("Need root privileges or sudo to install system packages")
@@ -282,6 +305,7 @@ def install_system_packages(pkg_manager: str) -> None:
 
 	if command_exists("fc-cache"):
 		run_command(["fc-cache", "-f"], check=False, quiet=True)
+		ok("Font cache refreshed")
 
 
 def ensure_bootstrap_guard(args: argparse.Namespace) -> bool:
@@ -290,7 +314,7 @@ def ensure_bootstrap_guard(args: argparse.Namespace) -> bool:
 		return True
 
 	print(
-		"[INSTALL][ERROR] Please run ./bootstrap.sh first. Direct execution of install.py is blocked.",
+		f"{RED}[INSTALL][ERROR]{RESET} Please run ./bootstrap.sh first. Direct execution of install.py is blocked.",
 		file=sys.stderr,
 	)
 	return False
@@ -417,6 +441,7 @@ def main() -> int:
 	timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
 	backup_root = config_root / "dotfiles-backup" / timestamp
 
+	section("Deploying dotfiles configuration")
 	log(f"Install mode: {args.mode}")
 	log(f"Selected components: {', '.join(selected)}")
 	if args.dry_run:
@@ -433,21 +458,29 @@ def main() -> int:
 			dry_run=args.dry_run,
 		)
 		results.append(result)
-		log(f"{name}: {result.status} - {result.message}")
+		if result.status == "ok":
+			ok(f"{name}: {result.message}")
+		elif result.status == "skip":
+			warn(f"{name}: {result.message}")
+		else:
+			print(f"{RED}[INSTALL][FAIL]{RESET} {name}: {result.message}")
 
 	manifest_path = backup_root / "manifest.json"
 	if args.dry_run:
 		manifest_path = config_root / "dotfiles-backup" / "dry-run-manifest.json"
 	write_manifest(manifest_path, results, args.dry_run)
-	log(f"Manifest written to {manifest_path}")
+	ok(f"Manifest written to {manifest_path}")
 
 	failures = [item for item in results if item.status == "fail"]
 	skipped = [item for item in results if item.status == "skip"]
 	succeeded = [item for item in results if item.status == "ok"]
 
-	log(
-		"Summary: "
-		f"success={len(succeeded)}, skipped={len(skipped)}, failed={len(failures)}"
+	section("Summary")
+	print(
+		f"{LAVENDER}[INSTALL]{RESET} "
+		f"{GREEN}success={len(succeeded)}{RESET}, "
+		f"{YELLOW}skipped={len(skipped)}{RESET}, "
+		f"{RED}failed={len(failures)}{RESET}"
 	)
 
 	if failures:

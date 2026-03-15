@@ -7,6 +7,32 @@ INSTALL_SCRIPT="$SCRIPT_DIR/install.py"
 REPO_URL="https://github.com/EunoiaCody/dotfiles.git"
 CLONE_DIR="${DOTFILES_CLONE_DIR:-$HOME/.local/share/dotfiles}"
 
+USE_COLOR=0
+if [[ -t 1 ]] && [[ -z "${NO_COLOR:-}" ]]; then
+	USE_COLOR=1
+fi
+
+if [[ "$USE_COLOR" -eq 1 ]]; then
+	C_RESET=$'\033[0m'
+	C_LAVENDER=$'\033[38;2;180;190;254m'
+	C_GREEN=$'\033[38;2;166;227;161m'
+	C_YELLOW=$'\033[38;2;249;226;175m'
+	C_RED=$'\033[38;2;243;139;168m'
+	C_SUB=$'\033[38;2;186;194;222m'
+else
+	C_RESET=""
+	C_LAVENDER=""
+	C_GREEN=""
+	C_YELLOW=""
+	C_RED=""
+	C_SUB=""
+fi
+
+section() {
+	echo
+	echo "${C_LAVENDER}==>${C_RESET} ${C_SUB}$*${C_RESET}"
+}
+
 is_streamed_script() {
 	case "${BASH_SOURCE[0]}" in
 		/dev/fd/*|/proc/self/fd/*)
@@ -19,12 +45,16 @@ is_streamed_script() {
 }
 
 log() {
-	echo "[BOOTSTRAP] $*"
+	echo "${C_LAVENDER}[BOOTSTRAP]${C_RESET} $*"
 }
 
 fail() {
-	echo "[BOOTSTRAP][ERROR] $*" >&2
+	echo "${C_RED}[BOOTSTRAP][ERROR]${C_RESET} $*" >&2
 	exit 1
+}
+
+ok() {
+	echo "${C_GREEN}[BOOTSTRAP][OK]${C_RESET} $*"
 }
 
 prepare_install_script() {
@@ -114,6 +144,7 @@ require_sudo_if_needed() {
 }
 
 install_base_packages() {
+	section "Installing minimal bootstrap dependencies"
 	case "$PKG_MANAGER" in
 		apt)
 			local packages=(
@@ -156,6 +187,7 @@ install_base_packages() {
 			fail "Unsupported Linux package manager. Please install git/python3/clang manually, then run python3 install.py through bootstrap."
 			;;
 	esac
+	ok "Bootstrap dependencies are ready"
 }
 
 run_main_installer() {
@@ -179,10 +211,12 @@ run_main_installer() {
 	export DOTFILES_PKG_MANAGER="$PKG_MANAGER"
 
 	log "Launching install.py with distro context: distro=${DOTFILES_DISTRO}, manager=${DOTFILES_PKG_MANAGER}"
+	section "Handing off to install.py"
 	python3 "$INSTALL_SCRIPT" --from-bootstrap "$@"
 }
 
 main() {
+	section "Dotfiles bootstrap starting"
 	ensure_linux
 	load_os_release
 	detect_package_manager
