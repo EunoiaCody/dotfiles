@@ -7,6 +7,17 @@ INSTALL_SCRIPT="$SCRIPT_DIR/install.py"
 REPO_URL="https://github.com/EunoiaCody/dotfiles.git"
 CLONE_DIR="${DOTFILES_CLONE_DIR:-$HOME/.local/share/dotfiles}"
 
+is_streamed_script() {
+	case "${BASH_SOURCE[0]}" in
+		/dev/fd/*|/proc/self/fd/*)
+			return 0
+			;;
+		*)
+			return 1
+			;;
+	esac
+}
+
 log() {
 	echo "[BOOTSTRAP] $*"
 }
@@ -17,7 +28,7 @@ fail() {
 }
 
 prepare_install_script() {
-	if [[ -f "$INSTALL_SCRIPT" ]]; then
+	if ! is_streamed_script && [[ -f "$INSTALL_SCRIPT" ]]; then
 		return
 	fi
 
@@ -160,6 +171,10 @@ install_base_packages() {
 }
 
 run_main_installer() {
+	if [[ ! -f "$INSTALL_SCRIPT" ]]; then
+		prepare_install_script
+	fi
+
 	if [[ ! -f "$INSTALL_SCRIPT" ]]; then
 		fail "install.py not found at $INSTALL_SCRIPT"
 	fi
