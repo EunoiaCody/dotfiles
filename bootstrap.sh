@@ -250,6 +250,51 @@ install_runtime_packages() {
 	done
 }
 
+install_fonts() {
+	local font_packages=()
+
+	case "$PKG_MANAGER" in
+		apt)
+			font_packages=(
+				fonts-jetbrains-mono
+				fonts-noto-cjk
+				fonts-wqy-zenhei
+			)
+			;;
+		dnf)
+			font_packages=(
+				jetbrains-mono-fonts
+				google-noto-sans-cjk-fonts
+				google-noto-serif-cjk-fonts
+			)
+			;;
+		pacman)
+			font_packages=(
+				ttf-jetbrains-mono
+				noto-fonts-cjk
+				wqy-zenhei
+			)
+			;;
+		*)
+			return
+			;;
+	esac
+
+	log "Installing font packages..."
+	for pkg in "${font_packages[@]}"; do
+		if install_optional_package "$pkg" >/dev/null 2>&1; then
+			log "Installed or already present font: $pkg"
+		else
+			log "Skipped unavailable font package: $pkg"
+		fi
+	done
+
+	if command -v fc-cache >/dev/null 2>&1; then
+		log "Refreshing font cache"
+		fc-cache -f >/dev/null 2>&1 || true
+	fi
+}
+
 ensure_archlinuxcn_repo() {
 	local repo_block='[archlinuxcn]
 Server = https://repo.archlinuxcn.org/$arch'
@@ -370,6 +415,7 @@ main() {
 	install_base_packages
 	setup_arch_extras
 	install_runtime_packages
+	install_fonts
 	prepare_install_script
 	run_main_installer "$@"
 }
