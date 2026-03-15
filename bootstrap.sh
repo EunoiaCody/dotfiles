@@ -232,7 +232,7 @@ install_runtime_packages() {
 				nodejs
 				npm
 				ffmpeg
-				quickshell
+				qt6-5compat
 			)
 			;;
 		*)
@@ -280,6 +280,13 @@ install_arch_paru() {
 }
 
 install_quickshell_with_fallback() {
+	if ! install_optional_package qt6-5compat >/dev/null 2>&1; then
+		log "Failed to install prerequisite qt6-5compat, skipping quickshell"
+		return
+	fi
+
+	log "Installed or already present prerequisite: qt6-5compat"
+
 	if command -v quickshell >/dev/null 2>&1; then
 		log "quickshell already installed"
 		return
