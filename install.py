@@ -8,6 +8,8 @@ import os
 import shutil
 import subprocess
 import sys
+import termios
+import tty
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -313,54 +315,86 @@ def build_package_plan(pkg_manager: str, selected_components: List[str]) -> List
 	return dedupe_keep_order(planned)
 
 
-def print_component_menu() -> None:
-	section("Choose components to install")
-	print(f"{SUB}Select one or more items. Input format: 1,3,5{RESET}")
-	print(f"{SUB}Use 'a' for all, or press Enter for all.{RESET}")
-	print(f"{LAVENDER}{'-' * 68}{RESET}")
-	for idx, name in enumerate(COMPONENTS, start=1):
-		desc = COMPONENT_DESCRIPTIONS.get(name, "")
-		print(f"{LAVENDER}{idx:>2}.{RESET} {name:<12} {SUB}{desc}{RESET}")
-	print(f"{LAVENDER}{'-' * 68}{RESET}")
-
-
 def prompt_component_selection() -> List[str]:
 	if not sys.stdin.isatty():
 		warn("No interactive TTY detected. Defaulting to all components.")
 		return COMPONENTS.copy()
 
-	while True:
-		print_component_menu()
-		raw = input(f"{LAVENDER}Selection>{RESET} ").strip().lower()
+	items = COMPONENTS.copy()
+	checked = [True for _ in items]
+	cursor = 0
+	message = ""
 
-		if raw == "" or raw == "a" or raw == "all":
-			ok("Selected all components")
-			return COMPONENTS.copy()
+	def render() -> None:
+		print("\033[2J\033[H", end="")
+		print(f"{LAVENDER}==>{RESET} {SUB}Choose components to install{RESET}")
+		print(f"{SUB}Use Up/Down to move, Space or Tab to toggle, Enter to confirm.{RESET}")
+		print(f"{LAVENDER}{'-' * 76}{RESET}")
+		for idx, name in enumerate(items):
+			desc = COMPONENT_DESCRIPTIONS.get(name, "")
+			mark = "x" if checked[idx] else " "
+			prefix = f"{LAVENDER}>{RESET}" if idx == cursor else " "
+			print(f"{prefix} [{mark}] {name:<12} {SUB}{desc}{RESET}")
+		print(f"{LAVENDER}{'-' * 76}{RESET}")
+		if message:
+			print(f"{YELLOW}{message}{RESET}")
 
-		parts = [part.strip() for part in raw.split(",") if part.strip()]
-		if not parts:
-			warn("Invalid selection, please try again.")
-			continue
+	def read_key() -> str:
+		first = sys.stdin.read(1)
+		if first != "\x1b":
+			return first
 
-		selected: List[str] = []
-		invalid = False
-		for part in parts:
-			if not part.isdigit():
-				invalid = True
-				break
-			index = int(part)
-			if index < 1 or index > len(COMPONENTS):
-				invalid = True
-				break
-			selected.append(COMPONENTS[index - 1])
+		second = sys.stdin.read(1)
+		if second != "[":
+			return first
 
-		if invalid:
-			warn("Selection contains invalid entries, please use listed numbers.")
-			continue
+		third = sys.stdin.read(1)
+		if third == "A":
+			return "UP"
+		if third == "B":
+			return "DOWN"
+		return "ESC"
 
-		selected = dedupe_keep_order(selected)
-		ok(f"Selected: {', '.join(selected)}")
-		return selected
+	fd = sys.stdin.fileno()
+	old_settings = termios.tcgetattr(fd)
+	print("\033[?25l", end="", flush=True)
+	try:
+		tty.setraw(fd)
+		while True:
+			render()
+			key = read_key()
+
+			if key == "UP":
+				cursor = (cursor - 1) % len(items)
+				message = ""
+				continue
+
+			if key == "DOWN":
+				cursor = (cursor + 1) % len(items)
+				message = ""
+				continue
+
+			if key in (" ", "\t"):
+				checked[cursor] = not checked[cursor]
+				message = ""
+				continue
+
+			if key in ("\r", "\n"):
+				selected = [name for idx, name in enumerate(items) if checked[idx]]
+				if not selected:
+					message = "Please select at least one component."
+					continue
+				print()
+				ok(f"Selected: {', '.join(selected)}")
+				return selected
+
+			if key.lower() == "q":
+				print()
+				warn("Selection cancelled by user. Defaulting to all components.")
+				return COMPONENTS.copy()
+	finally:
+		termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+		print("\033[?25h", end="", flush=True)
 
 
 def install_system_packages(pkg_manager: str, selected_components: List[str]) -> None:
