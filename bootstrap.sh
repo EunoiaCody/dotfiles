@@ -280,12 +280,16 @@ install_arch_paru() {
 }
 
 install_quickshell_with_fallback() {
-	if ! install_optional_package qt6-5compat >/dev/null 2>&1; then
-		log "Failed to install prerequisite qt6-5compat, skipping quickshell"
-		return
+	if [[ "$PKG_MANAGER" == "pacman" ]]; then
+		if pacman -Q qt6-5compat >/dev/null 2>&1; then
+			log "Prerequisite already installed: qt6-5compat"
+		else
+			log "Installing prerequisite package: qt6-5compat"
+			if ! $SUDO pacman -S --needed --noconfirm qt6-5compat; then
+				fail "Failed to install required package qt6-5compat"
+			fi
+		fi
 	fi
-
-	log "Installed or already present prerequisite: qt6-5compat"
 
 	if command -v quickshell >/dev/null 2>&1; then
 		log "quickshell already installed"
