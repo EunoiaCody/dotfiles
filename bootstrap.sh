@@ -5,7 +5,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 INSTALL_SCRIPT="$SCRIPT_DIR/install.py"
 REPO_URL="https://github.com/EunoiaCody/dotfiles.git"
-CLONE_DIR="${DOTFILES_CLONE_DIR:-$HOME/.local/share/dotfiles}"
+CLONE_DIR="${DOTFILES_CLONE_DIR:-}"
+AUTO_CLONE_CLEANUP=0
 
 USE_COLOR=0
 if [[ -t 1 ]] && [[ -z "${NO_COLOR:-}" ]]; then
@@ -33,6 +34,26 @@ section() {
 	echo "${C_LAVENDER}==>${C_RESET} ${C_SUB}$*${C_RESET}"
 }
 
+print_banner() {
+	echo "${C_LAVENDER}"
+	cat <<'EOF'
+███████╗██╗   ██╗███╗   ██╗ ██████╗ ██╗ █████╗     ███████╗
+██╔════╝██║   ██║████╗  ██║██╔═══██╗██║██╔══██╗    ██╔════╝
+█████╗  ██║   ██║██╔██╗ ██║██║   ██║██║███████║    ███████╗
+██╔══╝  ██║   ██║██║╚██╗██║██║   ██║██║██╔══██║    ╚════██║
+███████╗╚██████╔╝██║ ╚████║╚██████╔╝██║██║  ██║    ███████║
+╚══════╝ ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝ ╚═╝╚═╝  ╚═╝    ╚══════╝
+
+██████╗  ██████╗ ████████╗███████╗██╗██╗     ███████╗███████╗
+██╔══██╗██╔═══██╗╚══██╔══╝██╔════╝██║██║     ██╔════╝██╔════╝
+██║  ██║██║   ██║   ██║   █████╗  ██║██║     █████╗  ███████╗
+██║  ██║██║   ██║   ██║   ██╔══╝  ██║██║     ██╔══╝  ╚════██║
+██████╔╝╚██████╔╝   ██║   ██║     ██║███████╗███████╗███████║
+╚═════╝  ╚═════╝    ╚═╝   ╚═╝     ╚═╝╚══════╝╚══════╝╚══════╝
+EOF
+	echo "${C_RESET}"
+}
+
 is_streamed_script() {
 	case "${BASH_SOURCE[0]}" in
 		/dev/fd/*|/proc/self/fd/*)
@@ -57,6 +78,27 @@ ok() {
 	echo "${C_GREEN}[BOOTSTRAP][OK]${C_RESET} $*"
 }
 
+warn() {
+	echo "${C_YELLOW}[BOOTSTRAP][WARN]${C_RESET} $*"
+}
+
+cleanup_cloned_repo() {
+	if [[ "$AUTO_CLONE_CLEANUP" -ne 1 ]]; then
+		return
+	fi
+
+	if [[ -z "${CLONE_DIR:-}" ]] || [[ ! -d "$CLONE_DIR" ]]; then
+		return
+	fi
+
+	section "Cleaning temporary clone"
+	if rm -rf "$CLONE_DIR"; then
+		ok "Removed temporary cloned repository: $CLONE_DIR"
+	else
+		warn "Failed to remove temporary cloned repository: $CLONE_DIR"
+	fi
+}
+
 prepare_install_script() {
 	if ! is_streamed_script && [[ -f "$INSTALL_SCRIPT" ]]; then
 		return
@@ -68,6 +110,12 @@ prepare_install_script() {
 		fail "git is required to clone dotfiles repository when install.py is missing."
 	fi
 
+	if [[ -z "$CLONE_DIR" ]]; then
+		CLONE_DIR="$(mktemp -d "${TMPDIR:-/tmp}/dotfiles-bootstrap-XXXXXX")"
+		AUTO_CLONE_CLEANUP=1
+		log "Using temporary clone directory: $CLONE_DIR"
+	fi
+
 	mkdir -p "$(dirname "$CLONE_DIR")"
 
 	if [[ -d "$CLONE_DIR/.git" ]]; then
@@ -75,7 +123,12 @@ prepare_install_script() {
 		git -C "$CLONE_DIR" pull --ff-only || fail "Failed to update existing repository at $CLONE_DIR"
 	else
 		if [[ -d "$CLONE_DIR" ]]; then
-			log "Directory $CLONE_DIR exists but is not a git repo. Reusing local files."
+			if [[ -n "${DOTFILES_CLONE_DIR:-}" ]]; then
+				log "Directory $CLONE_DIR exists but is not a git repo. Reusing local files."
+			else
+				rm -rf "$CLONE_DIR"
+				git clone "$REPO_URL" "$CLONE_DIR" || fail "Failed to clone dotfiles repository"
+			fi
 		else
 			log "Cloning dotfiles repository into $CLONE_DIR..."
 			git clone "$REPO_URL" "$CLONE_DIR" || fail "Failed to clone dotfiles repository"
@@ -216,6 +269,7 @@ run_main_installer() {
 }
 
 main() {
+	print_banner
 	section "Dotfiles bootstrap starting"
 	ensure_linux
 	load_os_release
@@ -233,5 +287,7 @@ main() {
 	prepare_install_script
 	run_main_installer "$@"
 }
+
+trap cleanup_cloned_repo EXIT
 
 main "$@"
