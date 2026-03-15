@@ -238,6 +238,7 @@ def install_system_packages(pkg_manager: str) -> None:
 			"make",
 			"cmake",
 			"pkg-config",
+			"figlet",
 			"fish",
 			"kitty",
 			"mpv",
@@ -258,6 +259,7 @@ def install_system_packages(pkg_manager: str) -> None:
 			"make",
 			"cmake",
 			"pkgconf-pkg-config",
+			"figlet",
 			"fish",
 			"kitty",
 			"mpv",
@@ -282,6 +284,7 @@ def install_system_packages(pkg_manager: str) -> None:
 			"make",
 			"cmake",
 			"pkgconf",
+			"figlet",
 			"fish",
 			"niri",
 			"kitty",
@@ -306,6 +309,28 @@ def install_system_packages(pkg_manager: str) -> None:
 	if command_exists("fc-cache"):
 		run_command(["fc-cache", "-f"], check=False, quiet=True)
 		ok("Font cache refreshed")
+
+
+def print_completion_banner(repo_root: Path) -> None:
+	if not command_exists("figlet"):
+		warn("figlet not installed, skipping completion banner")
+		return
+
+	font_dir = repo_root / "figlet"
+	font_file = font_dir / "ANSI-Shadow.flf"
+	if not font_file.exists():
+		warn(f"Figlet font not found: {font_file}")
+		return
+
+	print()
+	try:
+		run_command(
+			["figlet", "-d", str(font_dir), "-f", "ANSI-Shadow", "Eunoia Dotfiles"],
+			check=True,
+			quiet=False,
+		)
+	except subprocess.CalledProcessError:
+		warn("Failed to render figlet banner")
 
 
 def ensure_bootstrap_guard(args: argparse.Namespace) -> bool:
@@ -485,6 +510,8 @@ def main() -> int:
 
 	if failures:
 		return 1
+
+	print_completion_banner(repo_root)
 	return 0
 
 
