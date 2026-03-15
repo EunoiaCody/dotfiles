@@ -6,7 +6,7 @@ QtObject {
 	readonly property real gap: 8
 
 	// Order of right-side modules, from rightmost to leftmost
-	readonly property var order: ["powermenu", "notifications", "volume", "bluetooth", "network", "systemtray"]
+	readonly property var order: ["powermenu", "notifications", "volume", "bluetooth", "network", "systemmonitor", "systemtray"]
 
 	// Each module registers its width here
 	property var widths: ({})

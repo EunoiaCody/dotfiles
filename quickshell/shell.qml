@@ -52,6 +52,12 @@ ShellRoot {
 	Variants {
 		model: Quickshell.screens
 
+		Modules.SystemMonitor {}
+	}
+
+	Variants {
+		model: Quickshell.screens
+
 		Modules.SystemTray {}
 	}
 }
