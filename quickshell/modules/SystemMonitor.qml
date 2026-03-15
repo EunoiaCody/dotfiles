@@ -68,7 +68,8 @@ PanelWindow {
     // CPU usage from /proc/stat via two-sample delta (no JS state)
     Process {
         id: cpuStatProc
-        command: ["bash", "-lc", "LC_ALL=C read _ u n s i io irq sirq st rest < /proc/stat; sleep 0.25; LC_ALL=C read _ u2 n2 s2 i2 io2 irq2 sirq2 st2 rest2 < /proc/stat; total=$((u2+n2+s2+i2+io2+irq2+sirq2+st2 - (u+n+s+i+io+irq+sirq+st))); idle=$((i2+io2 - (i+io))); if [ $total -gt 0 ]; then python - <<'PY'\ntot=$total\nidle=$idle\nused=tot-idle\nif tot > 0:\n    pct = max(0.0, min(100.0, (used / tot) * 100.0))\n    print(f\"{pct:.2f}\")\nelse:\n    print(\"0\")\nPY\nelse echo 0; fi\n"]
+        // Use env vars inside Python to avoid shell heredoc substitution issues
+        command: ["bash", "-lc", "LC_ALL=C read _ u n s i io irq sirq st rest < /proc/stat; sleep 0.25; LC_ALL=C read _ u2 n2 s2 i2 io2 irq2 sirq2 st2 rest2 < /proc/stat; total=$((u2+n2+s2+i2+io2+irq2+sirq2+st2 - (u+n+s+i+io+irq+sirq+st))); idle=$((i2+io2 - (i+io))); if [ $total -gt 0 ]; then TOTAL=$total IDLE=$idle python - <<'PY'\nimport os\ntot = int(os.environ.get('TOTAL', '0'))\nidle = int(os.environ.get('IDLE', '0'))\nused = tot - idle\npct = 0.0\nif tot > 0:\n    pct = max(0.0, min(100.0, (used / tot) * 100.0))\nprint(f\"{pct:.2f}\")\nPY\nelse echo 0; fi\n"]
         property string buf: ""
 
         stdout: SplitParser {
