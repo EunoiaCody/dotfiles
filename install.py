@@ -9,6 +9,7 @@ import shutil
 import subprocess
 import sys
 import termios
+import textwrap
 import tty
 from dataclasses import dataclass
 from datetime import datetime
@@ -187,6 +188,35 @@ def dedupe_keep_order(items: List[str]) -> List[str]:
 	return result
 
 
+def term_width(default: int = 100) -> int:
+	try:
+		return max(60, shutil.get_terminal_size((default, 30)).columns)
+	except OSError:
+		return default
+
+
+def trim_text(text: str, max_len: int) -> str:
+	if max_len <= 0:
+		return ""
+	if len(text) <= max_len:
+		return text
+	if max_len <= 3:
+		return text[:max_len]
+	return text[: max_len - 3] + "..."
+
+
+def print_package_plan(packages: List[str]) -> None:
+	if not packages:
+		warn("No packages to install for selected components.")
+		return
+
+	section("Resolved package plan")
+	width = term_width()
+	joined = ", ".join(packages)
+	for line in textwrap.wrap(joined, width=max(20, width - 12)):
+		print(f"{LAVENDER}[PLAN]{RESET} {line}")
+
+
 def command_exists(name: str) -> bool:
 	return shutil.which(name) is not None
 
@@ -326,18 +356,24 @@ def prompt_component_selection() -> List[str]:
 	message = ""
 
 	def render() -> None:
+		width = term_width()
+		rule = "-" * min(76, width)
 		print("\033[2J\033[H", end="")
 		print(f"{LAVENDER}==>{RESET} {SUB}Choose components to install{RESET}")
-		print(f"{SUB}Use Up/Down to move, Space or Tab to toggle, Enter to confirm.{RESET}")
-		print(f"{LAVENDER}{'-' * 76}{RESET}")
+		help_line = "Use Up/Down to move, Space or Tab to toggle, Enter to confirm."
+		print(f"{SUB}{trim_text(help_line, width)}{RESET}")
+		print(f"{LAVENDER}{rule}{RESET}")
 		for idx, name in enumerate(items):
 			desc = COMPONENT_DESCRIPTIONS.get(name, "")
 			mark = "x" if checked[idx] else " "
 			prefix = f"{LAVENDER}>{RESET}" if idx == cursor else " "
-			print(f"{prefix} [{mark}] {name:<12} {SUB}{desc}{RESET}")
-		print(f"{LAVENDER}{'-' * 76}{RESET}")
+			name_part = f"[{mark}] {name:<12} "
+			desc_max = max(10, width - 20)
+			desc_part = trim_text(desc, desc_max)
+			print(f"{prefix} {name_part}{SUB}{desc_part}{RESET}")
+		print(f"{LAVENDER}{rule}{RESET}")
 		if message:
-			print(f"{YELLOW}{message}{RESET}")
+			print(f"{YELLOW}{trim_text(message, width)}{RESET}")
 
 	def read_key() -> str:
 		first = sys.stdin.read(1)
@@ -410,7 +446,7 @@ def install_system_packages(pkg_manager: str, selected_components: List[str]) ->
 
 	packages = build_package_plan(pkg_manager, selected_components)
 	if packages:
-		log(f"Package plan: {', '.join(packages)}")
+		print_package_plan(packages)
 		install_packages(pkg_manager, packages, root_prefix, best_effort=True)
 	else:
 		warn("No distro packages mapped for the selected components.")
