@@ -35,7 +35,8 @@ section() {
 }
 
 print_banner() {
-	echo "${C_LAVENDER}"
+	echo
+	echo "${C_LAVENDER}==== Eunoia Dotfiles Bootstrap ====${C_RESET}"
 	cat <<'EOF'
 ███████╗██╗   ██╗███╗   ██╗ ██████╗ ██╗ █████╗     ███████╗
 ██╔════╝██║   ██║████╗  ██║██╔═══██╗██║██╔══██╗    ██╔════╝
@@ -51,7 +52,7 @@ print_banner() {
 ██████╔╝╚██████╔╝   ██║   ██║     ██║███████╗███████╗███████║
 ╚═════╝  ╚═════╝    ╚═╝   ╚═╝     ╚═╝╚══════╝╚══════╝╚══════╝
 EOF
-	echo "${C_RESET}"
+	echo "${C_LAVENDER}===================================${C_RESET}"
 }
 
 is_streamed_script() {
