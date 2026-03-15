@@ -38,6 +38,66 @@ COMPONENTS = [
 	"quickshell",
 ]
 
+COMPONENT_DESCRIPTIONS = {
+	"kitty": "Kitty terminal and related fonts",
+	"mpv": "MPV media player and codec support",
+	"neovide": "Neovide GUI for Neovim",
+	"nvim": "Neovim + build/search toolchain",
+	"fish": "Fish shell",
+	"aerospace": "AeroSpace config (macOS focused)",
+	"sketchybar": "SketchyBar config (macOS focused)",
+	"yazi": "Yazi terminal file manager",
+	"figlet": "Figlet utility",
+	"bat": "bat pager",
+	"niri": "Niri compositor",
+	"quickshell": "Quickshell (Arch preferred)",
+}
+
+PACKAGE_MAP = {
+	"apt": {
+		"kitty": ["kitty", "fonts-jetbrains-mono", "fonts-noto-cjk", "fonts-wqy-zenhei"],
+		"mpv": ["mpv", "ffmpeg"],
+		"neovide": ["neovide"],
+		"nvim": ["neovim", "ripgrep", "nodejs", "npm", "clang", "make", "cmake", "pkg-config"],
+		"fish": ["fish"],
+		"aerospace": [],
+		"sketchybar": [],
+		"yazi": ["yazi"],
+		"figlet": ["figlet"],
+		"bat": ["bat"],
+		"niri": ["niri"],
+		"quickshell": [],
+	},
+	"dnf": {
+		"kitty": ["kitty", "jetbrains-mono-fonts", "google-noto-sans-cjk-fonts", "google-noto-serif-cjk-fonts"],
+		"mpv": ["mpv", "ffmpeg"],
+		"neovide": ["neovide"],
+		"nvim": ["neovim", "ripgrep", "nodejs", "npm", "clang", "make", "cmake", "pkgconf-pkg-config"],
+		"fish": ["fish"],
+		"aerospace": [],
+		"sketchybar": [],
+		"yazi": ["yazi"],
+		"figlet": ["figlet"],
+		"bat": ["bat"],
+		"niri": ["niri"],
+		"quickshell": [],
+	},
+	"pacman": {
+		"kitty": ["kitty", "ttf-jetbrains-mono", "noto-fonts-cjk", "wqy-zenhei"],
+		"mpv": ["mpv", "ffmpeg"],
+		"neovide": ["neovide"],
+		"nvim": ["neovim", "ripgrep", "nodejs", "npm", "clang", "make", "cmake", "pkgconf"],
+		"fish": ["fish"],
+		"aerospace": [],
+		"sketchybar": [],
+		"yazi": ["yazi"],
+		"figlet": ["figlet"],
+		"bat": ["bat"],
+		"niri": ["niri"],
+		"quickshell": [],
+	},
+}
+
 
 @dataclass
 class InstallResult:
@@ -100,6 +160,11 @@ def parse_args() -> argparse.Namespace:
 		action="store_true",
 		help="Show actions without modifying files.",
 	)
+	parser.add_argument(
+		"--non-interactive",
+		action="store_true",
+		help="Do not prompt for component selection (defaults to all unless --only/--skip is set).",
+	)
 	return parser.parse_args()
 
 
@@ -107,6 +172,17 @@ def parse_list(value: str) -> List[str]:
 	if not value.strip():
 		return []
 	return [item.strip() for item in value.split(",") if item.strip()]
+
+
+def dedupe_keep_order(items: List[str]) -> List[str]:
+	seen = set()
+	result: List[str] = []
+	for item in items:
+		if item in seen:
+			continue
+		seen.add(item)
+		result.append(item)
+	return result
 
 
 def command_exists(name: str) -> bool:
@@ -225,7 +301,69 @@ def install_quickshell_arch(root_prefix: List[str]) -> None:
 		raise RuntimeError("Failed to install quickshell via paru") from exc
 
 
-def install_system_packages(pkg_manager: str) -> None:
+def build_package_plan(pkg_manager: str, selected_components: List[str]) -> List[str]:
+	manager_map = PACKAGE_MAP.get(pkg_manager)
+	if manager_map is None:
+		raise RuntimeError(f"Unsupported package manager from bootstrap: {pkg_manager}")
+
+	planned: List[str] = []
+	for component in selected_components:
+		planned.extend(manager_map.get(component, []))
+
+	return dedupe_keep_order(planned)
+
+
+def print_component_menu() -> None:
+	section("Choose components to install")
+	print(f"{SUB}Select one or more items. Input format: 1,3,5{RESET}")
+	print(f"{SUB}Use 'a' for all, or press Enter for all.{RESET}")
+	print(f"{LAVENDER}{'-' * 68}{RESET}")
+	for idx, name in enumerate(COMPONENTS, start=1):
+		desc = COMPONENT_DESCRIPTIONS.get(name, "")
+		print(f"{LAVENDER}{idx:>2}.{RESET} {name:<12} {SUB}{desc}{RESET}")
+	print(f"{LAVENDER}{'-' * 68}{RESET}")
+
+
+def prompt_component_selection() -> List[str]:
+	if not sys.stdin.isatty():
+		warn("No interactive TTY detected. Defaulting to all components.")
+		return COMPONENTS.copy()
+
+	while True:
+		print_component_menu()
+		raw = input(f"{LAVENDER}Selection>{RESET} ").strip().lower()
+
+		if raw == "" or raw == "a" or raw == "all":
+			ok("Selected all components")
+			return COMPONENTS.copy()
+
+		parts = [part.strip() for part in raw.split(",") if part.strip()]
+		if not parts:
+			warn("Invalid selection, please try again.")
+			continue
+
+		selected: List[str] = []
+		invalid = False
+		for part in parts:
+			if not part.isdigit():
+				invalid = True
+				break
+			index = int(part)
+			if index < 1 or index > len(COMPONENTS):
+				invalid = True
+				break
+			selected.append(COMPONENTS[index - 1])
+
+		if invalid:
+			warn("Selection contains invalid entries, please use listed numbers.")
+			continue
+
+		selected = dedupe_keep_order(selected)
+		ok(f"Selected: {', '.join(selected)}")
+		return selected
+
+
+def install_system_packages(pkg_manager: str, selected_components: List[str]) -> None:
 	section("Installing system packages and fonts")
 	root_prefix = build_root_prefix()
 	if os.geteuid() != 0 and not root_prefix:
@@ -233,75 +371,25 @@ def install_system_packages(pkg_manager: str) -> None:
 
 	if pkg_manager == "apt":
 		run_command(root_prefix + ["apt-get", "update", "-y"], check=True, quiet=True)
-		packages = [
-			"clang",
-			"make",
-			"cmake",
-			"pkg-config",
-			"fish",
-			"kitty",
-			"mpv",
-			"neovim",
-			"bat",
-			"ripgrep",
-			"nodejs",
-			"npm",
-			"ffmpeg",
-			"fonts-jetbrains-mono",
-			"fonts-noto-cjk",
-			"fonts-wqy-zenhei",
-		]
-		install_packages("apt", packages, root_prefix, best_effort=True)
-	elif pkg_manager == "dnf":
-		packages = [
-			"clang",
-			"make",
-			"cmake",
-			"pkgconf-pkg-config",
-			"fish",
-			"kitty",
-			"mpv",
-			"neovim",
-			"bat",
-			"ripgrep",
-			"nodejs",
-			"npm",
-			"ffmpeg",
-			"jetbrains-mono-fonts",
-			"google-noto-sans-cjk-fonts",
-			"google-noto-serif-cjk-fonts",
-		]
-		install_packages("dnf", packages, root_prefix, best_effort=True)
-	elif pkg_manager == "pacman":
+	if pkg_manager == "pacman":
 		run_command(root_prefix + ["pacman", "-Sy", "--noconfirm"], check=True, quiet=True)
+
+	packages = build_package_plan(pkg_manager, selected_components)
+	if packages:
+		log(f"Package plan: {', '.join(packages)}")
+		install_packages(pkg_manager, packages, root_prefix, best_effort=True)
+	else:
+		warn("No distro packages mapped for the selected components.")
+
+	if pkg_manager == "pacman" and "quickshell" in selected_components:
 		setup_archlinuxcn(root_prefix)
 		setup_arch_paru(root_prefix)
-
-		packages = [
-			"clang",
-			"make",
-			"cmake",
-			"pkgconf",
-			"fish",
-			"niri",
-			"kitty",
-			"mpv",
-			"neovim",
-			"neovide",
-			"bat",
-			"yazi",
-			"ripgrep",
-			"nodejs",
-			"npm",
-			"ffmpeg",
-			"ttf-jetbrains-mono",
-			"noto-fonts-cjk",
-			"wqy-zenhei",
-		]
-		install_packages("pacman", packages, root_prefix, best_effort=True)
 		install_quickshell_arch(root_prefix)
-	else:
-		raise RuntimeError(f"Unsupported package manager from bootstrap: {pkg_manager}")
+
+	if "aerospace" in selected_components:
+		warn("aerospace is macOS-oriented. Linux package installation is skipped.")
+	if "sketchybar" in selected_components:
+		warn("sketchybar is macOS-oriented. Linux package installation is skipped.")
 
 	if command_exists("fc-cache"):
 		run_command(["fc-cache", "-f"], check=False, quiet=True)
@@ -330,6 +418,20 @@ def resolve_components(only_items: List[str], skip_items: List[str]) -> List[str
 
 	selected = COMPONENTS if not only_items else [name for name in COMPONENTS if name in only_items]
 	return [name for name in selected if name not in skip_items]
+
+
+def select_components(args: argparse.Namespace) -> List[str]:
+	only_items = parse_list(args.only)
+	skip_items = parse_list(args.skip)
+
+	if only_items or skip_items:
+		return resolve_components(only_items, skip_items)
+
+	if args.non_interactive:
+		log("Non-interactive mode enabled, selecting all components.")
+		return COMPONENTS.copy()
+
+	return prompt_component_selection()
 
 
 def backup_path(backup_root: Path, name: str) -> Path:
@@ -423,18 +525,18 @@ def main() -> int:
 	)
 
 	try:
-		install_system_packages(pkg_manager)
-	except RuntimeError as exc:
-		return fail(str(exc))
-
-	try:
-		selected = resolve_components(parse_list(args.only), parse_list(args.skip))
+		selected = select_components(args)
 	except ValueError as exc:
 		return fail(str(exc))
 
 	if not selected:
 		log("No components selected. Nothing to do.")
 		return 0
+
+	try:
+		install_system_packages(pkg_manager, selected)
+	except RuntimeError as exc:
+		return fail(str(exc))
 
 	repo_root = Path(__file__).resolve().parent
 	config_root = Path.home() / ".config"
