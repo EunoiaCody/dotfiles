@@ -355,14 +355,17 @@ def prompt_component_selection() -> List[str]:
 	cursor = 0
 	message = ""
 
+	def render_line(text: str = "") -> None:
+		sys.stdout.write(text + "\r\n")
+
 	def render() -> None:
 		width = term_width()
 		rule = "-" * min(76, width)
-		print("\033[2J\033[H", end="")
-		print(f"{LAVENDER}==>{RESET} {SUB}Choose components to install{RESET}")
+		sys.stdout.write("\033[2J\033[H")
+		render_line(f"{LAVENDER}==>{RESET} {SUB}Choose components to install{RESET}")
 		help_line = "Use Up/Down to move, Space or Tab to toggle, Enter to confirm."
-		print(f"{SUB}{trim_text(help_line, width)}{RESET}")
-		print(f"{LAVENDER}{rule}{RESET}")
+		render_line(f"{SUB}{trim_text(help_line, width)}{RESET}")
+		render_line(f"{LAVENDER}{rule}{RESET}")
 		for idx, name in enumerate(items):
 			desc = COMPONENT_DESCRIPTIONS.get(name, "")
 			mark = "x" if checked[idx] else " "
@@ -370,10 +373,11 @@ def prompt_component_selection() -> List[str]:
 			name_part = f"[{mark}] {name:<12} "
 			desc_max = max(10, width - 20)
 			desc_part = trim_text(desc, desc_max)
-			print(f"{prefix} {name_part}{SUB}{desc_part}{RESET}")
-		print(f"{LAVENDER}{rule}{RESET}")
+			render_line(f"{prefix} {name_part}{SUB}{desc_part}{RESET}")
+		render_line(f"{LAVENDER}{rule}{RESET}")
 		if message:
-			print(f"{YELLOW}{trim_text(message, width)}{RESET}")
+			render_line(f"{YELLOW}{trim_text(message, width)}{RESET}")
+		sys.stdout.flush()
 
 	def read_key() -> str:
 		first = sys.stdin.read(1)
@@ -420,12 +424,14 @@ def prompt_component_selection() -> List[str]:
 				if not selected:
 					message = "Please select at least one component."
 					continue
-				print()
+				sys.stdout.write("\r\n")
+				sys.stdout.flush()
 				ok(f"Selected: {', '.join(selected)}")
 				return selected
 
 			if key.lower() == "q":
-				print()
+				sys.stdout.write("\r\n")
+				sys.stdout.flush()
 				warn("Selection cancelled by user. Defaulting to all components.")
 				return COMPONENTS.copy()
 	finally:
