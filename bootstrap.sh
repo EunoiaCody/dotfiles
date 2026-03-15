@@ -232,6 +232,7 @@ install_runtime_packages() {
 				nodejs
 				npm
 				ffmpeg
+				quickshell
 			)
 			;;
 		*)
@@ -247,6 +248,75 @@ install_runtime_packages() {
 			log "Skipped unavailable package: $pkg"
 		fi
 	done
+}
+
+ensure_archlinuxcn_repo() {
+	local repo_block='[archlinuxcn]
+Server = https://repo.archlinuxcn.org/$arch'
+
+	if grep -q '^\[archlinuxcn\]' /etc/pacman.conf; then
+		log "archlinuxcn repo already configured"
+		return
+	fi
+
+	log "Adding archlinuxcn repository to /etc/pacman.conf"
+	if [[ -n "$SUDO" ]]; then
+		printf "\n%s\n" "$repo_block" | $SUDO tee -a /etc/pacman.conf >/dev/null
+	else
+		printf "\n%s\n" "$repo_block" >>/etc/pacman.conf
+	fi
+}
+
+install_arch_paru() {
+	if command -v paru >/dev/null 2>&1; then
+		log "paru already installed"
+		return
+	fi
+
+	log "Installing paru from archlinuxcn"
+	if ! install_optional_package paru >/dev/null 2>&1; then
+		fail "Failed to install paru. Please check archlinuxcn mirror and pacman configuration."
+	fi
+}
+
+install_quickshell_with_fallback() {
+	if command -v quickshell >/dev/null 2>&1; then
+		log "quickshell already installed"
+		return
+	fi
+
+	if install_optional_package quickshell >/dev/null 2>&1; then
+		log "Installed quickshell via pacman repository"
+		return
+	fi
+
+	if ! command -v paru >/dev/null 2>&1; then
+		log "paru not available, cannot install quickshell from AUR fallback"
+		return
+	fi
+
+	log "Installing quickshell via paru fallback"
+	if paru -S --noconfirm --needed quickshell >/dev/null 2>&1; then
+		log "Installed quickshell via paru"
+	else
+		log "Failed to install quickshell via paru"
+	fi
+}
+
+setup_arch_extras() {
+	if [[ "$PKG_MANAGER" != "pacman" ]]; then
+		return
+	fi
+
+	ensure_archlinuxcn_repo
+	log "Refreshing pacman databases after archlinuxcn setup"
+	$SUDO pacman -Sy --noconfirm
+
+	log "Installing archlinuxcn keyring"
+	install_optional_package archlinuxcn-keyring >/dev/null 2>&1 || fail "Failed to install archlinuxcn-keyring"
+
+	install_arch_paru
+	install_quickshell_with_fallback
 }
 
 run_main_installer() {
@@ -287,6 +357,7 @@ main() {
 
 	require_sudo_if_needed
 	install_base_packages
+	setup_arch_extras
 	install_runtime_packages
 	prepare_install_script
 	run_main_installer "$@"
