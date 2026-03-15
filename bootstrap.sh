@@ -1,0 +1,163 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+INSTALL_SCRIPT="$SCRIPT_DIR/install.py"
+
+log() {
+	echo "[BOOTSTRAP] $*"
+}
+
+fail() {
+	echo "[BOOTSTRAP][ERROR] $*" >&2
+	exit 1
+}
+
+ensure_linux() {
+	local kernel
+	kernel="$(uname -s 2>/dev/null || true)"
+	if [[ "$kernel" != "Linux" ]]; then
+		fail "This installer only supports Linux. Please run this script on a Linux distribution."
+	fi
+}
+
+load_os_release() {
+	if [[ ! -f /etc/os-release ]]; then
+		fail "Cannot detect Linux distribution because /etc/os-release is missing."
+	fi
+	# shellcheck disable=SC1091
+	source /etc/os-release
+}
+
+detect_package_manager() {
+	if command -v apt-get >/dev/null 2>&1; then
+		PKG_MANAGER="apt"
+		return
+	fi
+
+	if command -v dnf >/dev/null 2>&1; then
+		PKG_MANAGER="dnf"
+		return
+	fi
+
+	if command -v pacman >/dev/null 2>&1; then
+		PKG_MANAGER="pacman"
+		return
+	fi
+
+	PKG_MANAGER=""
+}
+
+require_sudo_if_needed() {
+	if [[ "$(id -u)" -eq 0 ]]; then
+		SUDO=""
+		return
+	fi
+
+	if ! command -v sudo >/dev/null 2>&1; then
+		fail "sudo is required when not running as root."
+	fi
+
+	if ! sudo -v; then
+		fail "Failed to obtain sudo privileges."
+	fi
+
+	SUDO="sudo"
+}
+
+install_base_packages() {
+	case "$PKG_MANAGER" in
+		apt)
+			local packages=(
+				git
+				python3
+				python3-pip
+				curl
+				ca-certificates
+				clang
+				make
+				cmake
+				pkg-config
+			)
+			log "Updating apt package index..."
+			$SUDO apt-get update -y
+			log "Installing base dependencies with apt..."
+			$SUDO apt-get install -y "${packages[@]}"
+			;;
+		dnf)
+			local packages=(
+				git
+				python3
+				python3-pip
+				curl
+				ca-certificates
+				clang
+				make
+				cmake
+				pkgconf-pkg-config
+			)
+			log "Installing base dependencies with dnf..."
+			$SUDO dnf install -y "${packages[@]}"
+			;;
+		pacman)
+			local packages=(
+				git
+				python
+				python-pip
+				curl
+				ca-certificates
+				clang
+				make
+				cmake
+				pkgconf
+			)
+			log "Refreshing pacman databases..."
+			$SUDO pacman -Sy --noconfirm
+			log "Installing base dependencies with pacman..."
+			$SUDO pacman -S --needed --noconfirm "${packages[@]}"
+			;;
+		*)
+			fail "Unsupported Linux package manager. Please install git/python3/clang manually, then run python3 install.py through bootstrap."
+			;;
+	esac
+}
+
+run_main_installer() {
+	if [[ ! -f "$INSTALL_SCRIPT" ]]; then
+		fail "install.py not found at $INSTALL_SCRIPT"
+	fi
+
+	if ! command -v python3 >/dev/null 2>&1; then
+		fail "python3 is not available after dependency installation."
+	fi
+
+	export DOTFILES_BOOTSTRAPPED="1"
+	export DOTFILES_OS="linux"
+	export DOTFILES_DISTRO="${ID:-unknown}"
+	export DOTFILES_DISTRO_LIKE="${ID_LIKE:-}"
+	export DOTFILES_DISTRO_VERSION="${VERSION_ID:-unknown}"
+	export DOTFILES_PKG_MANAGER="$PKG_MANAGER"
+
+	log "Launching install.py with distro context: distro=${DOTFILES_DISTRO}, manager=${DOTFILES_PKG_MANAGER}"
+	python3 "$INSTALL_SCRIPT" --from-bootstrap "$@"
+}
+
+main() {
+	ensure_linux
+	load_os_release
+	detect_package_manager
+
+	if [[ -z "${PKG_MANAGER:-}" ]]; then
+		fail "Cannot determine package manager for this Linux distribution."
+	fi
+
+	log "Detected distro: ${ID:-unknown} ${VERSION_ID:-unknown}"
+	log "Using package manager: $PKG_MANAGER"
+
+	require_sudo_if_needed
+	install_base_packages
+	run_main_installer "$@"
+}
+
+main "$@"
