@@ -170,6 +170,85 @@ install_base_packages() {
 	esac
 }
 
+install_optional_package() {
+	local pkg="$1"
+	case "$PKG_MANAGER" in
+		apt)
+			$SUDO apt-get install -y "$pkg"
+			;;
+		dnf)
+			$SUDO dnf install -y "$pkg"
+			;;
+		pacman)
+			$SUDO pacman -S --needed --noconfirm "$pkg"
+			;;
+		*)
+			return 1
+			;;
+	esac
+}
+
+install_runtime_packages() {
+	local packages=()
+
+	case "$PKG_MANAGER" in
+		apt)
+			packages=(
+				fish
+				kitty
+				mpv
+				neovim
+				bat
+				ripgrep
+				nodejs
+				npm
+				ffmpeg
+			)
+			;;
+		dnf)
+			packages=(
+				fish
+				kitty
+				mpv
+				neovim
+				bat
+				ripgrep
+				nodejs
+				npm
+				ffmpeg
+			)
+			;;
+		pacman)
+			packages=(
+				fish
+				niri
+				kitty
+				mpv
+				neovim
+				neovide
+				bat
+				yazi
+				ripgrep
+				nodejs
+				npm
+				ffmpeg
+			)
+			;;
+		*)
+			return
+			;;
+	esac
+
+	log "Installing runtime/application packages (best effort)..."
+	for pkg in "${packages[@]}"; do
+		if install_optional_package "$pkg" >/dev/null 2>&1; then
+			log "Installed or already present: $pkg"
+		else
+			log "Skipped unavailable package: $pkg"
+		fi
+	done
+}
+
 run_main_installer() {
 	if [[ ! -f "$INSTALL_SCRIPT" ]]; then
 		prepare_install_script
@@ -208,6 +287,7 @@ main() {
 
 	require_sudo_if_needed
 	install_base_packages
+	install_runtime_packages
 	prepare_install_script
 	run_main_installer "$@"
 }
