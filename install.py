@@ -6,6 +6,7 @@ import argparse
 import json
 import os
 import shutil
+import subprocess
 import sys
 from dataclasses import dataclass
 from datetime import datetime
@@ -84,6 +85,203 @@ def parse_list(value: str) -> List[str]:
 	if not value.strip():
 		return []
 	return [item.strip() for item in value.split(",") if item.strip()]
+
+
+def command_exists(name: str) -> bool:
+	return shutil.which(name) is not None
+
+
+def build_root_prefix() -> List[str]:
+	if os.geteuid() == 0:
+		return []
+	if command_exists("sudo"):
+		return ["sudo"]
+	return []
+
+
+def run_command(
+	cmd: List[str],
+	*,
+	check: bool = True,
+	quiet: bool = False,
+	input_text: str | None = None,
+) -> subprocess.CompletedProcess[str]:
+	if quiet:
+		return subprocess.run(
+			cmd,
+			check=check,
+			text=True,
+			input=input_text,
+			stdout=subprocess.DEVNULL,
+			stderr=subprocess.DEVNULL,
+		)
+
+	return subprocess.run(cmd, check=check, text=True, input=input_text)
+
+
+def install_packages(pkg_manager: str, packages: List[str], root_prefix: List[str], best_effort: bool = True) -> None:
+	if not packages:
+		return
+
+	for pkg in packages:
+		if pkg_manager == "apt":
+			cmd = root_prefix + ["apt-get", "install", "-y", pkg]
+		elif pkg_manager == "dnf":
+			cmd = root_prefix + ["dnf", "install", "-y", pkg]
+		elif pkg_manager == "pacman":
+			cmd = root_prefix + ["pacman", "-S", "--needed", "--noconfirm", pkg]
+		else:
+			raise RuntimeError(f"Unsupported package manager: {pkg_manager}")
+
+		try:
+			run_command(cmd, check=True, quiet=True)
+			log(f"Installed or already present package: {pkg}")
+		except subprocess.CalledProcessError:
+			if best_effort:
+				log(f"Skipped unavailable package: {pkg}")
+			else:
+				raise RuntimeError(f"Failed to install required package: {pkg}")
+
+
+def setup_archlinuxcn(root_prefix: List[str]) -> None:
+	pacman_conf = Path("/etc/pacman.conf")
+	if not pacman_conf.exists():
+		raise RuntimeError("/etc/pacman.conf not found")
+
+	content = pacman_conf.read_text(encoding="utf-8")
+	if "[archlinuxcn]" not in content:
+		repo_block = "\n[archlinuxcn]\nServer = https://repo.archlinuxcn.org/$arch\n"
+		if root_prefix:
+			run_command(
+				root_prefix + ["tee", "-a", "/etc/pacman.conf"],
+				check=True,
+				quiet=True,
+				input_text=repo_block,
+			)
+		else:
+			with pacman_conf.open("a", encoding="utf-8") as handle:
+				handle.write(repo_block)
+		log("Added archlinuxcn repository")
+	else:
+		log("archlinuxcn repository already configured")
+
+	run_command(root_prefix + ["pacman", "-Sy", "--noconfirm"], check=True, quiet=True)
+	install_packages("pacman", ["archlinuxcn-keyring"], root_prefix, best_effort=False)
+
+
+def setup_arch_paru(root_prefix: List[str]) -> None:
+	if command_exists("paru"):
+		log("paru already installed")
+		return
+	install_packages("pacman", ["paru"], root_prefix, best_effort=False)
+
+
+def install_quickshell_arch(root_prefix: List[str]) -> None:
+	if not command_exists("pacman"):
+		return
+
+	# quickshell requires qt6-5compat on Arch.
+	install_packages("pacman", ["qt6-5compat"], root_prefix, best_effort=False)
+
+	if command_exists("quickshell"):
+		log("quickshell already installed")
+		return
+
+	try:
+		install_packages("pacman", ["quickshell"], root_prefix, best_effort=False)
+		return
+	except RuntimeError:
+		log("quickshell not available in pacman repos, trying paru fallback")
+
+	if not command_exists("paru"):
+		raise RuntimeError("paru not available for quickshell fallback")
+
+	try:
+		run_command(["paru", "-S", "--noconfirm", "--needed", "quickshell"], check=True, quiet=True)
+		log("Installed quickshell via paru")
+	except subprocess.CalledProcessError as exc:
+		raise RuntimeError("Failed to install quickshell via paru") from exc
+
+
+def install_system_packages(pkg_manager: str) -> None:
+	root_prefix = build_root_prefix()
+	if os.geteuid() != 0 and not root_prefix:
+		raise RuntimeError("Need root privileges or sudo to install system packages")
+
+	if pkg_manager == "apt":
+		run_command(root_prefix + ["apt-get", "update", "-y"], check=True, quiet=True)
+		packages = [
+			"clang",
+			"make",
+			"cmake",
+			"pkg-config",
+			"fish",
+			"kitty",
+			"mpv",
+			"neovim",
+			"bat",
+			"ripgrep",
+			"nodejs",
+			"npm",
+			"ffmpeg",
+			"fonts-jetbrains-mono",
+			"fonts-noto-cjk",
+			"fonts-wqy-zenhei",
+		]
+		install_packages("apt", packages, root_prefix, best_effort=True)
+	elif pkg_manager == "dnf":
+		packages = [
+			"clang",
+			"make",
+			"cmake",
+			"pkgconf-pkg-config",
+			"fish",
+			"kitty",
+			"mpv",
+			"neovim",
+			"bat",
+			"ripgrep",
+			"nodejs",
+			"npm",
+			"ffmpeg",
+			"jetbrains-mono-fonts",
+			"google-noto-sans-cjk-fonts",
+			"google-noto-serif-cjk-fonts",
+		]
+		install_packages("dnf", packages, root_prefix, best_effort=True)
+	elif pkg_manager == "pacman":
+		run_command(root_prefix + ["pacman", "-Sy", "--noconfirm"], check=True, quiet=True)
+		setup_archlinuxcn(root_prefix)
+		setup_arch_paru(root_prefix)
+
+		packages = [
+			"clang",
+			"make",
+			"cmake",
+			"pkgconf",
+			"fish",
+			"niri",
+			"kitty",
+			"mpv",
+			"neovim",
+			"neovide",
+			"bat",
+			"yazi",
+			"ripgrep",
+			"nodejs",
+			"npm",
+			"ffmpeg",
+			"ttf-jetbrains-mono",
+			"noto-fonts-cjk",
+			"wqy-zenhei",
+		]
+		install_packages("pacman", packages, root_prefix, best_effort=True)
+		install_quickshell_arch(root_prefix)
+	else:
+		raise RuntimeError(f"Unsupported package manager from bootstrap: {pkg_manager}")
+
+	if command_exists("fc-cache"):
+		run_command(["fc-cache", "-f"], check=False, quiet=True)
 
 
 def ensure_bootstrap_guard(args: argparse.Namespace) -> bool:
@@ -199,6 +397,11 @@ def main() -> int:
 		f"Context received from bootstrap: distro={distro}, like={distro_like or 'n/a'}, "
 		f"version={distro_version}, manager={pkg_manager}"
 	)
+
+	try:
+		install_system_packages(pkg_manager)
+	except RuntimeError as exc:
+		return fail(str(exc))
 
 	try:
 		selected = resolve_components(parse_list(args.only), parse_list(args.skip))

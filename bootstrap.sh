@@ -122,10 +122,6 @@ install_base_packages() {
 				python3-pip
 				curl
 				ca-certificates
-				clang
-				make
-				cmake
-				pkg-config
 			)
 			log "Updating apt package index..."
 			$SUDO apt-get update -y
@@ -139,10 +135,6 @@ install_base_packages() {
 				python3-pip
 				curl
 				ca-certificates
-				clang
-				make
-				cmake
-				pkgconf-pkg-config
 			)
 			log "Installing base dependencies with dnf..."
 			$SUDO dnf install -y "${packages[@]}"
@@ -154,10 +146,6 @@ install_base_packages() {
 				python-pip
 				curl
 				ca-certificates
-				clang
-				make
-				cmake
-				pkgconf
 			)
 			log "Refreshing pacman databases..."
 			$SUDO pacman -Sy --noconfirm
@@ -168,211 +156,6 @@ install_base_packages() {
 			fail "Unsupported Linux package manager. Please install git/python3/clang manually, then run python3 install.py through bootstrap."
 			;;
 	esac
-}
-
-install_optional_package() {
-	local pkg="$1"
-	case "$PKG_MANAGER" in
-		apt)
-			$SUDO apt-get install -y "$pkg"
-			;;
-		dnf)
-			$SUDO dnf install -y "$pkg"
-			;;
-		pacman)
-			$SUDO pacman -S --needed --noconfirm "$pkg"
-			;;
-		*)
-			return 1
-			;;
-	esac
-}
-
-install_runtime_packages() {
-	local packages=()
-
-	case "$PKG_MANAGER" in
-		apt)
-			packages=(
-				fish
-				kitty
-				mpv
-				neovim
-				bat
-				ripgrep
-				nodejs
-				npm
-				ffmpeg
-			)
-			;;
-		dnf)
-			packages=(
-				fish
-				kitty
-				mpv
-				neovim
-				bat
-				ripgrep
-				nodejs
-				npm
-				ffmpeg
-			)
-			;;
-		pacman)
-			packages=(
-				fish
-				niri
-				kitty
-				mpv
-				neovim
-				neovide
-				bat
-				yazi
-				ripgrep
-				nodejs
-				npm
-				ffmpeg
-				qt6-5compat
-			)
-			;;
-		*)
-			return
-			;;
-	esac
-
-	log "Installing runtime/application packages (best effort)..."
-	for pkg in "${packages[@]}"; do
-		if install_optional_package "$pkg" >/dev/null 2>&1; then
-			log "Installed or already present: $pkg"
-		else
-			log "Skipped unavailable package: $pkg"
-		fi
-	done
-}
-
-install_fonts() {
-	local font_packages=()
-
-	case "$PKG_MANAGER" in
-		apt)
-			font_packages=(
-				fonts-jetbrains-mono
-				fonts-noto-cjk
-				fonts-wqy-zenhei
-			)
-			;;
-		dnf)
-			font_packages=(
-				jetbrains-mono-fonts
-				google-noto-sans-cjk-fonts
-				google-noto-serif-cjk-fonts
-			)
-			;;
-		pacman)
-			font_packages=(
-				ttf-jetbrains-mono
-				noto-fonts-cjk
-				wqy-zenhei
-			)
-			;;
-		*)
-			return
-			;;
-	esac
-
-	log "Installing font packages..."
-	for pkg in "${font_packages[@]}"; do
-		if install_optional_package "$pkg" >/dev/null 2>&1; then
-			log "Installed or already present font: $pkg"
-		else
-			log "Skipped unavailable font package: $pkg"
-		fi
-	done
-
-	if command -v fc-cache >/dev/null 2>&1; then
-		log "Refreshing font cache"
-		fc-cache -f >/dev/null 2>&1 || true
-	fi
-}
-
-ensure_archlinuxcn_repo() {
-	local repo_block='[archlinuxcn]
-Server = https://repo.archlinuxcn.org/$arch'
-
-	if grep -q '^\[archlinuxcn\]' /etc/pacman.conf; then
-		log "archlinuxcn repo already configured"
-		return
-	fi
-
-	log "Adding archlinuxcn repository to /etc/pacman.conf"
-	if [[ -n "$SUDO" ]]; then
-		printf "\n%s\n" "$repo_block" | $SUDO tee -a /etc/pacman.conf >/dev/null
-	else
-		printf "\n%s\n" "$repo_block" >>/etc/pacman.conf
-	fi
-}
-
-install_arch_paru() {
-	if command -v paru >/dev/null 2>&1; then
-		log "paru already installed"
-		return
-	fi
-
-	log "Installing paru from archlinuxcn"
-	if ! install_optional_package paru >/dev/null 2>&1; then
-		fail "Failed to install paru. Please check archlinuxcn mirror and pacman configuration."
-	fi
-}
-
-install_quickshell_with_fallback() {
-	if [[ "$PKG_MANAGER" == "pacman" ]]; then
-		if pacman -Q qt6-5compat >/dev/null 2>&1; then
-			log "Prerequisite already installed: qt6-5compat"
-		else
-			log "Installing prerequisite package: qt6-5compat"
-			if ! $SUDO pacman -S --needed --noconfirm qt6-5compat; then
-				fail "Failed to install required package qt6-5compat"
-			fi
-		fi
-	fi
-
-	if command -v quickshell >/dev/null 2>&1; then
-		log "quickshell already installed"
-		return
-	fi
-
-	if install_optional_package quickshell >/dev/null 2>&1; then
-		log "Installed quickshell via pacman repository"
-		return
-	fi
-
-	if ! command -v paru >/dev/null 2>&1; then
-		log "paru not available, cannot install quickshell from AUR fallback"
-		return
-	fi
-
-	log "Installing quickshell via paru fallback"
-	if paru -S --noconfirm --needed quickshell >/dev/null 2>&1; then
-		log "Installed quickshell via paru"
-	else
-		log "Failed to install quickshell via paru"
-	fi
-}
-
-setup_arch_extras() {
-	if [[ "$PKG_MANAGER" != "pacman" ]]; then
-		return
-	fi
-
-	ensure_archlinuxcn_repo
-	log "Refreshing pacman databases after archlinuxcn setup"
-	$SUDO pacman -Sy --noconfirm
-
-	log "Installing archlinuxcn keyring"
-	install_optional_package archlinuxcn-keyring >/dev/null 2>&1 || fail "Failed to install archlinuxcn-keyring"
-
-	install_arch_paru
-	install_quickshell_with_fallback
 }
 
 run_main_installer() {
@@ -413,9 +196,6 @@ main() {
 
 	require_sudo_if_needed
 	install_base_packages
-	setup_arch_extras
-	install_runtime_packages
-	install_fonts
 	prepare_install_script
 	run_main_installer "$@"
 }
