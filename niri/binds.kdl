@@ -17,10 +17,7 @@ binds {
     // 打开终端 kitty
     Mod+T { spawn "kitty"; }
 
-    // 打开 fuzzel
-    Mod+Space { spawn "fuzzel"; }
-
-    Mod+D { spawn "~/.config/rofi/launcher.sh"; }
+    Mod+Space { spawn "~/.config/rofi/launcher.sh"; }
 
     // 随机切换 ~/Wallpapers/ 下的壁纸并添加过渡效果
     Mod+W { spawn "fish" "-c" "/home/eunoia/.config/niri/scripts/random-wallpaper.fish"; }
