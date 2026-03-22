@@ -1,0 +1,67 @@
+* {
+    /* 主色调: Lavender */
+    primary: #b4befe;
+    on-primary: #1e1e2e; /* 深色背景上的文字 */
+    primary-container: #cba6f7; /* 使用 Mauve 作为容器色，增加层次 */
+    on-primary-container: #1e1e2e;
+
+    /* 辅助色: Blue (搭配 Lavender 很和谐) */
+    secondary: #89b4fa;
+    on-secondary: #1e1e2e;
+    secondary-container: #89b4fa;
+    on-secondary-container: #1e1e2e;
+    
+    /* 模糊/变体辅助色 */
+    secondary-blured: #89b4fa80;
+    secondary-fixed: #89b4fa;
+    secondary-fixed-dim: #89b4fa;
+    on-secondary-fixed: #1e1e2e;
+    on-secondary-fixed-variant: #1e1e2e;
+
+    /* 第三色: Pink */
+    tertiary: #f5c2e7;
+    on-tertiary: #1e1e2e;
+    tertiary-container: #f5c2e7;
+    on-tertiary-container: #1e1e2e;
+
+    /* Fixed 变体 (简化处理，映射回主色) */
+    primary-fixed: #b4befe;
+    primary-fixed-dim: #b4befe;
+    on-primary-fixed: #1e1e2e;
+    on-primary-fixed-variant: #1e1e2e;
+
+    tertiary-fixed: #f5c2e7;
+    tertiary-fixed-dim: #f5c2e7;
+    on-tertiary-fixed: #1e1e2e;
+    on-tertiary-fixed-variant: #1e1e2e;
+
+    /* 错误颜色: Red */
+    error: #f38ba8;
+    on-error: #1e1e2e;
+    error-container: #eba0ac; /* Maroon */
+    on-error-container: #1e1e2e;
+
+    /* 背景与层级 */
+    surface: #1e1e2e; /* Base */
+    on-surface: #cdd6f4; /* Text */
+    on-surface-variant: #bac2de; /* Subtext1 */
+    
+    outline: #9399b2; /* Overlay2 */
+    outline-variant: #585b70; /* Surface2 */
+    
+    shadow: #11111b; /* Crust */
+    scrim: #11111b;
+    
+    inverse-surface: #cdd6f4; /* Text (作为反转背景) */
+    inverse-on-surface: #1e1e2e; /* Base (作为反转文字) */
+    inverse-primary: #b4befe;
+
+    /* 不同层级的背景色，用于弹窗、卡片等 */
+    surface-dim: #181825; /* Mantle */
+    surface-bright: #313244; /* Surface0 */
+    surface-container-lowest: #11111b; /* Crust */
+    surface-container-low: #181825; /* Mantle */
+    surface-container: #1e1e2e; /* Base */
+    surface-container-high: #313244; /* Surface0 */
+    surface-container-highest: #45475a; /* Surface1 */
+}

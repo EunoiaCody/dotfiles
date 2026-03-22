@@ -1,0 +1,10 @@
+* {
+    main-bg:            #1e1e2eff; /* Base */
+    main-fg:            #cdd6f4ff; /* Text */
+    main-br:            #b4befeff; /* Lavender */
+    main-ex:            #f5e0dcff; /* Rosewater */
+    select-bg:          #b4befeff; /* Lavender */
+    select-fg:          #1e1e2eff; /* Base */
+    separatorcolor:     transparent;
+    border-color:       transparent;
+}
