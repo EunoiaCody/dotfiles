@@ -20,6 +20,9 @@ binds {
     // 打开 fuzzel
     Mod+Space { spawn "fuzzel"; }
 
+    // 打开 launcher
+    Mod+D { spawn "bash" "-c" "/home/eunoia/.config/quickshell/scripts/toggle_launcher.sh"; }
+
     // 随机切换 ~/Wallpapers/ 下的壁纸并添加过渡效果
     Mod+W { spawn "fish" "-c" "/home/eunoia/.config/niri/scripts/random-wallpaper.fish"; }
 
