@@ -4,8 +4,8 @@
 cache_dir="$HOME/.cache/wallpaper_rofi"
 mkdir -p "$cache_dir"
 
-# 2. 从 swww 获取当前壁纸
-current_wall=$(swww query 2>/dev/null | grep -oP 'image: \K.*' | head -n1 | tr -d '[:space:]')
+# 2. 从 awww 获取当前壁纸
+current_wall=$(awww query 2>/dev/null | grep -oP 'image: \K.*' | head -n1 | tr -d '[:space:]')
 last_wall_file="$cache_dir/last_wallpaper"
 
 # 目标尺寸 (根据您的 Rofi 窗口调整)
