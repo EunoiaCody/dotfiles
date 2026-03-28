@@ -4,9 +4,9 @@
 // https://github.com/YaLTeR/niri/wiki/Configuration:-Introduction
 
 spawn-at-startup "/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1"
-spawn-at-startup "swww-daemon"
+spawn-at-startup "awww-daemon"
 // 启动时随机设置一张壁纸
-spawn-at-startup "sh" "-c" "swww img $(find ~/Wallpapers -type f | shuf -n 1)"
+spawn-at-startup "sh" "-c" "awww img $(find ~/Wallpapers -type f | shuf -n 1)"
 spawn-at-startup "qs"
 
 // 自动启动 emby 本地播放脚本

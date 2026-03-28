@@ -46,4 +46,4 @@ end
 
 # 6. 执行切换
 echo "$NEXT" >/tmp/niri-wallpaper.log
-swww img "$NEXT" --transition-type any --transition-bezier ".23,.43,.69,-0.29" --transition-step 90 --transition-fps 120 >>/tmp/niri-wallpaper.log 2>&1
+awww img "$NEXT" --transition-type any --transition-bezier ".23,.43,.69,-0.29" --transition-step 90 --transition-fps 120 >>/tmp/niri-wallpaper.log 2>&1
