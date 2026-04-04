@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]:-.}" )" && pwd )"
 INSTALL_SCRIPT="$SCRIPT_DIR/install.py"
 REPO_URL="https://github.com/EunoiaCody/dotfiles.git"
 CLONE_DIR="${DOTFILES_CLONE_DIR:-}"
