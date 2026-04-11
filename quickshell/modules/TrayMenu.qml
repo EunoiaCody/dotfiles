@@ -10,16 +10,26 @@ PopupWindow {
 
     property var rootMenuHandle: null
     property string trayName: ""
+    property int fixedMenuHeight: 640
+    property int minMenuHeight: 96
+    property int menuVerticalPadding: 16
+    property real maxFlickViewportHeight: Math.max(0, fixedMenuHeight - headerRect.implicitHeight - menuVerticalPadding)
+    property real flickViewportHeight: Math.min(flickArea.contentHeight, maxFlickViewportHeight)
+    property real contentDrivenHeight: headerRect.implicitHeight + flickViewportHeight + menuVerticalPadding
+    property real adaptiveMenuHeight: Math.min(fixedMenuHeight, Math.max(minMenuHeight, contentDrivenHeight))
+    property bool opensUpward: false
+    property real slideDistance: adaptiveMenuHeight
 
     implicitWidth: 280
-    implicitHeight: Math.min(640, headerRect.implicitHeight + flickArea.contentHeight + 36)
+    implicitHeight: adaptiveMenuHeight
+    height: adaptiveMenuHeight
     color: "transparent"
 
     // Appear animation (dropdown from above)
     ParallelAnimation {
         id: popupIn
         running: false
-        NumberAnimation { id: animY; target: bg; property: "y"; duration: 340; easing.type: Easing.OutBack }
+        NumberAnimation { id: animY; target: bg; property: "y"; duration: 320; easing.type: Easing.OutCubic }
         NumberAnimation { id: animOpacity; target: bg; property: "opacity"; duration: 220; from: 0; to: 1; easing.type: Easing.OutCubic }
     }
 
@@ -27,7 +37,7 @@ PopupWindow {
     ParallelAnimation {
         id: popupOut
         running: false
-        NumberAnimation { target: bg; property: "y"; duration: 240; to: -12; easing.type: Easing.InCubic }
+        NumberAnimation { id: animOutY; target: bg; property: "y"; duration: 240; easing.type: Easing.InCubic }
         NumberAnimation { target: bg; property: "opacity"; duration: 180; to: 0; easing.type: Easing.InCubic }
         onStopped: {
             root.visible = false
@@ -37,17 +47,26 @@ PopupWindow {
     function close() {
         if (!root.visible) return
         if (popupIn.running) popupIn.stop()
+        animOutY.to = opensUpward ? slideDistance : -slideDistance
         popupOut.start()
     }
 
     onVisibleChanged: {
         if (visible) {
             menuStack.clear()
-            if (bg) bg.opacity = 0
-                var finalY = 0
-                bg.y = -12
-                animY.to = finalY
+
+            if (anchor && anchor.item) {
+                var itemY = anchor.item.mapToItem(null, 0, 0).y
+                opensUpward = itemY > 500
+                anchor.rect.y = opensUpward ? -root.height - 5 : anchor.item.height + 5
+            }
+
+            if (bg) {
+                bg.opacity = 0
+                bg.y = opensUpward ? slideDistance : -slideDistance
+                animY.to = 0
                 popupIn.start()
+            }
         }
     }
 
@@ -92,17 +111,27 @@ PopupWindow {
 
     Rectangle {
         id: bg
-        anchors.fill: parent
+        x: 0
+        y: 0
+        width: parent.width
+        height: parent.height
         color: Root.Color.base
         radius: 12
         border.width: 3
         border.color: Root.Color.lavender
-        clip: true
 
-        ColumnLayout {
-            id: mainLayout
+        Rectangle {
+            id: contentMask
             anchors.fill: parent
-            spacing: 0
+            anchors.margins: bg.border.width
+            radius: Math.max(0, bg.radius - bg.border.width)
+            color: "transparent"
+            clip: true
+
+            ColumnLayout {
+                id: mainLayout
+                anchors.fill: parent
+                spacing: 0
 
             // Header
             Rectangle {
@@ -160,20 +189,30 @@ PopupWindow {
                 }
             }
 
-            // Scrollable menu items area
-            Flickable {
-                id: flickArea
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                Layout.margins: 8
-                contentHeight: menuItemsCol.implicitHeight
-                clip: true
-                boundsBehavior: Flickable.StopAtBounds
+                // Scrollable menu items area
+                Flickable {
+                    id: flickArea
+                    Layout.fillWidth: true
+                    Layout.fillHeight: false
+                    Layout.preferredHeight: Math.max(0, root.adaptiveMenuHeight - headerRect.implicitHeight - root.menuVerticalPadding)
+                    Layout.margins: 8
+                    contentWidth: width
+                    contentHeight: Math.max(menuItemsCol.implicitHeight, menuItemsCol.childrenRect.height)
+                    clip: true
+                    boundsBehavior: Flickable.DragAndOvershootBounds
+                    boundsMovement: Flickable.FollowBoundsBehavior
+                    rebound: Transition {
+                        NumberAnimation {
+                            properties: "x,y"
+                            duration: 220
+                            easing.type: Easing.OutCubic
+                        }
+                    }
 
-                ColumnLayout {
-                    id: menuItemsCol
-                    width: flickArea.width
-                    spacing: 6
+                    ColumnLayout {
+                        id: menuItemsCol
+                        width: flickArea.width
+                        spacing: 6
 
                     property var currentModel: (menuStack.count === 0) ? (rootOpener.children ? rootOpener.children.values : []) : (subOpener.children ? subOpener.children.values : [])
 
@@ -238,7 +277,7 @@ PopupWindow {
                                 onPressed: {
                                     if (!hasSubMenu) {
                                         if (typeof modelData.triggered === 'function') modelData.triggered();
-                                        root.visible = false
+                                        root.close()
                                     }
                                 }
 
@@ -247,6 +286,7 @@ PopupWindow {
                                 }
                             }
                         }
+                    }
                     }
                 }
             }
