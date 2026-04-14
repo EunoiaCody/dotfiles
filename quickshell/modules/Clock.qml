@@ -35,6 +35,137 @@ PanelWindow {
 	property var activePlayer: null
 	property bool playerSelectorOpen: false
 
+	// Wallpaper
+	property int currentWallpaperIndex: 0
+	property bool applying: false
+	property string currentWallpaperPath: ""
+
+	ListModel { id: wallpaperModel }
+
+	QtObject {
+		id: wallpaperLogic
+		function loadWallpapers() {
+			wallpaperListProcess.buf = ""
+			wallpaperModel.clear()
+			wallpaperListProcess.running = true
+		}
+		function addWallpaper(path) {
+			if (!path || path.trim() === "") return
+			var clean = path.trim()
+			var lower = clean.toLowerCase()
+			if (!(lower.endsWith(".png") || lower.endsWith(".jpg") || lower.endsWith(".jpeg") || lower.endsWith(".webp"))) return
+			var name = clean.split("/").pop()
+			wallpaperModel.append({
+				wallpaperPath: clean,
+				wallpaperName: name
+			})
+		}
+	}
+
+	QtObject {
+		id: wallpaperDetectLogic
+		function detectCurrentWallpaper() {
+			wallpaperDetectProcess.buf = ""
+			wallpaperDetectProcess.running = true
+		}
+	}
+
+	Process {
+		id: wallpaperListProcess
+		command: ["bash", "-lc", "ls -1 \"$HOME/Wallpapers\"/*.{png,jpg,jpeg,webp} 2>/dev/null | sort"]
+		property string buf: ""
+		stdout: SplitParser { onRead: data => { wallpaperListProcess.buf += data + "\n" } }
+		onExited: (code, status) => {
+			wallpaperModel.clear()
+			var lines = wallpaperListProcess.buf.split(/\r?\n/)
+			for (var i = 0; i < lines.length; i++) {
+				wallpaperLogic.addWallpaper(lines[i])
+			}
+			wallpaperListProcess.buf = ""
+			wallpaperDetectLogic.detectCurrentWallpaper()
+		}
+	}
+
+	Process {
+		id: wallpaperProcess
+		command: [
+			"bash", "-lc",
+			"awww img \"$1\" --transition-type any --transition-bezier \".23,.43,.69,-0.29\" --transition-step 90 --transition-fps 120 >>/tmp/niri-wallpaper.log 2>&1",
+			"",
+			currentWallpaperPath
+		]
+		onExited: { applying = false; wallpaperDetectLogic.detectCurrentWallpaper() }
+	}
+
+	Process {
+		id: wallpaperDetectProcess
+		command: ["awww", "query"]
+		property string buf: ""
+		stdout: SplitParser { onRead: data => { wallpaperDetectProcess.buf += data } }
+		onExited: {
+			var currentPath = wallpaperDetectProcess.buf.trim()
+			wallpaperDetectProcess.buf = ""
+			var foundIdx = -1
+			for (var i = 0; i < wallpaperModel.count; i++) {
+				if (wallpaperModel.get(i).wallpaperPath === currentPath) {
+					foundIdx = i
+					break
+				}
+			}
+			if (foundIdx !== -1) {
+				currentWallpaperIndex = foundIdx
+				wallpaperView.currentIndex = foundIdx
+				wallpaperView.positionViewAtIndex(foundIdx, PathView.Center)
+			}
+		}
+	}
+	
+	function applyWallpaper(path, index) {
+		if (applying || !path || path === "") return
+		applying = true
+		currentWallpaperPath = path
+		currentWallpaperIndex = index
+		wallpaperProcess.running = true
+	}
+
+	// Media progress
+	property real mediaProgressRatio: 0
+	property real mediaPositionSec: 0
+	property real mediaLengthSec: 0
+
+	// Timer to poll position - needed because QML bindings don't auto-track
+	// changes in nested object properties (like activePlayer.position)
+	Timer {
+		id: progressUpdateTimer
+		interval: 100
+		running: root.dashboardOpen && root.currentTab === 1 && !!root.activePlayer
+		repeat: true
+		onTriggered: updateMediaProgress()
+	}
+
+	function updateMediaProgress() {
+		if (!root.activePlayer) {
+			mediaProgressRatio = 0;
+			mediaPositionSec = 0;
+			mediaLengthSec = 0;
+			return;
+		}
+		var pos = root.activePlayer.position || 0;
+		var len = root.activePlayer.length || 0;
+		if (len <= 0 || !root.activePlayer.lengthSupported) {
+			mediaProgressRatio = 0;
+			mediaPositionSec = 0;
+			mediaLengthSec = 0;
+			return;
+		}
+		// Handle microseconds vs seconds
+		if (pos > 100000) pos = pos / 1000000;
+		if (len > 100000) len = len / 1000000;
+		mediaPositionSec = pos;
+		mediaLengthSec = len;
+		mediaProgressRatio = pos / len;
+	}
+
 	// Lyrics
 	property var lyricsModel: []
 	property int currentLineIndex: 0
@@ -140,6 +271,9 @@ PanelWindow {
 			if (currentTab === 1 && root.activePlayer && root.activePlayer.trackTitle !== root.currentLoadedTitle) {
 				triggerLyricsReload();
 			}
+			if (currentTab === 2) {
+				wallpaperLogic.loadWallpapers();
+			}
 		} else {
 			root._dashboardClosing = true;
 			closeDelayTimer.start();
@@ -211,12 +345,19 @@ PanelWindow {
 			exclusiveZone: -1
 			margins.top: 56
 
-			implicitWidth: 800
-			implicitHeight: 800
+			implicitWidth: root.currentTab === 2 ? 1200 : 800
+			implicitHeight: root.currentTab === 2 ? 500 : 800
 			color: "transparent"
 
 			WlrLayershell.layer: WlrLayer.Overlay
 			WlrLayershell.namespace: "dashboard"
+
+			Behavior on implicitWidth {
+				NumberAnimation { duration: 300; easing.type: Easing.OutCubic }
+			}
+			Behavior on implicitHeight {
+				NumberAnimation { duration: 300; easing.type: Easing.OutCubic }
+			}
 
 			Item {
 				anchors.fill: parent
@@ -277,6 +418,7 @@ PanelWindow {
 								model: ListModel {
 									ListElement { label: "日历"; icon: "󰃭" }
 									ListElement { label: "媒体"; icon: "󰝚" }
+									ListElement { label: "壁纸"; icon: "󰘦" }
 								}
 
 								Rectangle {
@@ -695,9 +837,7 @@ PanelWindow {
 												color: Root.Color.surface0
 
 												Rectangle {
-													width: root.activePlayer && root.activePlayer.length > 0
-														? parent.width * (root.activePlayer.position / root.activePlayer.length)
-														: 0
+													width: mediaProgressRatio * parent.width
 													height: parent.height
 													radius: 2
 													color: Root.Color.lavender
@@ -709,9 +849,7 @@ PanelWindow {
 												width: 12; height: 12; radius: 6
 												color: Root.Color.lavender
 												y: (parent.height - height) / 2
-												x: root.activePlayer && root.activePlayer.length > 0
-													? Math.max(0, Math.min(parent.width - width, (parent.width - width) * (root.activePlayer.position / root.activePlayer.length)))
-													: 0
+												x: Math.max(0, Math.min(parent.width - width, (parent.width - width) * mediaProgressRatio))
 												visible: !!root.activePlayer && root.activePlayer.lengthSupported
 
 												Behavior on x { enabled: !progressMa.pressed; NumberAnimation { duration: 200 } }
@@ -733,13 +871,13 @@ PanelWindow {
 										RowLayout {
 											Layout.fillWidth: true
 											Text {
-												text: root.activePlayer ? formatTime(root.activePlayer.position) : "0:00"
+												text: formatTime(mediaPositionSec)
 												font.pointSize: 9
 												color: Root.Color.overlay1
 											}
 											Item { Layout.fillWidth: true }
 											Text {
-												text: root.activePlayer && root.activePlayer.lengthSupported ? formatTime(root.activePlayer.length) : "0:00"
+												text: root.activePlayer && root.activePlayer.lengthSupported ? formatTime(mediaLengthSec) : "0:00"
 												font.pointSize: 9
 												color: Root.Color.overlay1
 											}
@@ -965,6 +1103,144 @@ PanelWindow {
 										font.pointSize: 10
 										color: Root.Color.overlay0
 										visible: root.lyricsModel.length === 0
+									}
+								}
+							}
+						}
+
+						// ===== Wallpaper tab =====
+						Item {
+							Layout.fillWidth: true
+							Layout.fillHeight: true
+							visible: root.currentTab === 2
+
+							Timer {
+								id: wallpaperLoadTimer
+								interval: 50
+								onTriggered: {
+									wallpaperLogic.loadWallpapers();
+									wallpaperView.forceActiveFocus();
+								}
+							}
+
+							Connections {
+								target: root
+								function onCurrentTabChanged() {
+									if (root.currentTab === 2) {
+										wallpaperLoadTimer.restart();
+									}
+								}
+							}
+
+							PathView {
+								id: wallpaperView
+								anchors.fill: parent
+								anchors.margins: 8
+								pathItemCount: 3
+								preferredHighlightBegin: 0.5
+								preferredHighlightEnd: 0.5
+								highlightRangeMode: PathView.StrictlyEnforceRange
+								snapMode: PathView.SnapToItem
+								dragMargin: 0
+								model: wallpaperModel
+								focus: true
+								highlightMoveDuration: 300
+
+								MouseArea {
+									anchors.fill: parent
+									onWheel: function(wheel) {
+										if (wheel.angleDelta.y > 0) {
+											wallpaperView.decrementCurrentIndex();
+										} else {
+											wallpaperView.incrementCurrentIndex();
+										}
+									}
+								}
+
+								path: Path {
+									startX: -320
+									startY: 145
+									PathLine { x: 1520; y: 145 }
+								}
+
+								function decrementCurrentIndex() {
+									if (wallpaperModel.count === 0) return;
+									currentIndex = (currentIndex - 1 + wallpaperModel.count) % wallpaperModel.count;
+								}
+
+								function incrementCurrentIndex() {
+									if (wallpaperModel.count === 0) return;
+									currentIndex = (currentIndex + 1) % wallpaperModel.count;
+								}
+
+								delegate: Item {
+									id: delegateItem
+									property bool isCurrent: PathView.isCurrentItem
+									width: 660
+									height: 290
+
+									Rectangle {
+										id: wallpaperRect
+										width: 640
+										height: 274
+										anchors.centerIn: parent
+										radius: 16
+										color: Root.Color.surface0
+										border.width: isCurrent ? 4 : 2
+										border.color: Root.Color.lavender
+										scale: isCurrent ? 1.0 : 0.85
+										opacity: isCurrent ? 1.0 : 0.6
+										z: isCurrent ? 100 : 1
+
+										Behavior on scale {
+											NumberAnimation { duration: 300; easing.type: Easing.OutCubic }
+										}
+										Behavior on opacity {
+											NumberAnimation { duration: 250; easing.type: Easing.OutCubic }
+										}
+
+										Image {
+											anchors.fill: parent
+											anchors.margins: 8
+											source: "file://" + model.wallpaperPath
+											fillMode: Image.PreserveAspectFit
+											asynchronous: true
+											cache: true
+											sourceSize: Qt.size(320, 180)
+											visible: status === Image.Ready
+										}
+
+										Rectangle {
+											anchors.left: parent.left
+											anchors.right: parent.right
+											anchors.bottom: parent.bottom
+											anchors.margins: 8
+											height: 40
+											color: Root.Color.mantle
+											opacity: 0.9
+											radius: 12
+
+											Text {
+												anchors.centerIn: parent
+												text: model.wallpaperName
+												color: Root.Color.text
+												font.pointSize: 11
+												elide: Text.ElideRight
+												width: parent.width - 16
+												horizontalAlignment: Text.AlignHCenter
+											}
+										}
+									}
+
+									MouseArea {
+										anchors.fill: parent
+										hoverEnabled: true
+										cursorShape: Qt.PointingHandCursor
+										onClicked: {
+											wallpaperView.currentIndex = index;
+											root.applyWallpaper(model.wallpaperPath, index);
+											root.dashboardOpen = false;
+										}
 									}
 								}
 							}

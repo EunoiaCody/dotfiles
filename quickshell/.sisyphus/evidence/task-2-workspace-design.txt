@@ -1,0 +1,79 @@
+Wallpaper loading design for Clock.qml
+
+Observed patterns:
+- Clock.qml keeps local state as `property` values on `root` and uses `Process` + `SplitParser` for async command output.
+- Network.qml uses `Process` with `property string buf`, appends stdout chunks, and parses in `onExited`.
+- List data is either a `ListModel` with `ListElement` entries or a JS array depending on usage.
+
+Proposed Clock.qml sketch:
+
+```qml
+// imports unchanged
+
+PanelWindow {
+    id: root
+
+    // ... existing properties ...
+
+    ListModel {
+        id: wallpaperModel
+    }
+
+    QtObject {
+        id: wallpaperLogic
+
+        property string buf: ""
+
+        function loadWallpapers() {
+            wallpaperProcess.buf = ""
+            wallpaperModel.clear()
+            wallpaperProcess.running = true
+        }
+
+        function addWallpaper(path) {
+            if (!path || path.trim() === "") return
+
+            var clean = path.trim()
+            var lower = clean.toLowerCase()
+            if (!(lower.endsWith(".png") || lower.endsWith(".jpg") || lower.endsWith(".jpeg") || lower.endsWith(".webp")))
+                return
+
+            var name = clean.split("/").pop()
+            wallpaperModel.append({
+                wallpaperPath: clean,
+                wallpaperName: name
+            })
+        }
+    }
+
+    Process {
+        id: wallpaperProcess
+        command: ["bash", "-lc", "printf \"%s\\n\" ~/Wallpapers/*.{png,jpg,jpeg,webp} 2>/dev/null"]
+        property string buf: ""
+
+        stdout: SplitParser {
+            onRead: data => {
+                wallpaperProcess.buf += data + "\n"
+            }
+        }
+
+        onExited: (code, status) => {
+            wallpaperModel.clear()
+
+            var lines = wallpaperProcess.buf.split(/\r?\n/)
+            for (var i = 0; i < lines.length; i++) {
+                wallpaperLogic.addWallpaper(lines[i])
+            }
+
+            // Empty directory or no matches => model stays empty safely.
+            wallpaperProcess.buf = ""
+        }
+    }
+}
+```
+
+Notes:
+- `loadWallpapers()` is the only entry point used by the UI layer.
+- Empty output from bash simply leaves `wallpaperModel` empty; no assumptions about non-empty arrays.
+- Filtering is case-insensitive via `toLowerCase()` even though the shell glob already narrows results.
+- `wallpaperName` is derived from the basename so the model can display a friendly label.

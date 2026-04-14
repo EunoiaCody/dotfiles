@@ -1,0 +1,3 @@
+2026-04-12: Added wallpaper keyboard handler in modules/Clock.qml for Enter/Return on the wallpaper tab.
+2026-04-12: Enter now applies the selected wallpaper via root.applyWallpaper(...) and closes the dashboard with root.dashboardOpen = false.
+2026-04-12: Added empty-model guard so no action runs when wallpaperModel.count === 0.

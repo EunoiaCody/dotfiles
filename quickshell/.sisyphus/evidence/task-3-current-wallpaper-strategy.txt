@@ -1,0 +1,76 @@
+Current Wallpaper Detection Strategy
+
+Source: `awww query` command (verified working)
+
+Command output:
+  DP-1: 3440x1440, scale: 1, currently displaying: image: /home/eunoia/Wallpapers/wallhaven-3q3wqv_3440x1440.png
+
+Detection Strategy
+1. Run `awww query` via Process to get current wallpaper path
+2. Parse the output line "currently displaying: image: <path>"
+3. Normalize path (resolve symlinks with FileInfo.dir/FileInfo.fileName)
+4. Compare normalized path against wallpaperModel entries
+5. If match found: set currentIndex to matched model row
+6. If no match: fallback to index 0
+
+Proposed Clock.qml sketch:
+
+```qml
+QtObject {
+    id: wallpaperDetectLogic
+
+    function detectCurrentWallpaper() {
+        wallpaperDetectProcess.running = true
+    }
+
+    function matchAndSelect(path) {
+        var normalized = path.trim()
+        for (var i = 0; i < wallpaperModel.count; i++) {
+            var modelPath = wallpaperModel.get(i).wallpaperPath
+            // Compare by file name (most reliable across symlinks/paths)
+            if (modelPath.trim().split("/").pop() === normalized.split("/").pop()) {
+                currentWallpaperIndex = i
+                return
+            }
+        }
+        // Fallback: no match -> index 0
+        currentWallpaperIndex = 0
+    }
+}
+
+Process {
+    id: wallpaperDetectProcess
+    command: ["awww", "query"]
+    property string buf: ""
+
+    stdout: SplitParser {
+        onRead: data => {
+            wallpaperDetectProcess.buf += data + "\n"
+        }
+    }
+
+    onExited: {
+        var output = wallpaperDetectProcess.buf
+        // Parse: "currently displaying: image: /path/to/file.png"
+        var match = output.match(/currently displaying: image: (.+)/)
+        if (match && match[1]) {
+            wallpaperDetectLogic.matchAndSelect(match[1])
+        } else {
+            currentWallpaperIndex = 0  // fallback on parse failure
+        }
+        wallpaperDetectProcess.buf = ""
+    }
+}
+```
+
+Fallback Chain
+1. awww query -> parse "currently displaying" path -> match in model
+2. If parse fails -> currentWallpaperIndex = 0
+3. If wallpaperModel is empty (no wallpapers found) -> show empty state
+
+Available wallpapers (from ~/Wallpapers/):
+wallhaven-3q3wqv_3440x1440.png (current)
+wallhaven-3q3wqv_3440x1440_1.png
+wallhaven-1q19l1_3440x1440.png
+54877813_208a858e-71e6-4207-afd3-aa78092670ab.jpg
+... (11 total files)

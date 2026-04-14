@@ -1,0 +1,48 @@
+# Wallpaper Selection Animation Spec
+
+Based on analysis of existing modules (`modules/Workspaces.qml` and `modules/Clock.qml`), here is the animation spec for the wallpaper selection UI:
+
+## 1. Sliding Highlight Animation (from Workspaces)
+For any highlight rect moving between wallpapers:
+- **Approach**: Bind `x`, `y`, `width`, `height` to a target item, then use `Behavior`
+- **X/Y Animation**: `SmoothedAnimation` with `velocity: -1`, `duration: 300`, `easing.type: Easing.OutCubic`
+- **Width/Height Animation**: `SmoothedAnimation` with `velocity: -1`, `duration: 200`, `easing.type: Easing.OutCubic`
+
+## 2. Selection Scale Transform (from Clock)
+When a wallpaper item is focused/selected:
+- **Selected Item Scale**: `1.0`
+- **Adjacent/Unselected Items Scale**: `0.85`
+- **Approach**: Declarative binding (`scale: isSelected ? 1.0 : 0.85`) with `Behavior on scale`
+- **Animation**: `NumberAnimation { duration: 400; easing.type: Easing.OutBack; easing.overshoot: 0.8 }`
+
+## 3. Secondary Effects (Opacity & Color)
+To emphasize selection:
+- **Opacity**: Selected `1.0`, unselected `0.7`
+- **Opacity Animation**: `Behavior on opacity { NumberAnimation { duration: 300; easing.type: Easing.OutCubic } }` (or `InOutQuad` matching Clock.qml line 955)
+- **Color Transitions**: `Behavior on color { ColorAnimation { duration: 150 } }`
+
+## Code Pattern Sketch
+```qml
+// Example Wallpaper Item
+Rectangle {
+    property bool isSelected: index === currentIndex
+    
+    scale: isSelected ? 1.0 : 0.85
+    opacity: isSelected ? 1.0 : 0.7
+    
+    Behavior on scale {
+        NumberAnimation {
+            duration: 400
+            easing.type: Easing.OutBack
+            easing.overshoot: 0.8
+        }
+    }
+    
+    Behavior on opacity {
+        NumberAnimation {
+            duration: 300
+            easing.type: Easing.OutCubic
+        }
+    }
+}
+```

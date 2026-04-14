@@ -1,0 +1,54 @@
+awww Executor Design
+
+Based on: modules/Network.qml Process pattern
+
+Command template (from user):
+  awww img "$PATH" --transition-type any --transition-bezier ".23,.43,.69,-0.29" --transition-step 90 --transition-fps 120 >>/tmp/niri-wallpaper.log 2>&1
+
+Note: The shell redirection cannot be expressed in QML Process argv form.
+Two options:
+  A) Wrap in bash -lc: command: ["bash", "-lc", "awww img \"$1\" ...", "unused", wallpaperPath]
+  B) Use direct argv and rely on awww's own logging to /tmp/niri-wallpaper.log (awww may already log)
+
+Preferred approach: Option A for exact fidelity to user's template.
+
+Proposed Clock.qml sketch:
+
+```qml
+property bool applying: false
+property string currentWallpaperPath: ""
+
+Process {
+    id: wallpaperProcess
+
+    // Option A: bash wrapper for full shell command fidelity
+    command: [
+        "bash", "-lc",
+        "awww img \"$1\" --transition-type any --transition-bezier \".23,.43,.69,-0.29\" --transition-step 90 --transition-fps 120 >>/tmp/niri-wallpaper.log 2>&1",
+        "",  // $0 placeholder (unused)
+        currentWallpaperPath  // $1 = wallpaper path
+    ]
+
+    onExited: {
+        applying = false
+    }
+}
+
+function applyWallpaper(path) {
+    if (applying || !path || path === "") return
+    applying = true
+    currentWallpaperPath = path
+    wallpaperProcess.running = true
+}
+```
+
+Debounce: The `applying` boolean flag prevents double-trigger.
+- Set to true before running
+- Cleared in onExited callback
+- applyWallpaper() returns early if applying === true
+
+Key design notes:
+- Put Process near existing Process definitions in Clock.qml
+- The `command` array uses bash -lc to preserve shell redirection
+- wallpaperPath is set as a property so it can be validated before use
+- onExited clears the applying flag so next apply is possible

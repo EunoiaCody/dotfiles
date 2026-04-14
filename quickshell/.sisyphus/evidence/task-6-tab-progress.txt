@@ -1,0 +1,1 @@
+2026-04-12: Added wallpaper tab entry to modules/Clock.qml ListModel and inserted placeholder wallpaper Item with visible: root.currentTab === 2.

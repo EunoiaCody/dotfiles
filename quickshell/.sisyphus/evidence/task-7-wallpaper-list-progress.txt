@@ -1,0 +1,13 @@
+- Added `wallpaperModel` and `wallpaperLogic` to manage state
+- Created `wallpaperListProcess` to fetch images from `~/Wallpapers/` via bash shell expansion
+- Created `wallpaperProcess` for `awww img` command with required transitions
+- Created `wallpaperDetectProcess` (`awww query`) to fetch the active wallpaper and synchronize the highlighted item index
+- Implemented the wallpaper tab layout inside the Dashboard (visible when `currentTab === 2`)
+- Built horizontal `ListView` displaying wallpaper thumbnails
+- Applied visual and behavioral specs:
+  - Selected item scale `1.0`, others `0.85`
+  - Selected item opacity `1.0`, others `0.7`
+  - Easing behavior for scale (`OutBack`, `0.8` overshoot, `400ms` duration)
+  - Easing behavior for opacity (`OutCubic`, `300ms` duration)
+  - Triggered via `onCurrentTabChanged` and `onDashboardOpenChanged` with `detectCurrentWallpaper()` cascaded after the model finishes loading
+- Passed QML lint.

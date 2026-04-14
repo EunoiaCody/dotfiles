@@ -1,0 +1,22 @@
+Task 1 anchor map for adding tab "壁纸" (index 2)
+
+Source surveyed: modules/Clock.qml
+Status: survey only; no edits made to Clock.qml
+
+Exact anchor ranges
+- Tab ListModel: lines 276-280
+  - Existing entries: "日历" at 278, "媒体" at 279
+- Tab pill Repeater: lines 276-309
+  - Renders the clickable tab pills and binds tab index to currentTab
+- currentTab property: line 33
+  - Primary tab state owner used by tab buttons and content visibility
+- Calendar content Item: lines 331-407
+  - visible: root.currentTab === 0 at line 334
+- Media content Item: lines 410-971
+  - visible: root.currentTab === 1 at line 413
+
+Insertion points for new "壁纸" tab (index 2)
+1. Add a third ListElement in the ListModel at line 280, after "媒体".
+2. Let the existing Repeater generate the third tab pill automatically; no structural change needed there.
+3. Add a new tab content Item after the Media block, with visible: root.currentTab === 2.
+4. Keep currentTab as the single source of truth; clicking the new pill should set root.currentTab = 2 via the existing Repeater item behavior.

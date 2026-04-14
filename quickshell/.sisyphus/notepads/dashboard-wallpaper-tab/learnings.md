@@ -1,0 +1,1 @@
+- Clock.qml uses standard QtQuick types like Process, QtObject, ListModel. QML Properties inside models shouldn't race condition with dynamic loads. Fixed a potential race between loadWallpapers() and detectCurrentWallpaper() by chaining them.
