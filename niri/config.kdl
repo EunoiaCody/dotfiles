@@ -13,7 +13,6 @@ spawn-at-startup "qs"
 spawn-at-startup "sh" "-c" "/home/eunoia/Apps/embyToLocalPlayer/etlp_run.command"
 
 // 自动启动的应用
-spawn-at-startup "flatpak" "run" "im.fluffychat.Fluffychat"
 spawn-at-startup "flatpak" "run" "com.tencent.WeChat"
 
 config-notification {
