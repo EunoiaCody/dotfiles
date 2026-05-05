@@ -45,10 +45,35 @@ PanelWindow {
 		}
 	}
 
+	// Auto-close timer for when opened with no notifications
+	Timer {
+		id: emptyAutoCloseTimer
+		interval: 5000
+		onTriggered: {
+			if (root.panelOpen && notifServer.trackedNotifications.values.length === 0) {
+				root.panelOpen = false;
+			}
+		}
+	}
+
+	// Monitor notification count - auto-close when empty
+	Connections {
+		target: notifServer
+		function onTrackedNotificationsChanged() {
+			if (root.panelOpen && notifServer.trackedNotifications.values.length === 0) {
+				root.panelOpen = false;
+			}
+		}
+	}
+
 	onPanelOpenChanged: {
 		if (panelOpen) {
 			Root.PanelStack.panelOpened("notifications", 0);
+			if (notifServer.trackedNotifications.values.length === 0) {
+				emptyAutoCloseTimer.start();
+			}
 		} else {
+			emptyAutoCloseTimer.stop();
 			root._panelClosing = true;
 			closeDelayTimer.start();
 		}
@@ -533,11 +558,16 @@ PanelWindow {
 										hoverEnabled: true
 										cursorShape: Qt.PointingHandCursor
 										onClicked: {
+											const appName = notifItem.modelData.appName;
+											const notifs = notifServer.trackedNotifications.values;
+											for (let i = notifs.length - 1; i >= 0; i--) {
+												if (notifs[i].appName === appName) {
+													notifs[i].tracked = false;
+												}
+											}
 											if (notifItem.modelData.actions.length > 0) {
 												notifItem.modelData.actions[0].invoke();
 											}
-											notifItem.modelData.tracked = false;
-											root.panelOpen = false;
 										}
 									}
 								}
