@@ -1,9 +1,36 @@
 {
-  "active_plan": "/home/eunoia/.config/quickshell/.sisyphus/plans/wallpaper-tab-enhancement.md",
-  "started_at": "2026-04-12T07:59:31.883Z",
+  "active_plan": "/home/eunoia/.config/quickshell/.sisyphus/plans/quickshell-merge-statindet.md",
+  "started_at": "2026-06-08T09:35:36.000Z",
   "session_ids": [
-    "ses_27f68f94effeBx6EtS002i1dWt"
+    "ses_15a2be499ffep33qnURZUpPE2o",
+    "ses_15965496effepUcd0vYLol9Vno",
+    "ses_15964a57bffevgjjPw6zk5PiAM"
   ],
-  "plan_name": "wallpaper-tab-enhancement",
-  "agent": "Sisyphus (Ultraworker)"
+  "plan_name": "quickshell-merge-statindet",
+  "agent": "Sisyphus (Ultraworker)",
+  "session_origins": {
+    "ses_15a2be499ffep33qnURZUpPE2o": "direct",
+    "ses_15965496effepUcd0vYLol9Vno": "appended",
+    "ses_15964a57bffevgjjPw6zk5PiAM": "appended"
+  },
+  "task_sessions": {
+    "todo:2": {
+      "task_key": "todo:2",
+      "task_label": "2",
+      "task_title": "**合并 Common/Animations.qml**",
+      "session_id": "ses_15965496effepUcd0vYLol9Vno",
+      "agent": "Sisyphus-Junior",
+      "category": "quick",
+      "updated_at": "2026-06-08T09:44:39.528Z"
+    },
+    "todo:6": {
+      "task_key": "todo:6",
+      "task_label": "6",
+      "task_title": "**解决 qmldir 命名空间冲突 + 注册 `qs` 模块入口**",
+      "session_id": "ses_159479bbcffeddEqaTkRC1prFy",
+      "agent": "Sisyphus-Junior",
+      "category": "unspecified-high",
+      "updated_at": "2026-06-08T10:31:19.901Z"
+    }
+  }
 }

@@ -1,0 +1,19 @@
+T08: ColorMap.qml created
+========================
+Lines: 225
+Size: 13320 bytes
+
+Token counts:
+  m3 tokens: 50
+  col tokens: 95
+  function definitions: 5
+
+qmllint output:
+exit: 0
+
+LavaT integration check:
+pragma Singleton
+import Quickshell
+
+no matugen/FileView (must be 0):
+0

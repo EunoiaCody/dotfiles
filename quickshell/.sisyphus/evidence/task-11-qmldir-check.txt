@@ -1,0 +1,32 @@
+=== Task 11 Evidence: Final Audit ===
+Timestamp: 2026-06-09T12:17+08:00
+
+=== shell.qml (thin AppShell proxy) ===
+$(cat /home/eunoia/.config/quickshell/shell.qml)
+
+=== AppShell.qml verification ===
+- WallpaperBackground: present ✓
+- RightSidebar: present ✓
+- Bar / DynamicIsland / Lock / Launcher: preserved ✓
+- Clock (deprecated): REMOVED (only "ClockContent" reference in comment, which is a separate DynamicIsland content area)
+- import "modules" as Modules: REMOVED ✓
+
+=== Modules/qmldir ===
+$(cat /home/eunoia/.config/quickshell/Modules/qmldir)
+
+=== All subdirectory qmldir files ===
+Modules/Bar/qmldir: module qs.Modules.Bar; Bar 1.0 Bar.qml
+Modules/ControlCenter/qmldir: module qs.Modules.ControlCenter; WallpaperPage 1.0 WallpaperPage.qml
+Modules/DynamicIsland/qmldir: module qs.Modules.DynamicIsland; DynamicIsland 1.0 DynamicIsland.qml
+Modules/Launcher/qmldir: module qs.Modules.Launcher; LauncherWindow 1.0 LauncherWindow.qml (+AppPage, WindowPage, WallpaperPage, RofiStyle)
+Modules/Lock/qmldir: module qs.Modules.Lock; Lock 1.0 Lock.qml (+LockContent, LockContext, LockSurface, LockWarmup)
+Modules/Sidebars/Right/qmldir: module qs.Modules.Sidebars.Right; RightSidebar 1.0 RightSidebar.qml
+Modules/Wallpaper/qmldir: module qs.Modules.Wallpaper; WallpaperBackground 1.0 WallpaperBackground.qml
+
+=== old modules/ REMOVED ===
+modules/ directory deleted ✓
+shell.qml.bak deleted ✓
+Services/WallpaperService.qml.bak deleted ✓
+
+=== scripts ===
+$(find /home/eunoia/.config/quickshell/scripts -type f | sort)

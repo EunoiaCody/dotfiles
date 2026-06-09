@@ -1,0 +1,54 @@
+=== T10 Environment probe (complete) ===
+
+--- Build tools ---
+Qt6Core: 6.11.1
+Qt6Qml: 6.11.1
+Qt6Network: 6.11.1
+qmake6 QT_VERSION: 6.11.1
+cmake: cmake version 4.3.3
+ninja: 1.13.2
+make: GNU Make 4.4.1
+gcc: gcc (GCC) 16.1.1 20260430
+nproc: 12
+
+--- Qt6 QML install dirs ---
+/usr/lib/qt6/qml
+Also exists at:
+/usr/lib64/qt6/qml
+
+--- PipeWire dev (REQUIRED for audio) ---
+1.6.6
+
+--- Cava dev (REQUIRED for audio visualizer) ---
+Package libcava was not found in the pkg-config search path.
+Perhaps you should add the directory containing `libcava.pc'
+to the PKG_CONFIG_PATH environment variable
+Package 'libcava' not found
+MISSING libcava
+Package cava was not found in the pkg-config search path.
+Perhaps you should add the directory containing `cava.pc'
+to the PKG_CONFIG_PATH environment variable
+Package 'cava' not found
+MISSING cava
+
+--- PAM dev (REQUIRED for keyboard/lock) ---
+/usr/include/security/pam_appl.h
+1.7.2
+
+--- niri (target compositor) ---
+niri 26.04 (8ed0da4)
+{}
+
+--- quickshell ---
+Quickshell 0.3.0 (revision b66495fcc5022681b56b61f928c7acbe910e722c, distributed by AUR (package: quickshell-git))
+
+--- sudo (T13 needs) ---
+sudo: 需要密码
+sudo REQUIRES password — user will be prompted at T13
+
+--- StatIndet upstream ---
+OK: /tmp/opencode/quickshell/core/ (748K, 81 files)
+
+=== Verdict ===
+Audio plugins WILL FAIL (missing pipewire/cava dev)
+Keyboard/lock plugin CAN be built (PAM headers present)

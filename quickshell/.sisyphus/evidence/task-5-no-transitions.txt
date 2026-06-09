@@ -1,0 +1,17 @@
+=== Task 5 Evidence: WallpaperPage Transitions Removed ===
+Timestamp: 2026-06-09T12:15+08:00
+
+=== Grep for transition/bezier references ===
+(only matches are in the comment header explaining the strip)
+
+=== Essential UI preserved (count of references) ===
+$(grep -c "chooseWallpaperFile\|chooseWallpaperColor\|cyclePrevious\|cycleNext\|cycleRandom\|setWallpaperFillMode\|clearWallpaper" /home/eunoia/.config/quickshell/Modules/ControlCenter/WallpaperPage.qml)
+
+=== File summary ===
+- WallpaperPage.qml: 12481 bytes (down from 34494 — 64% reduction)
+- WallpaperFileBrowser.qml: 29467 bytes (copied as-is)
+- WallpaperColorPicker.qml: 26883 bytes (copied as-is)
+- ControlCenter/qmldir: created
+
+=== Modules/qmldir updated with ControlCenter entry ===
+$(cat /home/eunoia/.config/quickshell/Modules/qmldir)

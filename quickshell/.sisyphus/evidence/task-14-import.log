@@ -1,0 +1,14 @@
+T14: Clavis 5-module import test
+================================
+Clavis installed to: /home/eunoia/.local/share/qt6/qml/Clavis (5 plugins, audio skipped due to missing cava)
+QML2_IMPORT_PATH: /home/eunoia/.local/share/qt6/qml
+
+Modules verified:
+  Sysmon OK
+  Weather OK
+  Niri OK
+  Media OK
+  Keyboard OK
+  Audio SKIPPED (cava not installed)
+
+Test result: 5/5 modules importable, quickshell loads with 0 errors

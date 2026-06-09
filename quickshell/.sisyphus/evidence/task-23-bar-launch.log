@@ -1,0 +1,23 @@
+=== T15-T23: Bar module + deps + launch validation ===
+
+T15: Bar.qml copied
+T16: Workspaces copied
+T17: Tray + 3 sub files copied
+T18: ActiveWindow + 3 sub files copied
+T19: SysMonitor copied (C++ Clavis.Sysmon)
+T20: QuickSettings 容器 copied
+T21: 7 QuickSettings sub components copied
+T22: PowerButton copied
+
+=== File counts ===
+Bar: 20
+Services: 17 (AudioSpectrum excluded — Clavis.Audio not built)
+Components: 2
+Widgets/common: 28
+
+=== T23: Bar launches with 0 errors ===
+[34m DEBUG[0m: [SysmonGpu] Detected GPU type: "GENERIC"
+[33m  WARN[0m: Layershell screen does not correspond to a real screen. Letting the compositor pick.
+[32m  INFO[0m: Configuration Loaded
+[33m  WARN[0m: Process failed to start, likely because the binary could not be found. Command: QList("ddcutil", "detect", "--brief")
+[33m  WARN[0m: Process failed to start, likely because the binary could not be found. Command: QList("brightnessctl", "--class", "backlight", "-m")

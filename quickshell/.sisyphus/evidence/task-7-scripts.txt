@@ -1,0 +1,13 @@
+=== Task 7 Evidence: Scripts Migration ===
+Timestamp: 2026-06-09T12:14+08:00
+
+=== Files ===
+scripts/weather/weather.py (5387 bytes, executable, shebang #!/usr/bin/env python3)
+scripts/schedule/parse_schedule.py (3522 bytes, executable, shebang #!/usr/bin/env python3)
+scripts/system/overview.sh (1470 bytes, executable, shebang #!/bin/bash)
+
+=== Permissions ===
+$(ls -la /home/eunoia/.config/quickshell/scripts/weather/weather.py /home/eunoia/.config/quickshell/scripts/schedule/parse_schedule.py /home/eunoia/.config/quickshell/scripts/system/overview.sh)
+
+=== Existing scripts preserved ===
+$(ls -la /home/eunoia/.config/quickshell/scripts/media/)

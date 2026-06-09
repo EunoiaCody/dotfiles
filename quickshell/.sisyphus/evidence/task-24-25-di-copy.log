@@ -1,0 +1,20 @@
+=== Wave 4: T24 + T25 (DI container + ClockContent framework) ===
+
+T24: DynamicIsland.qml copied
+-rw-r--r-- 1 eunoia eunoia 33009  6月 8日 20:05 /home/eunoia/.config/quickshell/Modules/DynamicIsland/DynamicIsland.qml
+
+T25: ClockContent framework copied
+总计 8
+drwxr-xr-x 1 eunoia eunoia   32  6月 8日 20:05 .
+drwxr-xr-x 1 eunoia eunoia  298  6月 8日 20:05 ..
+-rw-r--r-- 1 eunoia eunoia 4922  6月 8日 20:05 ClockContent.qml
+
+=== All 17 DI files copied ===
+17
+
+=== qmllint DynamicIsland.qml ===
+
+=== qmllint ClockContent.qml ===
+
+=== ClockContent.qml structure (line count) ===
+151 /home/eunoia/.config/quickshell/Modules/DynamicIsland/ClockContent/ClockContent.qml

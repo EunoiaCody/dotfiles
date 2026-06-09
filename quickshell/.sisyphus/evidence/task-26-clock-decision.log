@@ -1,0 +1,31 @@
+=== T26: Pragmatic resolution ===
+User Clock.qml is a PanelWindow (top-level window) — NOT a component
+1336 lines includes: wallpaper dashboard, media player, lyrics, month calendar
+
+DECISION: Keep user Clock.qml as deprecated standalone window
+          DynamicIsland uses StatIndet's ClockContent.qml (151 lines)
+          User can mount their own ClockPanel in AppShell if desired
+
+=== Verify user Clock.qml is still intact ===
+1336 /home/eunoia/.config/quickshell/modules/Clock.qml
+lines unchanged
+
+=== Verify StatIndet ClockContent.qml loads ===
+[34m DEBUG[97m qml[0m: === ClockContent test ===
+[34m DEBUG[97m qml[0m: Loaded OK
+[32m  INFO[0m: Configuration Loaded
+=== T27-T37: Common/functions copied ===
+AppManager.js
+astro.js
+TimeUtils.js
+
+import qs.Common.functions.astro as AstroJS
+        id: astroArea
+
+=== qmldir add Common.functions ===
+(no qmldir change needed; quickshell auto-discovers)
+
+=== retest DI ===
+[33m  WARN[97m quickshell.qmlscanner[0m: Ignoring unresolvable import "/home/eunoia/.config/quickshell/Common/functions/astro" from "/home/eunoia/.config/quickshell/Modules/DynamicIsland/WeatherContent/WeatherContent.qml"
+[31m ERROR[0m: Failed to load configuration
+[31m ERROR[0m:   caused by @Modules/DynamicIsland/WeatherContent/WeatherContent.qml[4:1]: module "qs.Common.functions.astro" is not installed

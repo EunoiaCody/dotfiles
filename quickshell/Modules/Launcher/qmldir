@@ -1,0 +1,6 @@
+module qs.Modules.Launcher
+LauncherWindow 1.0 LauncherWindow.qml
+AppPage 1.0 AppPage.qml
+WindowPage 1.0 WindowPage.qml
+WallpaperPage 1.0 WallpaperPage.qml
+RofiStyle 1.0 RofiStyle.qml

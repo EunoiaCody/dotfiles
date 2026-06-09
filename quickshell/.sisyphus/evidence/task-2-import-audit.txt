@@ -1,0 +1,30 @@
+=== Task 2 Evidence: Old modules/ Audit ===
+Timestamp: 2026-06-09T12:11+08:00
+
+=== Files in old modules/ (10) ===
+modules/Bluetooth.qml
+modules/Clock.qml
+modules/Network.qml
+modules/Notifications.qml
+modules/PowerMenu.qml
+modules/SystemMonitor.qml
+modules/SystemTray.qml
+modules/TrayMenu.qml
+modules/Volume.qml
+modules/Workspaces.qml
+
+=== Direct imports/references to old modules/ ===
+1. AppShell.qml:8  -> import "modules" as Modules
+2. AppShell.qml:28 -> Modules.Clock {}
+3. modules/SystemTray.qml:130 -> source: "file:///home/eunoia/.config/quickshell/modules/TrayMenu.qml"
+
+=== Verdict: AppShell.qml is the ONLY external file referencing old modules/ ===
+
+=== Recommendation ===
+NOT safe to delete modules/ until AppShell.qml is fixed.
+- AppShell needs to remove import "modules" + Modules.Clock {} (Task 9 will handle)
+- modules/SystemTray.qml has internal reference but it dies with parent (safe to delete along)
+
+=== Action plan ===
+1. Task 9 (AppShell rewrite) removes the import and the deprecated Clock
+2. Task 10 (deletion) is then safe to execute

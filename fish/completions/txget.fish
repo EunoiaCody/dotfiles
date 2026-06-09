@@ -4,5 +4,6 @@ complete -c txget -l include-analysis -d 'Include analysis field when available'
 false\t''"
 complete -c txget -l include-source -d 'Include source file path for each question' -r -f -a "true\t''
 false\t''"
+complete -c txget -l pdf -d 'Also generate PDF from the output markdown'
 complete -c txget -s h -l help -d 'Print help'
 complete -c txget -s V -l version -d 'Print version'

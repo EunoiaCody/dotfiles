@@ -1,0 +1,28 @@
+=== Sizes.qml font check ===
+    readonly property string fontFamily: "Symbols Nerd Font"
+    readonly property string fontIcon: "Symbols Nerd Font"
+
+=== LXGW check (should be 0) ===
+0
+
+=== qmllint check ===
+--- Common/Animations.qml ---
+exit: 0
+--- Common/Sizes.qml ---
+exit: 0
+--- Common/WidgetState.qml ---
+exit: 0
+--- Common/DynamicIslandMotion.qml ---
+exit: 0
+--- Common/Paths.qml ---
+exit: 0
+
+=== files count in Common/ ===
+总计 24
+drwxr-xr-x 1 eunoia eunoia  140  6月 8日 17:43 .
+drwxr-xr-x 1 eunoia eunoia  188  6月 8日 17:37 ..
+-rw-r--r-- 1 eunoia eunoia 6917  6月 8日 17:43 Animations.qml
+-rw-r--r-- 1 eunoia eunoia  863  6月 8日 17:43 DynamicIslandMotion.qml
+-rw-r--r-- 1 eunoia eunoia 2520  6月 8日 17:43 Paths.qml
+-rw-r--r-- 1 eunoia eunoia 1693  6月 8日 17:46 Sizes.qml
+-rw-r--r-- 1 eunoia eunoia  432  6月 8日 17:43 WidgetState.qml

@@ -1,0 +1,30 @@
+=== Wave 2 Final Summary ===
+
+T10: Environment probe
+  Qt6 6.11.1, cmake 4.3.3, ninja 1.13.2, gcc 16.1.1, nproc 12
+  libpipewire-0.3 1.6.6 (OK)
+  libcava/cava MISSING (audio plugin skipped)
+  PAM dev 1.7.2 (OK)
+  niri 26.04 + quickshell 0.3.0 (OK)
+
+T11: cmake configure
+  Patched CMakeLists.txt to make Cava OPTIONAL (audio skipped)
+  Configured 5 plugins: Sysmon, Weather, Niri, Media, Keyboard
+
+T12: build
+  72/72 ninja build steps completed (5 plugins × 2 .so each = 10 .so)
+
+T13: install (user-writable Plan B)
+  Installed to: /home/eunoia/.local/share/qt6/qml/Clavis
+  (sudo install to /usr/lib/qt6/qml/Clavis blocked — no TTY)
+
+T14: verify import
+  QML2_IMPORT_PATH=/home/eunoia/.local/share/qt6/qml
+  All 5 modules import: Sysmon, Weather, Niri, Media, Keyboard
+  quickshell -p test: 0 errors, 0 warnings
+
+=== Quickshell config update for user QML path ===
+User needs to either:
+  1. Run quickshell with QML2_IMPORT_PATH=/home/eunoia/.local/share/qt6/qml
+  2. Or run: sudo cp -r /home/eunoia/.local/share/qt6/qml/Clavis /usr/lib/qt6/qml/
+  3. Or add 'export QML2_IMPORT_PATH=/home/eunoia/.local/share/qt6/qml' to shell rc

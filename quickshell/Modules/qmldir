@@ -1,0 +1,8 @@
+module qs.Modules
+Bar 1.0 Bar/Bar.qml
+DynamicIsland 1.0 DynamicIsland/DynamicIsland.qml
+Launcher 1.0 Launcher/LauncherWindow.qml
+Lock 1.0 Lock/Lock.qml
+Sidebars.Right 1.0 Sidebars/Right
+Wallpaper 1.0 Wallpaper
+ControlCenter 1.0 ControlCenter

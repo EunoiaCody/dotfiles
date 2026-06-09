@@ -1,0 +1,18 @@
+# Sisyphus orchestration state
+/.sisyphus/boulder.json
+/.sisyphus/boulder.json.bak*
+
+# Generated color schemes
+*.swp
+*.swo
+*~
+
+# Cache and temp
+.cache/
+*.tmp
+*.bak
+
+# Allow evidence logs (do not ignore .log files; they're audit trail)
+!*.log
+!/.sisyphus/evidence/**
+!/.sisyphus/notepads/**

@@ -1,0 +1,33 @@
+=== T15-T22: Bar files copied ===
+20
+files copied
+
+=== Subdirs ===
+ActiveWindow
+Bar.qml
+PowerButton
+QuickSettings
+SysMonitor
+Tray
+Workspaces
+
+=== Total file count ===
+20
+.qml files
+
+=== qmllint spot-check on Bar.qml ===
+exit: 0
+
+=== Bar.qml imports ===
+import Quickshell
+import Quickshell.Widgets
+import Quickshell.Wayland
+import QtQuick
+import QtQuick.Layouts
+import qs.Modules.Bar.Workspaces
+import qs.Modules.Bar.ActiveWindow
+import qs.Modules.Bar.Tray
+import qs.Modules.Bar.PowerButton
+import qs.Modules.Bar.SysMonitor
+import qs.Modules.Bar.QuickSettings
+import qs.Common

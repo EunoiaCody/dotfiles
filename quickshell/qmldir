@@ -1,3 +1,11 @@
 singleton Color Color.qml
+AppShell 1.0 AppShell.qml
 singleton PanelStack PanelStack.qml
 singleton BarLayout BarLayout.qml
+singleton Paths Common/Paths.qml
+singleton Animations Common/Animations.qml
+singleton Sizes Common/Sizes.qml
+singleton WidgetState Common/WidgetState.qml
+singleton DynamicIslandMotion Common/DynamicIslandMotion.qml
+singleton ColorMap Common/ColorMap.qml
+singleton Appearance Common/Appearance.qml

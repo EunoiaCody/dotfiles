@@ -1,0 +1,98 @@
+T11: cmake configure
+====================
+--- pipewire check ---
+1.6.6
+
+--- cava check ---
+Package libcava was not found in the pkg-config search path.
+Perhaps you should add the directory containing `libcava.pc'
+to the PKG_CONFIG_PATH environment variable
+Package 'libcava' not found
+Package cava was not found in the pkg-config search path.
+Perhaps you should add the directory containing `cava.pc'
+to the PKG_CONFIG_PATH environment variable
+Package 'cava' not found
+no cava
+
+--- attempt cmake configure ---
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+-- Found Threads: TRUE
+-- Performing Test HAVE_STDATOMIC
+-- Performing Test HAVE_STDATOMIC - Success
+-- Found WrapAtomic: TRUE
+-- Found OpenGL: /usr/lib/libOpenGL.so
+-- Found WrapOpenGL: TRUE
+-- Found WrapVulkanHeaders: /usr/include
+-- Found PkgConfig: /usr/bin/pkg-config (found version "2.5.1")
+-- Checking for module 'libpipewire-0.3'
+--   Found libpipewire-0.3, version 1.6.6
+-- Checking for module 'cava'
+--   Package 'cava' not found
+CMake Error at /usr/share/cmake/Modules/FindPkgConfig.cmake:1093 (message):
+  The following required packages were not found:
+
+   - cava
+
+Call Stack (most recent call first):
+  /usr/share/cmake/Modules/FindPkgConfig.cmake:1166 (_pkg_check_modules_internal)
+  CMakeLists.txt:15 (pkg_check_modules)
+
+
+-- Configuring incomplete, errors occurred!
+
+--- exit code ---
+0
+--- patched CMakeLists.txt ---
+cmake_minimum_required(VERSION 3.16)
+project(ClavisCore VERSION 0.1.0 LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+# globally enable MOC to parse Q_OBJECT macros
+set(CMAKE_AUTOMOC ON)
+
+# Find Qt 6 basics
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Network)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(Pipewire IMPORTED_TARGET libpipewire-0.3 REQUIRED)
+pkg_check_modules(Cava IMPORTED_TARGET libcava QUIET)
+if(NOT Cava_FOUND)
+    pkg_check_modules(Cava IMPORTED_TARGET cava)
+endif()
+qt_standard_project_setup(REQUIRES 6.5)
+
+# Base reusable logic
+add_subdirectory(src)
+
+# Quickshell plugins
+add_subdirectory(plugin/sysmon)
+add_subdirectory(plugin/weather)
+add_subdirectory(plugin/niri)
+if(Cava_FOUND)
+    add_subdirectory(plugin/audio)
+endif()
+add_subdirectory(plugin/media)
+add_subdirectory(plugin/keyboard)
+
+--- attempt cmake configure with audio-optional ---
+-- Checking for module 'cava'
+--   Package 'cava' not found
+-- Configuring done (0.3s)
+-- Generating done (0.0s)
+-- Build files have been written to: /tmp/opencode/quickshell/core/build
+configure exit: 0
+
+=== T11 SUCCESS: cmake configured ===
+build.ninja
+Clavis
+CMakeCache.txt
+CMakeFiles
+cmake_install.cmake
+plugin
+src

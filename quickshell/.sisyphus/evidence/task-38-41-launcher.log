@@ -1,0 +1,30 @@
+=== Wave 5: T38-T41 Launcher ===
+
+T38: LauncherWindow.qml + RofiStyle copied
+5
+Launcher files
+
+T39: 4 component files (AppPage, WindowPage, WallpaperPage, RofiStyle) + LauncherWindow
+AppPage.qml
+LauncherWindow.qml
+qmldir
+RofiStyle.qml
+WallpaperPage.qml
+WindowPage.qml
+
+T40: niri keybind — deferred to Wave 7 (T54)
+
+T41: Launcher launches with 0 errors
+
+=== Critical fix ===
+Modules/Launcher/qmldir created (registers Launcher as qs.Modules.Launcher module)
+LauncherWindow.qml: added 'import qs.Modules.Launcher' for RofiStyle + pages
+
+=== Total new files ===
+6
+module qs.Modules.Launcher
+LauncherWindow 1.0 LauncherWindow.qml
+AppPage 1.0 AppPage.qml
+WindowPage 1.0 WindowPage.qml
+WallpaperPage 1.0 WallpaperPage.qml
+RofiStyle 1.0 RofiStyle.qml

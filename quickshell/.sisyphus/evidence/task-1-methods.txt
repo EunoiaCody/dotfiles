@@ -1,0 +1,36 @@
+WallpaperService methods/properties checklist (after edits):
+
+Functions:
+- basename: yes
+- parentFolder: yes
+- isColorSource: yes
+- isImagePath: yes
+- fillModeForScreen: yes
+- qtFillMode: yes
+- shaderFillMode: yes
+- wallpaperForScreen: yes
+- setWallpaper: yes
+- clearWallpaper: yes
+- setWallpaperFolder: yes
+- setWallpaperFillMode: yes
+- setWallpaperTransitionType: yes
+- setTransitionDurationMs: yes
+- setTransitionEasingMode: yes
+- setTransitionBezierCurve: yes
+- cycle(action,...)/applyCycle: yes
+- cycleNext / cyclePrevious / cycleRandom: yes
+- addRecentWallpaperColor: newly added (delegates to PersonalizationConfig.addRecentWallpaperColor)
+
+Properties:
+- currentWallpaper: yes
+- revision: yes
+- settingsRevision: yes
+- recentWallpaperColors: newly added (alias to PersonalizationConfig.recentWallpaperColors)
+
+Singleton pragma at top: yes
+qmldir registration: yes (/home/eunoia/.config/quickshell/Services/qmldir)
+
+Notes:
+- Some parameter names differ (fromIpc vs persist) but behavior matches expected functionality.
+- Recent colors are managed by PersonalizationConfig; WallpaperService now exposes a property and delegate function to keep API convenient for consumers.
+

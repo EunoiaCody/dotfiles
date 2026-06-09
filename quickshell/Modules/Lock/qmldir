@@ -1,0 +1,6 @@
+module qs.Modules.Lock
+Lock 1.0 Lock.qml
+LockContent 1.0 LockContent.qml
+LockContext 1.0 LockContext.qml
+LockSurface 1.0 LockSurface.qml
+LockWarmup 1.0 LockWarmup.qml

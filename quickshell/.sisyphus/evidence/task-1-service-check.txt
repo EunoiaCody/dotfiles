@@ -1,0 +1,33 @@
+WallpaperService.qml audit performed.
+- File backed up to WallpaperService.qml.bak
+- Inserted property: recentWallpaperColors: PersonalizationConfig.recentWallpaperColors
+- Inserted function: addRecentWallpaperColor(color) delegating to PersonalizationConfig
+
+Present methods/properties verified (from file after modification):
+- parentFolder(path): present
+- basename(path): present
+- isColorSource(path): present
+- setWallpaper(path, screenName, persist): present (param name 'fromIpc')
+- clearWallpaper(screenName, persist): present (param name 'fromIpc')
+- cyclePrevious(persist), cycleNext(persist), cycleRandom(persist): present (param name 'fromIpc')
+- setWallpaperFolder(path): present (additional optional fromIpc)
+- setWallpaperFillMode(mode): present
+- setTransitionDurationMs(ms): present
+- setTransitionEasingMode(mode): present
+- setTransitionBezierCurve(curve): present
+- setWallpaperTransitionType(type): present
+- wallpaperForScreen(screenName): present
+- fillModeForScreen(screenName): present
+- qtFillMode(mode): present (named qtFillMode(modeName))
+- shaderFillMode(mode): present
+- addRecentWallpaperColor(color): added (delegates to PersonalizationConfig.addRecentWallpaperColor)
+
+Properties:
+- revision: present
+- settingsRevision: present
+- currentWallpaper: present
+- recentWallpaperColors: added (delegates to PersonalizationConfig.recentWallpaperColors)
+
+Singleton pragma: present
+Registered in Services/qmldir: present
+

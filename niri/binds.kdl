@@ -17,10 +17,13 @@ binds {
     // 打开终端 kitty
     Mod+T { spawn "kitty"; }
 
-    Mod+Space { spawn "~/.config/rofi/launcher.sh"; }
+    Mod+Space { spawn "qs" "ipc" "call" "launcher" "toggle"; }
 
-    // 随机切换 ~/Wallpapers/ 下的壁纸并添加过渡效果
-    Mod+W { spawn "fish" "-c" "/home/eunoia/.config/niri/scripts/random-wallpaper.fish"; }
+    // 锁屏 (Mod + Escape)
+    Mod+Escape { spawn "qs" "ipc" "call" "lock" "open"; }
+
+    // 随机切换壁纸（QML WallpaperBackground GLSL 过渡）
+    Mod+W { spawn "qs" "ipc" "call" "wallpaper" "random"; }
 
     // 最大化和全屏
     Mod+M { maximize-column; }
@@ -50,6 +53,12 @@ binds {
 
     // 切换当前窗口为浮动模式
     Mod+F { toggle-window-floating; }
+
+    // 灵动岛 - 打开 Hub 总控 (概览/媒体/壁纸/天气)
+    Mod+I { spawn "qs" "ipc" "call" "island" "hub"; }
+
+    // 灵动岛 - 打开 Tools 工具箱 (取色/录屏/截屏/录音)
+    Mod+Shift+I { spawn "qs" "ipc" "call" "island" "tools"; }
 
     // 改变窗口大小
     Mod+Minus { set-column-width "-10%"; }

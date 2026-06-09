@@ -1,0 +1,23 @@
+=== Wave 6: Lock files (StatIndet) ===
+/tmp/opencode/quickshell/Modules/Lock/Cards/AuthCard.qml
+/tmp/opencode/quickshell/Modules/Lock/Cards/LockFetchCard.qml
+/tmp/opencode/quickshell/Modules/Lock/Cards/MediaCard.qml
+/tmp/opencode/quickshell/Modules/Lock/Cards/MottoCard.qml
+/tmp/opencode/quickshell/Modules/Lock/Cards/NotificationCard.qml
+/tmp/opencode/quickshell/Modules/Lock/Cards/SystemGrid.qml
+/tmp/opencode/quickshell/Modules/Lock/Cards/WeatherCard.qml
+/tmp/opencode/quickshell/Modules/Lock/LockContent.qml
+/tmp/opencode/quickshell/Modules/Lock/LockContext.qml
+/tmp/opencode/quickshell/Modules/Lock/Lock.qml
+/tmp/opencode/quickshell/Modules/Lock/LockSurface.qml
+/tmp/opencode/quickshell/Modules/Lock/LockWarmup.qml
+
+=== PAM config ===
+auth required pam_unix.so
+
+=== Total files ===
+13
+
+=== Copy Lock ===
+13
+Lock files copied

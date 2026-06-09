@@ -1,0 +1,173 @@
+=== T12: cmake build (5 plugins) ===
+[38/87] Building CXX object plugin/media/CMakeFiles/ClavisMedia.dir/ClavisMedia_autogen/mocs_compilation.cpp.o
+[39/87] Building CXX object plugin/weather/CMakeFiles/ClavisWeather.dir/.qt/rcc/qrc_qmake_Clavis_Weather.cpp.o
+[40/87] Building CXX object plugin/keyboard/CMakeFiles/ClavisKeyboard.dir/claviskeyboard_qmltyperegistrations.cpp.o
+[41/87] Building CXX object plugin/media/CMakeFiles/ClavisMedia.dir/src/media_palette_plugin.cpp.o
+[42/87] Building CXX object plugin/keyboard/CMakeFiles/ClavisKeyboard.dir/src/keyboard_lock_plugin.cpp.o
+[43/87] Building CXX object src/CMakeFiles/ClavisNiriCore.dir/niri_output_model.cpp.o
+[44/87] Building CXX object plugin/sysmon/CMakeFiles/ClavisSysmon.dir/clavissysmon_qmltyperegistrations.cpp.o
+[45/87] Linking CXX static library src/libClavisNiriCore.a
+[46/87] Automatic MOC and UIC for target ClavisNiri
+[47/87] Running AUTOMOC file extraction for target ClavisNiri
+[48/87] Running rcc for resource qmake_Clavis_Niri
+[49/87] Running moc --collect-json for target ClavisNiri
+[50/87] Linking CXX shared library Clavis/Keyboard/libClavisKeyboard.so
+[51/87] Building CXX object plugin/media/CMakeFiles/ClavisMedia.dir/clavismedia_qmltyperegistrations.cpp.o
+[52/87] Automatic QML type registration for target ClavisNiri
+[53/87] Building CXX object plugin/niri/CMakeFiles/ClavisNiri.dir/.qt/rcc/qrc_qmake_Clavis_Niri.cpp.o
+[54/87] Building CXX object plugin/sysmon/CMakeFiles/ClavisSysmon.dir/src/sysmon_plugin.cpp.o
+[55/87] Automatic MOC and UIC for target ClavisKeyboardplugin
+[56/87] Building CXX object plugin/keyboard/CMakeFiles/ClavisKeyboardplugin.dir/ClavisKeyboardplugin_autogen/mocs_compilation.cpp.o
+[57/87] Linking CXX shared library Clavis/Media/libClavisMedia.so
+[58/87] Building CXX object plugin/sysmon/CMakeFiles/ClavisSysmon.dir/ClavisSysmon_autogen/mocs_compilation.cpp.o
+[59/87] Automatic MOC and UIC for target ClavisMediaplugin
+[60/87] Building CXX object plugin/sysmon/CMakeFiles/ClavisSysmon.dir/src/process_model.cpp.o
+[61/87] Building CXX object plugin/media/CMakeFiles/ClavisMediaplugin.dir/ClavisMediaplugin_autogen/mocs_compilation.cpp.o
+[62/87] Linking CXX shared library Clavis/Sysmon/libClavisSysmon.so
+[63/87] Automatic MOC and UIC for target ClavisSysmonplugin
+[64/87] Building CXX object plugin/sysmon/CMakeFiles/ClavisSysmonplugin.dir/ClavisSysmonplugin_autogen/mocs_compilation.cpp.o
+[65/87] Building CXX object plugin/weather/CMakeFiles/ClavisWeather.dir/src/weather_list_model.cpp.o
+[66/87] Building CXX object plugin/weather/CMakeFiles/ClavisWeather.dir/ClavisWeather_autogen/mocs_compilation.cpp.o
+[67/87] Building CXX object plugin/keyboard/CMakeFiles/ClavisKeyboardplugin.dir/ClavisKeyboardplugin_Clavis_KeyboardPlugin.cpp.o
+[68/87] Building CXX object plugin/weather/CMakeFiles/ClavisWeather.dir/clavisweather_qmltyperegistrations.cpp.o
+[69/87] Building CXX object plugin/weather/CMakeFiles/ClavisWeather.dir/src/weather_plugin.cpp.o
+[70/87] Linking CXX shared module Clavis/Keyboard/libClavisKeyboardplugin.so
+[71/87] Linking CXX shared library Clavis/Weather/libClavisWeather.so
+[72/87] Building CXX object plugin/niri/CMakeFiles/ClavisNiri.dir/clavisniri_qmltyperegistrations.cpp.o
+[73/87] Building CXX object plugin/media/CMakeFiles/ClavisMediaplugin.dir/ClavisMediaplugin_Clavis_MediaPlugin.cpp.o
+[74/87] Automatic MOC and UIC for target ClavisWeatherplugin
+[75/87] Building CXX object plugin/niri/CMakeFiles/ClavisNiri.dir/ClavisNiri_autogen/mocs_compilation.cpp.o
+[76/87] Building CXX object plugin/weather/CMakeFiles/ClavisWeatherplugin.dir/ClavisWeatherplugin_autogen/mocs_compilation.cpp.o
+[77/87] Linking CXX shared module Clavis/Media/libClavisMediaplugin.so
+[78/87] Building CXX object plugin/sysmon/CMakeFiles/ClavisSysmonplugin.dir/ClavisSysmonplugin_Clavis_SysmonPlugin.cpp.o
+[79/87] Linking CXX shared module Clavis/Sysmon/libClavisSysmonplugin.so
+[80/87] Building CXX object plugin/niri/CMakeFiles/ClavisNiri.dir/src/niri_plugin.cpp.o
+[81/87] Building CXX object plugin/weather/CMakeFiles/ClavisWeatherplugin.dir/ClavisWeatherplugin_Clavis_WeatherPlugin.cpp.o
+[82/87] Linking CXX shared library Clavis/Niri/libClavisNiri.so
+[83/87] Linking CXX shared module Clavis/Weather/libClavisWeatherplugin.so
+[84/87] Automatic MOC and UIC for target ClavisNiriplugin
+[85/87] Building CXX object plugin/niri/CMakeFiles/ClavisNiriplugin.dir/ClavisNiriplugin_autogen/mocs_compilation.cpp.o
+[86/87] Building CXX object plugin/niri/CMakeFiles/ClavisNiriplugin.dir/ClavisNiriplugin_Clavis_NiriPlugin.cpp.o
+[87/87] Linking CXX shared module Clavis/Niri/libClavisNiriplugin.so
+
+=== built .so files ===
+build/Clavis/Keyboard/libClavisKeyboardplugin.so
+build/Clavis/Keyboard/libClavisKeyboard.so
+build/Clavis/Media/libClavisMediaplugin.so
+build/Clavis/Media/libClavisMedia.so
+build/Clavis/Niri/libClavisNiriplugin.so
+build/Clavis/Niri/libClavisNiri.so
+build/Clavis/Weather/libClavisWeatherplugin.so
+build/Clavis/Weather/libClavisWeather.so
+build/Clavis/Sysmon/libClavisSysmonplugin.so
+build/Clavis/Sysmon/libClavisSysmon.so
+
+exit: 0
+d/Clavis
+build/Clavis/Keyboard
+build/Clavis/Media
+build/Clavis/Audio
+build/Clavis/Niri
+build/Clavis/Weather
+build/Clavis/Sysmon
+总计 0
+drwxr-xr-x 8 eunoia eunoia 160  6月 8日 19:20 .
+drwxr-xr-x 8 eunoia eunoia 260  6月 8日 19:20 ..
+drwxr-xr-x 2 eunoia eunoia  80  6月 8日 19:20 Audio
+drwxr-xr-x 2 eunoia eunoia 120  6月 8日 19:20 Keyboard
+drwxr-xr-x 2 eunoia eunoia 120  6月 8日 19:20 Media
+drwxr-xr-x 2 eunoia eunoia 100  6月 8日 19:20 Niri
+drwxr-xr-x 2 eunoia eunoia 120  6月 8日 19:20 Sysmon
+drwxr-xr-x 2 eunoia eunoia 100  6月 8日 19:20 Weather
+=== T12 retry: cmake build (idempotent) ===
+[43/72] Linking CXX shared library Clavis/Keyboard/libClavisKeyboard.so
+[44/72] Automatic MOC and UIC for target ClavisKeyboardplugin
+[45/72] Building CXX object plugin/keyboard/CMakeFiles/ClavisKeyboardplugin.dir/ClavisKeyboardplugin_autogen/mocs_compilation.cpp.o
+[46/72] Building CXX object plugin/sysmon/CMakeFiles/ClavisSysmon.dir/src/process_model.cpp.o
+[47/72] Linking CXX shared library Clavis/Sysmon/libClavisSysmon.so
+[48/72] Automatic MOC and UIC for target ClavisSysmonplugin
+[49/72] Building CXX object plugin/sysmon/CMakeFiles/ClavisSysmonplugin.dir/ClavisSysmonplugin_autogen/mocs_compilation.cpp.o
+[50/72] Building CXX object plugin/weather/CMakeFiles/ClavisWeather.dir/ClavisWeather_autogen/mocs_compilation.cpp.o
+[51/72] Building CXX object plugin/keyboard/CMakeFiles/ClavisKeyboardplugin.dir/ClavisKeyboardplugin_Clavis_KeyboardPlugin.cpp.o
+[52/72] Building CXX object plugin/weather/CMakeFiles/ClavisWeather.dir/src/weather_list_model.cpp.o
+[53/72] Building CXX object plugin/weather/CMakeFiles/ClavisWeather.dir/clavisweather_qmltyperegistrations.cpp.o
+[54/72] Building CXX object plugin/weather/CMakeFiles/ClavisWeather.dir/src/weather_plugin.cpp.o
+[55/72] Linking CXX shared module Clavis/Keyboard/libClavisKeyboardplugin.so
+[56/72] Linking CXX shared library Clavis/Weather/libClavisWeather.so
+[57/72] Automatic MOC and UIC for target ClavisWeatherplugin
+[58/72] Building CXX object plugin/weather/CMakeFiles/ClavisWeatherplugin.dir/ClavisWeatherplugin_autogen/mocs_compilation.cpp.o
+[59/72] Building CXX object plugin/niri/CMakeFiles/ClavisNiri.dir/clavisniri_qmltyperegistrations.cpp.o
+[60/72] Building CXX object plugin/niri/CMakeFiles/ClavisNiri.dir/ClavisNiri_autogen/mocs_compilation.cpp.o
+[61/72] Building CXX object plugin/media/CMakeFiles/ClavisMediaplugin.dir/ClavisMediaplugin_Clavis_MediaPlugin.cpp.o
+[62/72] Linking CXX shared module Clavis/Media/libClavisMediaplugin.so
+[63/72] Building CXX object plugin/sysmon/CMakeFiles/ClavisSysmonplugin.dir/ClavisSysmonplugin_Clavis_SysmonPlugin.cpp.o
+[64/72] Linking CXX shared module Clavis/Sysmon/libClavisSysmonplugin.so
+[65/72] Building CXX object plugin/niri/CMakeFiles/ClavisNiri.dir/src/niri_plugin.cpp.o
+[66/72] Linking CXX shared library Clavis/Niri/libClavisNiri.so
+[67/72] Automatic MOC and UIC for target ClavisNiriplugin
+[68/72] Building CXX object plugin/niri/CMakeFiles/ClavisNiriplugin.dir/ClavisNiriplugin_autogen/mocs_compilation.cpp.o
+[69/72] Building CXX object plugin/weather/CMakeFiles/ClavisWeatherplugin.dir/ClavisWeatherplugin_Clavis_WeatherPlugin.cpp.o
+[70/72] Linking CXX shared module Clavis/Weather/libClavisWeatherplugin.so
+[71/72] Building CXX object plugin/niri/CMakeFiles/ClavisNiriplugin.dir/ClavisNiriplugin_Clavis_NiriPlugin.cpp.o
+[72/72] Linking CXX shared module Clavis/Niri/libClavisNiriplugin.so
+
+=== Final build artifacts ===
+build/Clavis/Keyboard/libClavisKeyboardplugin.so
+build/Clavis/Keyboard/libClavisKeyboard.so
+build/Clavis/Media/libClavisMediaplugin.so
+build/Clavis/Media/libClavisMedia.so
+build/Clavis/Niri/libClavisNiriplugin.so
+build/Clavis/Niri/libClavisNiri.so
+build/Clavis/Weather/libClavisWeatherplugin.so
+build/Clavis/Weather/libClavisWeather.so
+build/Clavis/Sysmon/libClavisSysmonplugin.so
+build/Clavis/Sysmon/libClavisSysmon.so
+
+=== Clavis dir count ===
+6
+=== T12 retry: cmake build (idempotent) ===
+[43/72] Linking CXX shared library Clavis/Keyboard/libClavisKeyboard.so
+[44/72] Automatic MOC and UIC for target ClavisKeyboardplugin
+[45/72] Building CXX object plugin/keyboard/CMakeFiles/ClavisKeyboardplugin.dir/ClavisKeyboardplugin_autogen/mocs_compilation.cpp.o
+[46/72] Building CXX object plugin/sysmon/CMakeFiles/ClavisSysmon.dir/src/process_model.cpp.o
+[47/72] Linking CXX shared library Clavis/Sysmon/libClavisSysmon.so
+[48/72] Automatic MOC and UIC for target ClavisSysmonplugin
+[49/72] Building CXX object plugin/sysmon/CMakeFiles/ClavisSysmonplugin.dir/ClavisSysmonplugin_autogen/mocs_compilation.cpp.o
+[50/72] Building CXX object plugin/weather/CMakeFiles/ClavisWeather.dir/clavisweather_qmltyperegistrations.cpp.o
+[51/72] Building CXX object plugin/weather/CMakeFiles/ClavisWeather.dir/src/weather_plugin.cpp.o
+[52/72] Building CXX object plugin/weather/CMakeFiles/ClavisWeather.dir/src/weather_list_model.cpp.o
+[53/72] Building CXX object plugin/weather/CMakeFiles/ClavisWeather.dir/ClavisWeather_autogen/mocs_compilation.cpp.o
+[54/72] Linking CXX shared library Clavis/Weather/libClavisWeather.so
+[55/72] Automatic MOC and UIC for target ClavisWeatherplugin
+[56/72] Building CXX object plugin/weather/CMakeFiles/ClavisWeatherplugin.dir/ClavisWeatherplugin_autogen/mocs_compilation.cpp.o
+[57/72] Building CXX object plugin/keyboard/CMakeFiles/ClavisKeyboardplugin.dir/ClavisKeyboardplugin_Clavis_KeyboardPlugin.cpp.o
+[58/72] Building CXX object plugin/niri/CMakeFiles/ClavisNiri.dir/ClavisNiri_autogen/mocs_compilation.cpp.o
+[59/72] Linking CXX shared module Clavis/Keyboard/libClavisKeyboardplugin.so
+[60/72] Building CXX object plugin/niri/CMakeFiles/ClavisNiri.dir/clavisniri_qmltyperegistrations.cpp.o
+[61/72] Building CXX object plugin/media/CMakeFiles/ClavisMediaplugin.dir/ClavisMediaplugin_Clavis_MediaPlugin.cpp.o
+[62/72] Linking CXX shared module Clavis/Media/libClavisMediaplugin.so
+[63/72] Building CXX object plugin/sysmon/CMakeFiles/ClavisSysmonplugin.dir/ClavisSysmonplugin_Clavis_SysmonPlugin.cpp.o
+[64/72] Linking CXX shared module Clavis/Sysmon/libClavisSysmonplugin.so
+[65/72] Building CXX object plugin/weather/CMakeFiles/ClavisWeatherplugin.dir/ClavisWeatherplugin_Clavis_WeatherPlugin.cpp.o
+[66/72] Linking CXX shared module Clavis/Weather/libClavisWeatherplugin.so
+[67/72] Building CXX object plugin/niri/CMakeFiles/ClavisNiri.dir/src/niri_plugin.cpp.o
+[68/72] Linking CXX shared library Clavis/Niri/libClavisNiri.so
+[69/72] Automatic MOC and UIC for target ClavisNiriplugin
+[70/72] Building CXX object plugin/niri/CMakeFiles/ClavisNiriplugin.dir/ClavisNiriplugin_autogen/mocs_compilation.cpp.o
+[71/72] Building CXX object plugin/niri/CMakeFiles/ClavisNiriplugin.dir/ClavisNiriplugin_Clavis_NiriPlugin.cpp.o
+[72/72] Linking CXX shared module Clavis/Niri/libClavisNiriplugin.so
+
+=== Final build artifacts ===
+build/Clavis/Keyboard/libClavisKeyboardplugin.so
+build/Clavis/Keyboard/libClavisKeyboard.so
+build/Clavis/Media/libClavisMediaplugin.so
+build/Clavis/Media/libClavisMedia.so
+build/Clavis/Niri/libClavisNiriplugin.so
+build/Clavis/Niri/libClavisNiri.so
+build/Clavis/Weather/libClavisWeatherplugin.so
+build/Clavis/Weather/libClavisWeather.so
+build/Clavis/Sysmon/libClavisSysmonplugin.so
+build/Clavis/Sysmon/libClavisSysmon.so
+
+=== Clavis dir count ===
+6

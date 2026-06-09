@@ -1,0 +1,14 @@
+T01: Backup baseline
+====================
+Branch: merge-statindet
+Commit: fb0f94c13ac1b3ca9bc246ce566fdec6795383c8 chore(config): baseline existing quickshell config before StatIndet merge
+Files in baseline: 31
+
+Verified qml files in baseline:
+16
+QMl files staged:
+15
+
+git status:
+位于分支 merge-statindet
+无文件要提交，工作区干净

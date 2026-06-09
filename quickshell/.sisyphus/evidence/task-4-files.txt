@@ -1,0 +1,18 @@
+=== Task 4 Evidence: RightSidebar Migration ===
+Timestamp: 2026-06-09T12:14+08:00
+
+=== Files in Modules/Sidebars/Right/ ===
+$(ls -la /home/eunoia/.config/quickshell/Modules/Sidebars/Right/)
+
+RightSidebar.qml (3833 bytes) - Main window/entry, PanelWindow
+AudioContent.qml (7739 bytes) - Audio controls
+NetworkContent.qml (11300 bytes) - Network controls
+QuickSettings.qml (2109 bytes) - Quick toggles
+QuickSliders.qml (7391 bytes) - Brightness/volume sliders
+SettingsContent.qml (13888 bytes) - Settings page
+
+=== qmldir created ===
+$(cat /home/eunoia/.config/quickshell/Modules/Sidebars/Right/qmldir)
+
+=== Modules/qmldir updated ===
+$(cat /home/eunoia/.config/quickshell/Modules/qmldir)

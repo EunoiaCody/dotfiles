@@ -1,0 +1,71 @@
+T06 + T09: qmldir + Appearance
+============================
+qmldir contents:
+singleton Color Color.qml
+singleton PanelStack PanelStack.qml
+singleton BarLayout BarLayout.qml
+singleton Paths Common/Paths.qml
+singleton Animations Common/Animations.qml
+singleton Sizes Common/Sizes.qml
+singleton WidgetState Common/WidgetState.qml
+singleton DynamicIslandMotion Common/DynamicIslandMotion.qml
+singleton ColorMap Common/ColorMap.qml
+singleton Appearance Common/Appearance.qml
+
+qmllint checks (must be 0):
+  Common/Appearance.qml: exit 0
+  Common/ColorMap.qml: exit 0
+
+qmldir singleton count:
+10
+
+All Common/ files:
+总计 44
+drwxr-xr-x 1 eunoia eunoia   192  6月 8日 19:10 .
+drwxr-xr-x 1 eunoia eunoia   188  6月 8日 17:37 ..
+-rw-r--r-- 1 eunoia eunoia  6917  6月 8日 17:43 Animations.qml
+-rw-r--r-- 1 eunoia eunoia   696  6月 8日 19:10 Appearance.qml
+-rw-r--r-- 1 eunoia eunoia 13320  6月 8日 19:09 ColorMap.qml
+-rw-r--r-- 1 eunoia eunoia   863  6月 8日 17:43 DynamicIslandMotion.qml
+-rw-r--r-- 1 eunoia eunoia  2520  6月 8日 17:43 Paths.qml
+-rw-r--r-- 1 eunoia eunoia  1693  6月 8日 17:46 Sizes.qml
+-rw-r--r-- 1 eunoia eunoia   432  6月 8日 17:43 WidgetState.qml
+
+No matugen/FileView in Appearance/ColorMap (must be 0):
+2
+
+ColorMap utility functions:
+    function clamp01(value) {
+    function mix(color1, color2, percentage) {
+    function transparentize(color, percentage) {
+    function applyAlpha(color, alpha) {
+    function solveOverlayColor(baseColor, targetColor, overlayOpacity) {
+matugen code (must be 0):
+0
+FileView code (must be 0):
+0
+
+Appearance.qml full content:
+pragma Singleton
+
+import Quickshell
+import Quickshell.Io
+import QtQuick
+
+// Appearance.qml — modified to read from ColorMap (NOT matugen)
+// Maps ColorMap.m3colors / ColorMap.colors to StatIndet-style references
+
+Singleton {
+    id: root
+
+    // No matugen / FileView here. Pure static references to ColorMap.
+    property real backgroundTransparency: 0
+    property real contentTransparency: 0.9
+    property string currentWallpaperPreview: ""
+
+    property QtObject m3colors: ColorMap.m3colors
+    property QtObject colors: ColorMap.colors
+    property QtObject rounding: ColorMap.rounding
+    property QtObject spacing: ColorMap.spacing
+    property QtObject scrollBar: ColorMap.scrollBar
+}

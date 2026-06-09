@@ -4,10 +4,7 @@
 // https://github.com/YaLTeR/niri/wiki/Configuration:-Introduction
 
 spawn-at-startup "/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1"
-spawn-at-startup "awww-daemon"
-// 启动时随机设置一张壁纸
-spawn-at-startup "sh" "-c" "awww img $(find ~/Wallpapers -type f | shuf -n 1)"
-spawn-at-startup "qs"
+spawn-at-startup "sh" "-c" "/home/eunoia/.config/quickshell/start-quickshell.sh"
 
 // 自动启动 emby 本地播放脚本
 spawn-at-startup "sh" "-c" "/home/eunoia/Apps/embyToLocalPlayer/etlp_run.command"
@@ -15,7 +12,7 @@ spawn-at-startup "sh" "-c" "/home/eunoia/Apps/embyToLocalPlayer/etlp_run.command
 // 自动启动的应用
 spawn-at-startup "flatpak" "run" "com.tencent.WeChat"
 spawn-at-startup "Telegram"
-spawn-at-startup "flclash %U"
+spawn-at-startup "/opt/wechat/wechat %U"
 
 config-notification {
     disable-failed
@@ -188,10 +185,6 @@ layout {
 }
 layer-rule {
     match namespace="^quickshell$"
-    place-within-backdrop true
-}
-layer-rule {
-    match namespace="^wallpaper$"
     place-within-backdrop true
 }
 layer-rule {

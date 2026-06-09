@@ -1,0 +1,36 @@
+=== Task 3 Evidence: Fetched Remote Files ===
+Timestamp: 2026-06-09T12:09:10+08:00
+
+=== Modules/Sidebars/Right/ (6 files) ===
+总计 52
+drwxr-xr-x 2 eunoia eunoia   160  6月 9日 12:08 .
+drwxr-xr-x 3 eunoia eunoia    60  6月 9日 12:08 ..
+-rw-r--r-- 1 eunoia eunoia  7739  6月 9日 12:08 AudioContent.qml
+-rw-r--r-- 1 eunoia eunoia 11300  6月 9日 12:08 NetworkContent.qml
+-rw-r--r-- 1 eunoia eunoia  2109  6月 9日 12:08 QuickSettings.qml
+-rw-r--r-- 1 eunoia eunoia  7391  6月 9日 12:08 QuickSliders.qml
+-rw-r--r-- 1 eunoia eunoia  3833  6月 9日 12:08 RightSidebar.qml
+-rw-r--r-- 1 eunoia eunoia 13888  6月 9日 12:08 SettingsContent.qml
+
+=== Modules/ControlCenter/ (3 files) ===
+总计 96
+drwxr-xr-x 2 eunoia eunoia   100  6月 9日 12:08 .
+drwxr-xr-x 5 eunoia eunoia   100  6月 9日 12:08 ..
+-rw-r--r-- 1 eunoia eunoia 26883  6月 9日 12:08 WallpaperColorPicker.qml
+-rw-r--r-- 1 eunoia eunoia 29467  6月 9日 12:08 WallpaperFileBrowser.qml
+-rw-r--r-- 1 eunoia eunoia 34494  6月 9日 12:08 WallpaperPage.qml
+
+=== Modules/Wallpaper/ (1 file) ===
+总计 20
+drwxr-xr-x 2 eunoia eunoia    60  6月 9日 12:08 .
+drwxr-xr-x 5 eunoia eunoia   100  6月 9日 12:08 ..
+-rw-r--r-- 1 eunoia eunoia 19928  6月 9日 12:08 WallpaperBackground.qml
+
+=== scripts/weather/weather.py ===
+-rw-r--r-- 1 eunoia eunoia 5387  6月 9日 12:08 /tmp/quickshell-migration/scripts/weather/weather.py
+
+=== scripts/schedule/parse_schedule.py ===
+-rw-r--r-- 1 eunoia eunoia 3522  6月 9日 12:08 /tmp/quickshell-migration/scripts/schedule/parse_schedule.py
+
+=== scripts/system/overview.sh ===
+-rw-r--r-- 1 eunoia eunoia 1470  6月 9日 12:08 /tmp/quickshell-migration/scripts/system/overview.sh

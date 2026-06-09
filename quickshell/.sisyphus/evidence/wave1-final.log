@@ -1,0 +1,44 @@
+Wave 1 final test
+================
+pragma Singleton
+
+import Quickshell
+import Quickshell.Io
+import QtQuick
+import ".."
+
+Singleton {
+    id: root
+
+    property real backgroundTransparency: 0
+    property real contentTransparency: 0.9
+    property string currentWallpaperPreview: ""
+
+    property QtObject m3colors: ColorMap.m3colors
+    property QtObject colors: ColorMap.colors
+    property QtObject rounding: ColorMap.rounding
+    property QtObject spacing: ColorMap.spacing
+    property QtObject scrollBar: ColorMap.scrollBar
+}
+
+---
+qmllint all 5 files:
+  Common/ColorMap.qml: exit 0
+  Common/Appearance.qml: exit 0
+  Common/Animations.qml: exit 0
+  Common/Sizes.qml: exit 0
+  Common/WidgetState.qml: exit 0
+  Common/DynamicIslandMotion.qml: exit 0
+  Common/Paths.qml: exit 0
+
+qmldir content:
+singleton Color Color.qml
+singleton PanelStack PanelStack.qml
+singleton BarLayout BarLayout.qml
+singleton Paths Common/Paths.qml
+singleton Animations Common/Animations.qml
+singleton Sizes Common/Sizes.qml
+singleton WidgetState Common/WidgetState.qml
+singleton DynamicIslandMotion Common/DynamicIslandMotion.qml
+singleton ColorMap Common/ColorMap.qml
+singleton Appearance Common/Appearance.qml

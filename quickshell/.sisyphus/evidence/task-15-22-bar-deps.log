@@ -1,0 +1,25 @@
+=== Wave 3: T15-T22 + Bar dep dirs (early Services/Components/Widgets) ===
+--- T15-T22: Bar files ---
+20
+Bar .qml files
+--- T49 (early): Services ---
+18
+Services copied
+--- Components ---
+MaterialSymbol.qml
+SvgIcon.qml
+--- Widgets/common ---
+28
+Widget files copied
+
+=== Total new files ===
+Bar: 20
+Services: 18
+Components: 2
+Widgets/common: 28
+
+=== Test Bar launch ===
+[31m ERROR[0m: Failed to load configuration
+
+--- restore shell.qml ---
+从索引区更新了 1 个路径

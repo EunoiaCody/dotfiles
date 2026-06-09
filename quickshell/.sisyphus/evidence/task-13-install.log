@@ -1,0 +1,22 @@
+=== T13: Install to user-writable QML dir ===
+Installed: /home/eunoia/.local/share/qt6/qml/Clavis
+
+=== Verify ===
+Audio
+Keyboard
+Media
+Niri
+Sysmon
+Weather
+
+10
+.so files installed (expecting 10 = 5 plugins × 2 .so each, audio skipped)
+
+=== Sample qmldir ===
+module Clavis.Sysmon
+linktarget ClavisSysmonplugin
+optional plugin ClavisSysmonplugin
+classname Clavis_SysmonPlugin
+typeinfo ClavisSysmon.qmltypes
+prefer :/qt/qml/Clavis/Sysmon/
+

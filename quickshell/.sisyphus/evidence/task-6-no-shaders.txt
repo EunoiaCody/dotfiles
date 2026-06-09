@@ -1,0 +1,19 @@
+=== Task 6 Evidence: WallpaperBackground Simplified ===
+Timestamp: 2026-06-09T12:15+08:00
+
+=== Grep for shader references ===
+$(grep -n "ShaderEffect\|transitionAnimation\|frag.qsb\|ShaderEffectSource\|Easing.Bezier" /home/eunoia/.config/quickshell/Modules/Wallpaper/WallpaperBackground.qml)
+(Empty — no GLSL shader references)
+
+=== Line count ===
+72 lines (down from 400+ in remote)
+
+=== Basic structure verified ===
+- PanelWindow ✓
+- WlrLayershell.layer: WlrLayer.Background ✓
+- WlrLayershell.namespace: "clavis-wallpaper" ✓
+- WallpaperService.wallpaperForScreen ✓
+- WallpaperService.qtFillMode ✓
+- WallpaperService.fillModeForScreen ✓
+- Paths.fileUrl ✓
+- Wallpaper/qmldir created ✓
