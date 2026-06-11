@@ -2,91 +2,161 @@ pragma Singleton
 
 import QtQuick
 import Quickshell
-import Quickshell.Io
+import Quickshell.Bluetooth
 
+// BluetoothService — central facade over Quickshell's native Bluetooth
+// module (which talks to BlueZ over D-Bus).
+//
+// Backwards-compatible API surface used by the existing Quick Toggles
+// panel (Modules/Sidebars/Right/SettingsContent.qml) and QuickToggleConfig:
+// - property bool available
+// - property bool enabled
+// - property bool connected
+// - property string connectedName
+// - function toggle()
+//
+// New API used by the Bluetooth panel/button:
+// - property bool discovering
+// - property var devices (raw adapter.devices ObjectModel)
+// - property var pairedDevices (subset of paired/trusted devices)
+// - property var unpairedDevices (subset of discovered-but-unpaired)
+// - function startScan()
+// - function stopScan()
+// - function connectDevice(device)
+// - function disconnectDevice(device)
+// - function pairDevice(device)
+// - function forgetDevice(device)
+//
+// Device objects are the native BluetoothDevice instances — they expose
+// address, name, connected, paired, trusted, pairing, battery (0.0-1.0),
+// batteryAvailable, signalStrength, state, icon.
+//
+// The legacy "toggle()" kept its semantics: toggling adapter power.
+// startScan()/stopScan() deliberately just flips the adapter's
+// `discovering` flag — BlueZ will report any new device as part of
+// `adapter.devices` automatically.
 Singleton {
-    id: root
+ id: root
 
-    property bool available: false
-    property bool enabled: false
-    property bool connected: false
-    property string connectedName: ""
+ readonly property var adapter: Bluetooth.defaultAdapter ?? null
 
-    function refresh() {
-        statusPoller.running = true;
-    }
+ readonly property bool available: adapter !== null
+ readonly property bool enabled: (adapter && adapter.enabled) ?? false
+ readonly property bool discovering: (adapter && adapter.discovering) ?? false
 
-    function toggle() {
-        if (!root.available)
-            return;
+ // Friendly: are *any* devices currently connected?
+ readonly property bool connected: {
+ if (!adapter || !adapter.devices)
+ return false;
+ for (const d of adapter.devices.values)
+ if (d && d.connected)
+ return true;
+ return false;
+ }
 
-        Quickshell.execDetached(["bluetoothctl", "power", root.enabled ? "off" : "on"]);
-        root.enabled = !root.enabled;
-        if (!root.enabled) {
-            root.connected = false;
-            root.connectedName = "";
-        }
-        debounceTimer.start();
-    }
+ // Name of the first connected device (matches the legacy
+ // `connectedName` contract — picks head of the list).
+ readonly property string connectedName: {
+ if (!adapter || !adapter.devices)
+ return "";
+ for (const d of adapter.devices.values)
+ if (d && d.connected && d.name && d.name.length >0)
+ return d.name;
+ return "";
+ }
 
-    Process {
-        id: statusPoller
-        command: ["bash", "-c", `
-            if ! command -v bluetoothctl >/dev/null 2>&1 || ! bluetoothctl show >/dev/null 2>&1; then
-                echo "AVAILABLE:0"
-                exit 0
-            fi
+ // Full device list — exposed for the panel; the panel sorts and
+ // filters these into paired / discovered buckets as needed.
+ readonly property var devices: {
+ if (!adapter || !adapter.devices)
+ return [];
+ return Array.from(adapter.devices.values).filter(d => d !== null);
+ }
 
-            echo "AVAILABLE:1"
-            if bluetoothctl show 2>/dev/null | grep -q 'Powered: yes'; then
-                echo "ENABLED:1"
-                first_device="$(bluetoothctl devices Connected 2>/dev/null | head -n1 | cut -d' ' -f3-)"
-                if [ -n "$first_device" ]; then
-                    echo "CONNECTED:1"
-                    echo "NAME:$first_device"
-                else
-                    echo "CONNECTED:0"
-                    echo "NAME:"
-                fi
-            else
-                echo "ENABLED:0"
-                echo "CONNECTED:0"
-                echo "NAME:"
-            fi
-        `]
-        running: true
+ // Convenience buckets used by BluetoothContent to render two
+ // sections without re-filtering on every binding.
+ readonly property var pairedDevices: {
+ const list = [];
+ for (const d of root.devices) {
+ if (d.paired || d.trusted)
+ list.push(d);
+ }
+ return list;
+ }
+ readonly property var unpairedDevices: {
+ const list = [];
+ for (const d of root.devices) {
+ if (!(d.paired || d.trusted))
+ list.push(d);
+ }
+ return list;
+ }
 
-        stdout: SplitParser {
-            splitMarker: "\n"
-            onRead: (line) => {
-                const data = line.trim();
-                if (data.length === 0)
-                    return;
+ // -------- legacy API --------
 
-                if (data.startsWith("AVAILABLE:"))
-                    root.available = data.substring(10) === "1";
-                else if (data.startsWith("ENABLED:"))
-                    root.enabled = data.substring(8) === "1";
-                else if (data.startsWith("CONNECTED:"))
-                    root.connected = data.substring(10) === "1";
-                else if (data.startsWith("NAME:"))
-                    root.connectedName = data.substring(5);
-            }
-        }
-    }
+ function toggle() {
+ if (!root.available)
+ return;
+ if (root.adapter)
+ root.adapter.enabled = !root.adapter.enabled;
+ }
 
-    Timer {
-        interval: 5000
-        running: true
-        repeat: true
-        onTriggered: root.refresh()
-    }
+ // Backwards-compat alias for callers that already use `refresh()`
+ // (none currently do, but kept for forward compat).
+ function refresh() {
+ // Native adapter updates itself through D-Bus signals; nothing
+ // to do here. The function exists only so existing call sites
+ // (if any are added later) don't break.
+ }
 
-    Timer {
-        id: debounceTimer
-        interval: 350
-        running: false
-        repeat: false
-        onTriggered: root.refresh()
-    }
+ // -------- new API --------
+
+ function startScan() {
+ if (!root.available || !root.adapter)
+ return;
+ root.adapter.discovering = true;
+ }
+
+ function stopScan() {
+ if (!root.available || !root.adapter)
+ return;
+ root.adapter.discovering = false;
+ }
+
+ function pairDevice(device) {
+ if (!device)
+ return;
+ // Trusting first ensures the device auto-reconnects in future
+ // sessions, which is the behaviour users expect from a typical
+ // Bluetooth stack (macOS, Windows, GNOME, …).
+ if (device.trusted !== undefined)
+ device.trusted = true;
+ if (typeof device.pair === "function")
+ device.pair();
+ else if (typeof device.connect === "function")
+ device.connect();
+ }
+
+ function connectDevice(device) {
+ if (!device)
+ return;
+ if (device.trusted !== undefined)
+ device.trusted = true;
+ if (typeof device.connect === "function")
+ device.connect();
+ }
+
+ function disconnectDevice(device) {
+ if (!device)
+ return;
+ if (typeof device.disconnect === "function")
+ device.disconnect();
+ }
+
+ function forgetDevice(device) {
+ if (!device)
+ return;
+ if (typeof device.forget === "function")
+ device.forget();
+ }
 }

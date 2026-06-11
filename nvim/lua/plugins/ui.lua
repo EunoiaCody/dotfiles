@@ -2,20 +2,12 @@ return {
   {
     "nvim-tree/nvim-web-devicons",
     lazy = true,
-    opts = {
-      override = {
-        copilot = {
-          icon = "",
-          color = "#8A2BE2", -- Catppuccin.mocha.mauve
-          name = "Copilot",
-        },
-      },
-    },
+    opts = {},
   },
   {
     "nvim-lualine/lualine.nvim",
     event = "VeryLazy",
-    dependencies = { "nvim-tree/nvim-web-devicons", "AndreM222/copilot-lualine" },
+    dependencies = { "nvim-tree/nvim-web-devicons" },
     opts = {
       options = {
         theme = "auto",
@@ -72,7 +64,6 @@ return {
       --   `nvim-notify` is only needed, if you want to use the notification view.
       --   If not available, we use `mini` as the fallback
       "rcarriga/nvim-notify",
-      "hrsh7th/nvim-cmp",
     },
 
     config = function()
@@ -82,7 +73,6 @@ return {
           override = {
             ["vim.lsp.util.convert_input_to_markdown_lines"] = true,
             ["vim.lsp.util.stylize_markdown"] = true,
-            ["cmp.entry.get_documentation"] = true, -- requires hrsh7th/nvim-cmp
           },
         },
         -- you can enable a preset for easier configuration
@@ -106,11 +96,11 @@ return {
           end,
           header = [[
 ███╗   ██╗███████╗ ██████╗ ███╗   ██╗ ██████╗ ██╗ █████╗
-████╗  ██║██╔════╝██╔═══██╗████╗  ██║██╔═══██╗██║██╔══██╗
-██╔██╗ ██║█████╗  ██║   ██║██╔██╗ ██║██║   ██║██║███████║
-██║╚██╗██║██╔══╝  ██║   ██║██║╚██╗██║██║   ██║██║██╔══██║
-██║ ╚████║███████╗╚██████╔╝██║ ╚████║╚██████╔╝██║██║  ██║
-╚═╝  ╚═══╝╚══════╝ ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝ ╚═╝╚═╝  ╚═╝
+ ████╗  ██║██╔════╝██╔═══██╗████╗  ██║██╔═══██╗██║██╔══██╗
+ ██╔██╗ ██║█████╗  ██║   ██║██╔██╗ ██║██║   ██║██║███████║
+ ██║╚██╗██║██╔══╝  ██║   ██║██║╚██╗██║██║   ██║██║██╔══██║
+ ██║ ╚████║███████╗╚██████╔╝██║ ╚████║╚██████╔╝██║██║  ██║
+ ╚═╝  ╚═══╝╚══════╝ ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝ ╚═╝╚═╝  ╚═╝
          ]],
           -- stylua: ignore
           ---@type snacks.dashboard.Item[]

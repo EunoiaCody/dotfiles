@@ -1,5 +1,3 @@
-vim.cmd([[colorscheme catppuccin-mocha]])
-
 require("toggleterm").setup({})
 
 function _G.set_terminal_keymaps()
@@ -46,27 +44,4 @@ require("lualine").setup({
   options = {
     theme = "catppuccin-mocha",
   },
-})
-
--- Catppuccin 配置
-require("catppuccin").setup({
-  flavour = "mocha", -- 选择风味: latte, frappe, macchiato, mocha
-  integrations = {
-    native_lsp = {
-      enabled = true,
-      virtual_text = {
-        errors = { "italic" },
-        hints = { "italic" },
-        warnings = { "italic" },
-        information = { "italic" },
-      },
-      underlines = {
-        errors = { "underline" },
-        hints = { "underline" },
-        warnings = { "underline" },
-        information = { "underline" },
-      },
-    },
-  },
-  auto_integrate = true,
 })

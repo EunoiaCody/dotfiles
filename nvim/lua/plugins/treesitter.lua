@@ -4,19 +4,11 @@ return {
 		"nvim-treesitter/nvim-treesitter",
 		branch = "master",
 		lazy = false,
-		evevt = { "BufReadPost", "BufNewFile" },
+		event = { "BufReadPost", "BufNewFile" },
 		build = ":TSUpdate",
 		config = function()
 			local configs = require("nvim-treesitter.configs")
 			local query = require("vim.treesitter.query")
-
-			local function unwrap_capture(match, id)
-				local value = match[id]
-				if type(value) == "table" then
-					return value[1]
-				end
-				return value
-			end
 
 			local non_filetype_match_injection_language_aliases = {
 				ex = "elixir",
@@ -38,12 +30,14 @@ return {
 				return match or non_filetype_match_injection_language_aliases[injection_alias] or injection_alias
 			end
 
-			local opts = vim.fn.has("nvim-0.10") == 1 and { force = true, all = false } or true
+			-- Neovim 0.12+ passes capture arrays to directives; use force=true to override defaults.
+			local opts = { force = true, all = false }
 
-			-- Neovim 0.12 can pass capture arrays to directives used by nvim-treesitter.
-			-- Re-register directives with capture unwrapping so get_node_text always receives a TSNode.
 			query.add_directive("set-lang-from-mimetype!", function(match, _, bufnr, pred, metadata)
-				local node = unwrap_capture(match, pred[2])
+				local node = match[pred[2]]
+				if type(node) == "table" then
+					node = node[1]
+				end
 				if not node then
 					return
 				end
@@ -58,7 +52,10 @@ return {
 			end, opts)
 
 			query.add_directive("set-lang-from-info-string!", function(match, _, bufnr, pred, metadata)
-				local node = unwrap_capture(match, pred[2])
+				local node = match[pred[2]]
+				if type(node) == "table" then
+					node = node[1]
+				end
 				if not node then
 					return
 				end
@@ -68,7 +65,10 @@ return {
 
 			query.add_directive("downcase!", function(match, _, bufnr, pred, metadata)
 				local id = pred[2]
-				local node = unwrap_capture(match, id)
+				local node = match[id]
+				if type(node) == "table" then
+					node = node[1]
+				end
 				if not node then
 					return
 				end
@@ -79,6 +79,8 @@ return {
 				metadata[id].text = string.lower(text)
 			end, opts)
 
+			-- Parser management via nvim-treesitter (ensure_installed + auto_install).
+			-- Highlight and indent are handled natively by Neovim 0.12+.
 			configs.setup({
 				ensure_installed = {
 					"cpp",
@@ -95,8 +97,6 @@ return {
 				},
 				sync_install = false,
 				auto_install = true,
-				highlight = { enable = true },
-				indent = { enable = true },
 			})
 		end,
 	},

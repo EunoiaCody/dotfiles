@@ -4,57 +4,60 @@ import QtQuick.Effects
 import qs.Common
 
 Item {
-    id: root
+ id: root
 
-    property var screen: null
+ property var screen: null
 
-    // 维持 36 的高度
-    implicitHeight: 36
-    implicitWidth: layout.width + 16
+ //维持36 的高度
+ implicitHeight:36
+ implicitWidth: layout.width +16
 
-    Rectangle {
-        id: bgRect
-        anchors.fill: parent
-        color: Appearance.colors.colLayer0
-        radius: height / 2
-        visible: false
-    }
+ Rectangle {
+ id: bgRect
+ anchors.fill: parent
+ color: Appearance.colors.colLayer0
+ radius: height /2
+ visible: false
+ }
 
-    MultiEffect {
-        source: bgRect
-        anchors.fill: bgRect
-        shadowEnabled: true
-        shadowColor: Qt.alpha(Appearance.colors.colShadow, 0.4)
-        shadowBlur: 0.8
-        shadowVerticalOffset: 3
-    }
+ MultiEffect {
+ source: bgRect
+ anchors.fill: bgRect
+ shadowEnabled: true
+ shadowColor: Qt.alpha(Appearance.colors.colShadow,0.4)
+ shadowBlur:0.8
+ shadowVerticalOffset:3
+ }
 
-    RowLayout {
-        id: layout
-        anchors.centerIn: parent
-        spacing: 8
+ RowLayout {
+ id: layout
+ anchors.centerIn: parent
+ spacing:8
 
-        // 直接调用同目录下的组件，无需 import
-        Network {
-            screen: root.screen
-        }
-        Brightness {
-            screen: root.screen
-        }
-        Volume {
-            screen: root.screen
-        }
-        Microphone {
-            screen: root.screen
-        }
-        NotificationButton {}
-        PowerButton {
-            screen: root.screen
-        }
-    }
+ // 直接调用同目录下的组件，无需 import
+ Network {
+ screen: root.screen
+ }
+ Brightness {
+ screen: root.screen
+ }
+ Volume {
+ screen: root.screen
+ }
+ Microphone {
+ screen: root.screen
+ }
+ Bluetooth {
+ screen: root.screen
+ }
+ NotificationButton {}
+ PowerButton {
+ screen: root.screen
+ }
+ }
 
-    // QuickSettingsPanel removed — replaced by RightSidebar (qs.Modules.Sidebars.Right).
-    // The old full-screen overlay was intercepting clicks on the RightSidebar
-    // and closing everything. All views (network/audio/settings/notifications)
-    // are now in the unified RightSidebar.
+ // QuickSettingsPanel removed — replaced by RightSidebar (qs.Modules.Sidebars.Right).
+ // The old full-screen overlay was intercepting clicks on the RightSidebar
+ // and closing everything. All views (network/audio/settings/notifications)
+ // are now in the unified RightSidebar.
 }

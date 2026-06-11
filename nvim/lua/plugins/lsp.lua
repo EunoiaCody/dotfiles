@@ -1,7 +1,7 @@
 return {
 	{
 		"mason-org/mason.nvim",
-		cmd = { "Mason", "MasonInstall", "MasonUninstall", "MasonUpdate" },
+		lazy = false,
 		opts = {
 			ui = {
 				icons = {
@@ -14,12 +14,16 @@ return {
 	},
 	{
 		"mason-org/mason-lspconfig.nvim",
-		evevt = { "BufReadPre", "BufNewFile" },
+		event = { "BufReadPre", "BufNewFile" },
 		opts = {},
 		dependencies = {
-			{ "mason-org/mason.nvim", opts = {} },
+			"mason-org/mason.nvim",
 			"neovim/nvim-lspconfig",
 		},
+	},
+	{
+		"neovim/nvim-lspconfig",
+		event = { "BufReadPre", "BufNewFile" },
 	},
 	{
 		"stevearc/conform.nvim",

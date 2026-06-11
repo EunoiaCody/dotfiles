@@ -25,8 +25,13 @@ map("n", "<leader>lz", "<CMD>Lazy<CR>", { desc = "[Lazy] Open lazy.nvim" })
 map({ "v", "x" }, "<C-c>", '"+y', { desc = "复制到系统剪贴板" })
 map({ "v", "x" }, "<C-V>", '"+p', { desc = "粘贴自系统剪贴板" })
 
--- 打开 Copilot Chat
-map("n", "<leader>coc", "<CMD>CodeCompanionChat<CR>", { desc = "打开 Copilot Chat" })
+-- 打开 AI Chat
+map("n", "<leader>coc", "<CMD>CodeCompanionChat<CR>", { desc = "CodeCompanion Chat" })
+
+-- Avante
+map("n", "<leader>aa", "<CMD>AvanteAsk<CR>", { desc = "Avante Ask" })
+map("n", "<leader>ae", "<CMD>AvanteEdit<CR>", { desc = "Avante Edit" })
+map("n", "<leader>ar", "<CMD>AvanteRefresh<CR>", { desc = "Avante Refresh" })
 
 -- 打开终端
 map("n", "<leader>to", "<CMD>ToggleTerm<CR>", { desc = "打开终端" })

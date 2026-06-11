@@ -1,16 +1,5 @@
 return {
 	{
-		"zbirenbaum/copilot.lua", -- 改用 lua 版本，性能更好
-		event = "InsertEnter",
-		cmd = "Copilot",
-		config = function()
-			require("copilot").setup({
-				suggestion = { enabled = false }, -- 如果使用 blink-cmp-copilot
-				panel = { enabled = false },
-			})
-		end,
-	},
-	{
 		"olimorris/codecompanion.nvim",
 		version = "v17.33.0",
 		cmd = { "CodeCompanion", "CodeCompanionEdit" },
@@ -20,6 +9,37 @@ return {
 		},
 		dependencies = {
 			"nvim-lua/plenary.nvim",
+		},
+	},
+	{
+		"yetone/avante.nvim",
+		build = "make",
+		event = "VeryLazy",
+		version = false,
+		---@module 'avante'
+		---@type avante.Config
+		opts = {
+			instructions_file = "avante.md",
+			provider = "opencode",
+			providers = {
+				opencode = {
+					__inherited_from = "openai",
+					endpoint = "https://opencode.ai/zen/go/v1",
+					model = "glm-5.1",
+					api_key_name = "AVANTE_OPENCODE_API_KEY",
+					timeout = 30000,
+					extra_request_body = {
+						temperature = 0.75,
+						max_tokens = 20480,
+					},
+				},
+			},
+		},
+		dependencies = {
+			"nvim-lua/plenary.nvim",
+			"MunifTanjim/nui.nvim",
+			"MeanderingProgrammer/render-markdown.nvim",
+			"nvim-tree/nvim-web-devicons",
 		},
 	},
 }

@@ -3,9 +3,8 @@ return {
     'saghen/blink.cmp',
     -- optional: provides snippets for the snippet source
     dependencies = {
-      'L3MON4D3/LuaSnip', 
+      'L3MON4D3/LuaSnip',
       'rafamadriz/friendly-snippets',
-      'fang2hou/blink-copilot',
       'folke/lazydev.nvim',
       'onsails/lspkind.nvim'
     },
@@ -96,23 +95,10 @@ return {
       -- elsewhere in your config, without redefining it, due to `opts_extend`
       sources = {
         default = {
-          'copilot',
           'lsp',
           'path',
           'snippets',
           'buffer',
-        },
-        providers = {
-          copilot = {
-            name = "copilot",
-            module = "blink-copilot",
-            score_offset = 100,
-            async = true,
-            opts = {
-              kind_icon = "",
-              kind_hl = "DevIconCopilot",
-            },
-          },
         },
       },
   
