@@ -20,7 +20,7 @@ WidgetPanel {
     contentImplicitHeight: itemsColumn.implicitHeight + 40 + 40 + 16
 
     readonly property var actions: [
-        { label: "锁定", icon: "lock",        cmd: ["loginctl", "lock-session"],        isRed: false },
+        { label: "锁定", icon: "lock",        cmd: ["qs", "ipc", "call", "lock", "open"],    isRed: false },
         { label: "注销", icon: "logout",      cmd: ["niri", "msg", "action", "quit"],   isRed: false },
         { label: "重启", icon: "restart_alt", cmd: ["systemctl", "reboot"],              isRed: false },
         { label: "关机", icon: "power_off",   cmd: ["systemctl", "poweroff"],            isRed: true  }
@@ -102,7 +102,7 @@ WidgetPanel {
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
                             WidgetState.qsOpen = false;
-                            Quickshell.execDetached(menuItem.modelData.cmd[0], menuItem.modelData.cmd.slice(1));
+                            Quickshell.execDetached(menuItem.modelData.cmd);
                         }
                     }
                 }
