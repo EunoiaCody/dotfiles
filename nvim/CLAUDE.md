@@ -36,6 +36,7 @@ Each file in `lua/plugins/` is a lazy.nvim spec (auto-imported). Each returns a 
 - **Terminal**: ToggleTerm. Exit via `<esc>` or `jk`. Window nav (`<C-h/j/k/l>`) works in terminal mode.
 - **Code runner**: `<leader>rr/rf/rp/rc` — code-runner.nvim.
 - **Avante keymaps**: `<leader>aa` (Ask), `<leader>ae` (Edit), `<leader>ar` (Refresh).
+- **Markdown preview**: markview.nvim (not render-markdown.nvim, which was removed). Config in `plugins/markdown-preview.lua`. Must be `lazy = false` (per markview docs, it's already internally lazy-loaded). Supports hybrid mode in normal. File types: markdown, codecompanion, quarto. Avante.nvim depends on markview.nvim as its markdown renderer.
 - **Noice**: nvim-cmp dependency removed. No `cmp.entry.get_documentation` override.
 - **pumborder**: Set to `"rounded"` in nvim-config.lua (Neovim 0.12 feature).
 

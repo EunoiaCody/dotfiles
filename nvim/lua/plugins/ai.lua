@@ -38,7 +38,7 @@ return {
 		dependencies = {
 			"nvim-lua/plenary.nvim",
 			"MunifTanjim/nui.nvim",
-			"MeanderingProgrammer/render-markdown.nvim",
+			"OXY2DEV/markview.nvim",
 			"nvim-tree/nvim-web-devicons",
 		},
 	},
