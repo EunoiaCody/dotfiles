@@ -1,4 +1,7 @@
 import QtQuick
+import QtQuick.Layouts
+import Quickshell
+import Quickshell.Io
 import Clavis.Weather 1.0
 import qs.Common
 import "../../../Common/functions/astro.js" as AstroJS
@@ -28,10 +31,52 @@ Item {
     property real sunAzimuth: 0
     property real sunAltitude: 0
 
+    // FileView 元素，用于持久化天气位置配置
+    FileView {
+        id: locationConfigFile
+        path: Quickshell.configPath + "/weather-location.json"
+        blockLoading: true
+        blockWrites: true
+        atomicWrites: true
+    }
+
+    // 读取位置配置
+    function readLocationConfig() {
+        try {
+            const text = locationConfigFile.text()
+            if (!text || text.trim() === "") return null
+            const parsed = JSON.parse(text.trim())
+            if (parsed && parsed.name && parsed.lat !== undefined && parsed.lon !== undefined) {
+                return { name: parsed.name, lat: parsed.lat, lon: parsed.lon }
+            }
+            return null
+        } catch (error) {
+            console.log("readLocationConfig failed:", error)
+            return null
+        }
+    }
+
+    // 写入位置配置
+    function writeLocationConfig(name, lat, lon) {
+        const obj = { name: name, lat: lat, lon: lon }
+        locationConfigFile.setText(JSON.stringify(obj, null, 2))
+    }
+
+    // 清空位置配置
+    function clearLocationConfig() {
+        locationConfigFile.setText("")
+    }
+
     Component.onCompleted: {
         syncWeatherData()
         if (!WeatherPlugin.hasValidData)
             WeatherPlugin.refresh()
+        // 启动时加载保存的位置配置
+        const config = readLocationConfig()
+        if (config && config.name && config.lat !== undefined && config.lon !== undefined) {
+            WeatherPlugin.setManualLocation(config.lat, config.lon, config.name)
+            WeatherPlugin.refresh()
+        }
     }
 
     Connections {
@@ -66,6 +111,32 @@ Item {
 
     function fetchData() {
         WeatherPlugin.refresh()
+    }
+
+    // 位置设置弹窗
+    WeatherLocationDialog {
+        id: locationDialog
+        shouldBeVisible: false
+        initialCity: WeatherPlugin.locationName || ""
+        initialLat: WeatherPlugin.latitude || 0
+        initialLon: WeatherPlugin.longitude || 0
+        hasManualLocation: WeatherPlugin.hasManualLocation
+        
+        onSaved: (name, lat, lon) => {
+            writeLocationConfig(name, lat, lon)
+            WeatherPlugin.setManualLocation(lat, lon, name)
+            WeatherPlugin.refresh()
+        }
+        
+        onCleared: () => {
+            clearLocationConfig()
+            WeatherPlugin.clearManualLocation()
+            WeatherPlugin.refresh()
+        }
+        
+        onCancelled: () => {
+            // 弹窗已自行关闭，无需额外操作
+        }
     }
 
     function syncWeatherData() {
@@ -147,12 +218,27 @@ Item {
             
             Row {
                 spacing: 8
-                Text {
-                    text: root.locationName 
-                    font.family: Sizes.fontFamily
-                    font.pixelSize: 15; font.bold: true; font.letterSpacing: 2
-                    color: Appearance.colors.colOnSurfaceVariant
+                Row {
+                    spacing: 4
                     anchors.verticalCenter: parent.verticalCenter
+                    
+                    Text {
+                        text: root.locationName 
+                        font.family: Sizes.fontFamily
+                        font.pixelSize: 15; font.bold: true; font.letterSpacing: 2
+                        color: Appearance.colors.colOnSurfaceVariant
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
+                    
+                    Text {
+                        text: "edit_location"
+                        font.family: root.materialFont
+                        font.pixelSize: 10
+                        color: Appearance.colors.colOnSurfaceVariant
+                        anchors.verticalCenter: parent.verticalCenter
+                        opacity: WeatherPlugin.hasManualLocation ? 0.7 : 0
+                        visible: opacity > 0
+                    }
                 }
                 
                 // 刷新按钮组件
@@ -203,6 +289,35 @@ Item {
                                 spinAnim.start()
                                 forceStopTimer.restart() // 启动 5 秒强制打断定时器
                                 fetchData()
+                            }
+                        }
+                    }
+                }
+                
+                // 设置位置按钮
+                Rectangle {
+                    width: 24
+                    height: 24
+                    radius: 12
+                    color: settingsMouseArea.pressed ? Appearance.colors.colLayer2Hover : "transparent"
+                    anchors.verticalCenter: parent.verticalCenter
+                    
+                    Text {
+                        id: settingsIcon
+                        anchors.centerIn: parent
+                        text: "edit_location"
+                        font.family: root.materialFont
+                        font.pixelSize: 16
+                        color: settingsMouseArea.containsMouse ? Appearance.colors.colPrimary : Appearance.colors.colOnSurfaceVariant
+                    }
+                    
+                    MouseArea {
+                        id: settingsMouseArea
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        onClicked: {
+                            if (!locationDialog.shouldBeVisible) {
+                                locationDialog.open()
                             }
                         }
                     }

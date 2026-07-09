@@ -1,36 +1,40 @@
 {
-  "active_plan": "/home/eunoia/.config/quickshell/.sisyphus/plans/quickshell-merge-statindet.md",
-  "started_at": "2026-06-08T09:35:36.000Z",
+  "active_plan": "/home/eunoia/.config/quickshell/.sisyphus/plans/weather-location-config.md",
+  "started_at": "2026-07-09T02:04:07.547Z",
   "session_ids": [
-    "ses_15a2be499ffep33qnURZUpPE2o",
-    "ses_15965496effepUcd0vYLol9Vno",
-    "ses_15964a57bffevgjjPw6zk5PiAM"
+    "ses_0bb7909feffezgMj8Yl4RK9UF4"
   ],
-  "plan_name": "quickshell-merge-statindet",
-  "agent": "Sisyphus (Ultraworker)",
   "session_origins": {
-    "ses_15a2be499ffep33qnURZUpPE2o": "direct",
-    "ses_15965496effepUcd0vYLol9Vno": "appended",
-    "ses_15964a57bffevgjjPw6zk5PiAM": "appended"
+    "ses_0bb7909feffezgMj8Yl4RK9UF4": "direct"
   },
+  "plan_name": "weather-location-config",
+  "agent": "atlas",
   "task_sessions": {
-    "todo:2": {
-      "task_key": "todo:2",
-      "task_label": "2",
-      "task_title": "**合并 Common/Animations.qml**",
-      "session_id": "ses_15965496effepUcd0vYLol9Vno",
+    "todo:1": {
+      "task_key": "todo:1",
+      "task_label": "1",
+      "task_title": "**`.gitignore` 新增忽略规则 + JSON 读写辅助函数**",
+      "session_id": "ses_0bb612887ffeHOxJQDxDNL6KQI",
       "agent": "Sisyphus-Junior",
       "category": "quick",
-      "updated_at": "2026-06-08T09:44:39.528Z"
+      "updated_at": "2026-07-09T02:05:58.753Z"
     },
-    "todo:6": {
-      "task_key": "todo:6",
-      "task_label": "6",
-      "task_title": "**解决 qmldir 命名空间冲突 + 注册 `qs` 模块入口**",
-      "session_id": "ses_159479bbcffeddEqaTkRC1prFy",
+    "todo:3": {
+      "task_key": "todo:3",
+      "task_label": "3",
+      "task_title": "**`WeatherContent.qml` 集成：设置按钮 + 弹窗实例化 + JSON 联动**",
+      "session_id": "ses_0bb5f44a1ffeyj3XTeNs0JJiz3",
       "agent": "Sisyphus-Junior",
       "category": "unspecified-high",
-      "updated_at": "2026-06-08T10:31:19.901Z"
+      "updated_at": "2026-07-09T02:08:02.789Z"
+    },
+    "final-wave:f1": {
+      "task_key": "final-wave:f1",
+      "task_label": "F1",
+      "task_title": "**Plan Compliance Audit** — `oracle`",
+      "session_id": "ses_0bb5db289ffeLCLei5bar3nmds",
+      "agent": "oracle",
+      "updated_at": "2026-07-09T02:08:53.482Z"
     }
   }
 }

@@ -16,3 +16,6 @@
 !*.log
 !/.sisyphus/evidence/**
 !/.sisyphus/notepads/**
+
+# Weather location config
+weather-location.json
