@@ -20,6 +20,11 @@ window-rule {
     opacity 0.97
     // 禁止边框画到背景里
     draw-border-with-background false
+
+    background-effect {
+      blur true
+      xray false
+    }
 }
 // niri-siderbar需要的全局窗口规则
 window-rule {

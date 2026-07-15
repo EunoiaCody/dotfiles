@@ -14,8 +14,14 @@ Item {
     property int renderAfter: 6
     property int seekJumpThreshold: 4
 
-    property color activeColor: "white"
+    property color activeColor: Appearance.colors.colPrimary
     property color inactiveColor: "#99ffffff"
+
+    property bool wordLevelEnabled: false
+    property int activeWordIndex: -1
+    property real activeWordProgress: 0.0
+    property color wordActiveColor: Appearance.colors.colPrimary
+    property color wordInactiveColor: inactiveColor
     property int fontSize: 18
     property string fontFamily: Sizes.fontFamilyMono
     property bool fontBold: true
@@ -26,8 +32,6 @@ Item {
     property real distantOpacity: 0.24
     property real currentScale: 1.0
     property real inactiveScale: 0.97
-
-    property real tiltAngle: 0
 
     property real positionMass: 0.9
     property real baseStiffness: 90
@@ -240,13 +244,6 @@ Item {
         id: content
         anchors.fill: parent
 
-        transform: Rotation {
-            origin.x: 0
-            origin.y: content.height / 2
-            axis { x: 0; y: 1; z: 0 }
-            angle: root.tiltAngle
-        }
-
         Repeater {
             id: lyricRepeater
             model: root.lyrics
@@ -256,9 +253,13 @@ Item {
                 id: lyricItem
 
                 required property int index
-                required property string text
+                required property var modelData
 
-                property real lineHeight: Math.max(root.defaultLineHeight, lyricText.implicitHeight)
+                property var lyricData: root.lyricAt(index)
+                property string text: lyricData ? (lyricData.text || "") : ""
+                readonly property bool hasWords: root.wordLevelEnabled && lyricData && lyricData.words && lyricData.words.length > 1
+
+                property real lineHeight: Math.max(root.defaultLineHeight, hasWords ? wordRow.implicitHeight : lyricText.implicitHeight)
                 property real targetY: root.targetYForLine(index, root.activeLine)
                 property real pendingY: targetY
                 property real visualY: targetY
@@ -353,10 +354,36 @@ Item {
                     return !ySettled || !scaleSettled || !opacitySettled || hasPendingTarget;
                 }
 
+                // 逐字渲染 (word-level)
+                Row {
+                    id: wordRow
+                    anchors.verticalCenter: parent.verticalCenter
+                    visible: lyricItem.hasWords
+                    spacing: 0
+                    Repeater {
+                        model: lyricItem.hasWords ? lyricData.words : []
+                        Text {
+                            text: modelData.word || ""
+                            font.pixelSize: root.fontSize
+                            font.family: root.fontFamily
+                            font.bold: root.fontBold
+                            color: {
+                                if (!lyricItem.current) return root.wordInactiveColor;
+                                var line = root.lyricAt(root.activeLine);
+                                if (!line || !line.words) return root.wordInactiveColor;
+                                return (model.index <= root.activeWordIndex) ? root.wordActiveColor : root.wordInactiveColor;
+                            }
+                            Behavior on color { ColorAnimation { duration: 80 } }
+                        }
+                    }
+                }
+
+                // 整行渲染 (line-level fallback)
                 Text {
                     id: lyricText
                     width: parent.width
                     anchors.verticalCenter: parent.verticalCenter
+                    visible: !lyricItem.hasWords
                     text: lyricItem.text
                     color: lyricItem.current ? root.activeColor : root.inactiveColor
                     font.pixelSize: root.fontSize

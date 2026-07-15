@@ -40,7 +40,7 @@ Item {
     // ==========================================
     // 歌词抓取与解析引擎
     // ==========================================
-    ListModel { id: lyricsModel }
+    property var lyricsArray: []
     
     Process {
         id: lyricsProc
@@ -53,9 +53,19 @@ Item {
                 if (data.trim() === "") return;
                 try {
                     let parsed = JSON.parse(data);
-                    lyricsModel.clear();
-                    for(let i = 0; i < parsed.length; i++) {
-                        lyricsModel.append({"time": parsed[i].time, "text": parsed[i].text});
+                    // 支持新旧格式: 新格式有 _legacy/lines, 旧格式是 flat array
+                    let rawLines = parsed._legacy || parsed;
+                    if (Array.isArray(rawLines)) {
+                        let wordLines = parsed.lines || [];
+                        lyricsArray = wordLines;
+                        let fallback = [];
+                        for (let i = 0; i < rawLines.length; i++) {
+                            fallback.push({time: rawLines[i].time, text: rawLines[i].text});
+                        }
+                        LyricsSyncEngine.lyricsData = wordLines.length > 0 ? wordLines : fallback;
+                    } else {
+                        lyricsArray = [];
+                        LyricsSyncEngine.lyricsData = [];
                     }
                     lyricsView.resetToLine(0);
                 } catch(e) {}
@@ -74,8 +84,9 @@ Item {
         if (!root.title || root.title === "Not Playing")
             return;
 
-        lyricsModel.clear();
-        lyricsModel.append({"time": 0, "text": "🎵 正在搜寻歌词..."});
+        lyricsArray = [{time: 0, text: "🎵 正在搜寻歌词..."}];
+        LyricsSyncEngine.lyricsData = lyricsArray;
+        LyricsSyncEngine.trackId = root.title;
         lyricsView.resetToLine(0);
         lyricsProc.running = false;
         lyricsProc.running = true;
@@ -95,7 +106,7 @@ Item {
     Behavior on dynamicTrackColor { ColorAnimation { duration: 800; easing.type: Easing.OutQuint } }
 
     // ==========================================
-    // 进度与时间高频同步逻辑
+    // 进度同步 — 通过 LyricsSyncEngine (不再使用旧线性扫描)
     // ==========================================
     Connections {
         target: root
@@ -115,15 +126,20 @@ Item {
         onTriggered: {
             if (root.player && !mediaProgress.pressed) {
                 root.currentPos = root.player.position;
-                if (root.showLyrics && lyricsModel.count > 0) {
-                    let pos = root.currentPos;
-                    let newIdx = 0;
-                    for (let i = 0; i < lyricsModel.count; i++) {
-                        if (lyricsModel.get(i).time <= pos) newIdx = i;
-                        else break;
+                // 标准化 position 为秒: MPRIS 返回微秒, 需要 /1000000
+                let rawPos = root.player.position;
+                let posSec = (rawPos > 100000) ? (rawPos / 1000000) : rawPos;
+                LyricsSyncEngine.playbackSeconds = posSec;
+                LyricsSyncEngine.isPlaying = root.player.isPlaying;
+                
+                // 将 SyncEngine 输出传递给 SpringLyricView
+                if (root.showLyrics && lyricsArray.length > 0) {
+                    if (lyricsView.activeLine !== LyricsSyncEngine.activeLineIndex) {
+                        lyricsView.syncToLine(LyricsSyncEngine.activeLineIndex, posSec, false);
                     }
-                    if (lyricsView.activeLine !== newIdx)
-                        lyricsView.syncToLine(newIdx, pos, false);
+                    lyricsView.activeWordIndex = LyricsSyncEngine.activeWordIndex;
+                    lyricsView.activeWordProgress = LyricsSyncEngine.activeWordProgress;
+                    lyricsView.wordLevelEnabled = LyricsSyncEngine.hasWordLevelData;
                 }
             }
         }
@@ -297,14 +313,11 @@ Item {
                 SpringLyricView {
                     id: lyricsView
                     anchors.fill: parent
-                    lyrics: lyricsModel
-                    tiltAngle: 0
+                    lyrics: lyricsArray
                     alignPosition: 0.35
                     lineGap: 22
                     currentScale: 1.0
                     inactiveScale: 0.97
-                    activeColor: "white"
-                    inactiveColor: "#99ffffff"
                     fontSize: 18
                     fontFamily: Sizes.fontFamilyMono
                     fontBold: true

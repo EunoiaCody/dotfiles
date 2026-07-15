@@ -9,3 +9,4 @@ singleton WidgetState Common/WidgetState.qml
 singleton DynamicIslandMotion Common/DynamicIslandMotion.qml
 singleton ColorMap Common/ColorMap.qml
 singleton Appearance Common/Appearance.qml
+singleton LyricsSyncEngine Common/LyricsSyncEngine.qml
