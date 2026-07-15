@@ -11,7 +11,7 @@ return {
         enabled = true,
         path = vim.fn.stdpath("cache") .. "/catppuccin",
       },
-      transparent_background = false,
+      transparent_background = true,
       float = {
         transparent = true,
       },
