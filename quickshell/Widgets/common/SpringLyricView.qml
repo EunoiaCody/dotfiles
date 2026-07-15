@@ -14,16 +14,16 @@ Item {
     property int renderAfter: 6
     property int seekJumpThreshold: 4
 
-    property color activeColor: Appearance.colors.colPrimary
+    property color activeColor: "#b4befe"
     property color inactiveColor: "#99ffffff"
 
     property bool wordLevelEnabled: false
     property int activeWordIndex: -1
     property real activeWordProgress: 0.0
-    property color wordActiveColor: Appearance.colors.colPrimary
+    property color wordActiveColor: "#b4befe"
     property color wordInactiveColor: inactiveColor
     property int fontSize: 18
-    property string fontFamily: Sizes.fontFamilyMono
+    property string fontFamily: "LXGW WenKai"
     property bool fontBold: true
     property int horizontalAlignment: Text.AlignLeft
     property int wrapMode: Text.WordWrap
@@ -354,9 +354,10 @@ Item {
                     return !ySettled || !scaleSettled || !opacitySettled || hasPendingTarget;
                 }
 
-                // 逐字渲染 (word-level)
-                Row {
+                // 逐字渲染 (word-level) — Flow 自动换行
+                Flow {
                     id: wordRow
+                    width: parent.width
                     anchors.verticalCenter: parent.verticalCenter
                     visible: lyricItem.hasWords
                     spacing: 0

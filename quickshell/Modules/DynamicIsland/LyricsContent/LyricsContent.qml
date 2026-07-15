@@ -13,8 +13,11 @@ Item {
     
     required property var player
     property bool active: false
-    property var lyricsModel: []
-    property int currentLineIndex: 0
+    property var lyricsArray: []
+    property int currentLineIndex: -1
+    property bool hasWordData: false
+    property int activeWordIdx: -1
+    property real activeWordProg: 0.0
     
     readonly property string trackTitle: player ? player.trackTitle : ""
     readonly property string trackArtist: player ? player.trackArtist : ""
@@ -49,21 +52,28 @@ Item {
         }
     }
 
-    // ================= 1. 歌词获取逻辑 =================
-    Process {
-        id: lyricsFetcher
-        command: ["python3", Paths.scriptPath("media", "lyrics_fetcher.py"), root.trackTitle, root.trackArtist, root.playerName]
-        stdout: SplitParser {
-            onRead: data => {
-                try {
-                    var json = JSON.parse(data)
-                    if (json.length > 0) { 
-                        root.lyricsModel = json; root.currentLineIndex = 0;
-                        root.currentLoadedTitle = root.trackTitle
-                    } else { 
-                        root.lyricsModel = [{time: 0, text: "暂无歌词"}] 
-                    }
-                } catch (e) { root.lyricsModel = [{time: 0, text: "歌词错误"}] }
+    // ================= 1. 歌词获取 (LyricsDaemon 长驻进程) =================
+    Connections {
+        target: LyricsDaemon
+        function onLyricsReady(title, data) {
+            if (title !== root.trackTitle) return;
+            try {
+                var obj = data;
+                var legacyArr = obj._legacy || obj;
+                var linesArr = obj.lines || [];
+                if (Array.isArray(legacyArr) && legacyArr.length > 0) {
+                    root.lyricsArray = legacyArr;
+                    LyricsSyncEngine.lyricsData = linesArr.length > 0 ? linesArr : legacyArr;
+                    LyricsSyncEngine.trackId = root.trackTitle;
+                    root.currentLineIndex = 0;
+                    root.currentLoadedTitle = root.trackTitle;
+                } else {
+                    root.lyricsArray = [{time: 0, text: "暂无歌词"}];
+                    LyricsSyncEngine.lyricsData = [{time: 0, text: "暂无歌词"}];
+                }
+            } catch (e) {
+                root.lyricsArray = [{time: 0, text: "歌词错误"}];
+                LyricsSyncEngine.lyricsData = [];
             }
         }
     }
@@ -73,7 +83,6 @@ Item {
 
     function triggerReload() {
         if (!root.active) return
-        if (lyricsFetcher.running) lyricsFetcher.running = false
         debounceTimer.restart()
     }
 
@@ -81,29 +90,33 @@ Item {
         id: debounceTimer; interval: 300; repeat: false; 
         onTriggered: {
             if (root.trackTitle !== "") { 
-                root.lyricsModel = []; root.currentLineIndex = 0; 
-                lyricsFetcher.running = true 
+                root.lyricsArray = []; root.currentLineIndex = 0; 
+                LyricsDaemon.request(root.trackTitle, root.trackArtist)
             }
         }
     }
 
-    // ================= 2. 极简同步逻辑 =================
+    // ================= 2. 同步逻辑 (通过 LyricsSyncEngine) =================
     Timer {
         interval: 100
-        running: root.active && root.lyricsModel.length > 1 && root.player
+        running: root.active && root.lyricsArray.length > 1 && root.player
         repeat: true
         onTriggered: {
             if (!root.player) return
             var rawPos = root.player.position
-            var currentSec = (rawPos > 100000) ? (rawPos / 1000000) : rawPos
-            var activeIdx = -1
-            for (var i = 0; i < root.lyricsModel.length; i++) {
-                if (root.lyricsModel[i].time <= (currentSec + 0.5)) activeIdx = i; else break
+            var posSec = (rawPos > 100000) ? (rawPos / 1000000) : rawPos
+            
+            LyricsSyncEngine.playbackSeconds = posSec;
+            LyricsSyncEngine.isPlaying = root.player ? root.player.isPlaying : false;
+            
+            // 读取 SyncEngine 输出
+            var lineIdx = LyricsSyncEngine.activeLineIndex;
+            if (lineIdx >= 0 && lineIdx < root.lyricsArray.length) {
+                root.currentLineIndex = lineIdx;
             }
-            if (activeIdx === -1) activeIdx = 0
-            if (activeIdx !== root.currentLineIndex) {
-                root.currentLineIndex = activeIdx
-            }
+            root.hasWordData = LyricsSyncEngine.hasWordLevelData;
+            root.activeWordIdx = LyricsSyncEngine.activeWordIndex;
+            root.activeWordProg = LyricsSyncEngine.activeWordProgress;
         }
     }
 
@@ -133,50 +146,111 @@ Item {
             }
         }
 
-        // --- 歌词列表 ---
-        StyledListView {
-            id: lyricsView
+        // --- 歌词显示 (单行, 逐字高亮 或 整行回退) ---
+        Item {
+            id: lyricContainer
             anchors.left: albumCoverContainer.right
             anchors.leftMargin: 12
             anchors.top: parent.top
             anchors.bottom: parent.bottom
-            
             width: root.currentTextWidth
-            
-            interactive: false
-            animateAppearance: false
-            animateMovement: false
-            showVerticalScrollBar: false
-            smoothWheelEnabled: false
-            model: root.lyricsModel
-            currentIndex: root.currentLineIndex
-            
-            highlightRangeMode: ListView.StrictlyEnforceRange
-            preferredHighlightBegin: 0
-            preferredHighlightEnd: 0 
-            highlightMoveDuration: 400 
+            clip: true
 
-            delegate: Item {
-                width: ListView.view.width
-                height: 42 
-                property bool isCurrent: ListView.isCurrentItem
+            // 当前行数据
+            property var currentLine: {
+                var idx = root.currentLineIndex;
+                if (idx < 0 || idx >= root.lyricsArray.length) return null;
+                return root.lyricsArray[idx];
+            }
+            property string currentText: currentLine ? (currentLine.text || "") : ""
+            property var currentWords: root.hasWordData && currentLine && currentLine.words ? currentLine.words : []
+            property bool showWords: currentWords.length > 1
 
-                onIsCurrentChanged: {
-                    if (isCurrent) {
-                        root.currentTextWidth = Math.max(root.defaultTextWidth, Math.min(lyricText.implicitWidth, 800))
+            // 上下文窗口配置
+            property int contextWindow: 8  // 活跃字前后各显示 N 字
+
+            // 计算上下文窗口内的 words
+            property var visibleWords: {
+                if (!lyricContainer.showWords) return [];
+                var words = lyricContainer.currentWords;
+                var activeIdx = root.activeWordIdx;
+                if (activeIdx < 0 || activeIdx >= words.length) activeIdx = 0;
+                var start = Math.max(0, activeIdx - lyricContainer.contextWindow);
+                var end = Math.min(words.length, activeIdx + lyricContainer.contextWindow + 1);
+                var result = [];
+                if (start > 0) {
+                    result.push({word: "…", isEllipsis: true, idx: -1});
+                }
+                for (var i = start; i < end; i++) {
+                    result.push({
+                        word: words[i].word,
+                        isEllipsis: false,
+                        idx: i
+                    });
+                }
+                if (end < words.length) {
+                    result.push({word: "…", isEllipsis: true, idx: -1});
+                }
+                return result;
+            }
+
+            // 逐字渲染 (word-level)
+            Row {
+                id: wordRow
+                anchors.centerIn: parent
+                visible: lyricContainer.showWords
+                spacing: 0
+                Repeater {
+                    model: lyricContainer.visibleWords
+                    Text {
+                        text: modelData.word || ""
+                        font.family: Sizes.fontFamilyLyric
+                        font.pixelSize: 15
+                        font.weight: Font.Bold
+                        color: {
+                            if (modelData.isEllipsis) return "#99ffffff";
+                            var currentLine = root.lyricsArray[root.currentLineIndex];
+                            if (!currentLine || !currentLine.words) return "white";
+                            // 活跃字以内 = 已唱, 之后 = 未唱
+                            return (modelData.idx <= root.activeWordIdx) ? "#b4befe" : "white";
+                        }
+                        Behavior on color { ColorAnimation { duration: 80 } }
                     }
                 }
+            }
 
-                Text {
-                    id: lyricText
-                    anchors.centerIn: parent
-                    text: modelData.text
-                    color: "white"
-                    font.family: Sizes.fontFamily
-                    font.pixelSize: 15
-                    font.weight: Font.Bold
-                    elide: Text.ElideRight
-                    horizontalAlignment: Text.AlignHCenter 
+            // 整行渲染 (line-level fallback)
+            Text {
+                id: lyricText
+                anchors.centerIn: parent
+                visible: !lyricContainer.showWords
+                text: lyricContainer.currentText
+                color: "white"
+                font.family: Sizes.fontFamilyLyric
+                font.pixelSize: 15
+                font.weight: Font.Bold
+                elide: Text.ElideRight
+                horizontalAlignment: Text.AlignHCenter
+                // 宽度自适应
+                onImplicitWidthChanged: {
+                    if (lyricContainer.showWords) return;
+                    root.currentTextWidth = Math.max(root.defaultTextWidth, Math.min(implicitWidth + 20, 800));
+                }
+            }
+
+            // 词行宽度自适应
+            onShowWordsChanged: {
+                if (lyricContainer.showWords && wordRow.implicitWidth > 0) {
+                    root.currentTextWidth = Math.max(root.defaultTextWidth, Math.min(wordRow.implicitWidth + 20, 800));
+                }
+            }
+            onVisibleWordsChanged: {
+                if (lyricContainer.showWords) {
+                    Qt.callLater(function() {
+                        if (wordRow.implicitWidth > 0) {
+                            root.currentTextWidth = Math.max(root.defaultTextWidth, Math.min(wordRow.implicitWidth + 20, 800));
+                        }
+                    });
                 }
             }
         }
@@ -251,11 +325,11 @@ Item {
                     ctx.beginPath();
                     ctx.lineCap = "round"; 
                     ctx.lineWidth = 2.5;   
-                    ctx.strokeStyle = String(Appearance.colors.colPrimary); 
+                    ctx.strokeStyle = "#b4befe"; 
 
                     for(let i = 0; i < 6; i++) {
                         let val = Math.min(1.0, s[i] / 100.0);
-                        let h = Math.max(3, val * height); // 最低保持 3px 圆点
+                        let h = Math.max(3, val * height);
                         
                         let x = 1.25 + i * 3.7; 
                         

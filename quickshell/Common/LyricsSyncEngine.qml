@@ -48,8 +48,7 @@ QtObject {
     // ---- 内部 Timer ----
     property int _timerInterval: lineLevelInterval
 
-    Timer {
-        id: syncTimer
+    property Timer syncTimer: Timer {
         interval: root._timerInterval
         running: root.isPlaying && root.lyricsData && root.lyricsData.length > 0
         repeat: true

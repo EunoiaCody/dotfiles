@@ -42,34 +42,28 @@ Item {
     // ==========================================
     property var lyricsArray: []
     
-    Process {
-        id: lyricsProc
-        running: false
-        command: ["python3", Paths.scriptPath("media", "lyrics_fetcher.py"), root.title, root.artist, root.playerName]
-        
-        stdout: SplitParser {
-            splitMarker: "\n"
-            onRead: data => {
-                if (data.trim() === "") return;
-                try {
-                    let parsed = JSON.parse(data);
-                    // 支持新旧格式: 新格式有 _legacy/lines, 旧格式是 flat array
-                    let rawLines = parsed._legacy || parsed;
-                    if (Array.isArray(rawLines)) {
-                        let wordLines = parsed.lines || [];
-                        lyricsArray = wordLines;
-                        let fallback = [];
-                        for (let i = 0; i < rawLines.length; i++) {
-                            fallback.push({time: rawLines[i].time, text: rawLines[i].text});
-                        }
-                        LyricsSyncEngine.lyricsData = wordLines.length > 0 ? wordLines : fallback;
-                    } else {
-                        lyricsArray = [];
-                        LyricsSyncEngine.lyricsData = [];
+    // 歌词获取 (LyricsDaemon 长驻进程)
+    Connections {
+        target: LyricsDaemon
+        function onLyricsReady(title, data) {
+            if (title !== root.title) return;
+            try {
+                let parsed = data;
+                let rawLines = parsed._legacy || parsed;
+                if (Array.isArray(rawLines)) {
+                    let wordLines = parsed.lines || [];
+                    lyricsArray = wordLines;
+                    let fallback = [];
+                    for (let i = 0; i < rawLines.length; i++) {
+                        fallback.push({time: rawLines[i].time, text: rawLines[i].text});
                     }
-                    lyricsView.resetToLine(0);
-                } catch(e) {}
-            }
+                    LyricsSyncEngine.lyricsData = wordLines.length > 0 ? wordLines : fallback;
+                } else {
+                    lyricsArray = [];
+                    LyricsSyncEngine.lyricsData = [];
+                }
+                lyricsView.resetToLine(0);
+            } catch(e) {}
         }
     }
 
@@ -88,8 +82,7 @@ Item {
         LyricsSyncEngine.lyricsData = lyricsArray;
         LyricsSyncEngine.trackId = root.title;
         lyricsView.resetToLine(0);
-        lyricsProc.running = false;
-        lyricsProc.running = true;
+        LyricsDaemon.request(root.title, root.artist);
     }
 
     Connections {
@@ -319,7 +312,7 @@ Item {
                     currentScale: 1.0
                     inactiveScale: 0.97
                     fontSize: 18
-                    fontFamily: Sizes.fontFamilyMono
+                    fontFamily: Sizes.fontFamilyLyric
                     fontBold: true
                     horizontalAlignment: Text.AlignLeft
                     wrapMode: Text.WordWrap

@@ -6,6 +6,7 @@ Singleton {
     readonly property string fontFamily: "Symbols Nerd Font"
     readonly property string fontFamilyMono: "JetBrainsMono Nerd Font"
     readonly property string fontIcon: "Symbols Nerd Font"
+    readonly property string fontFamilyLyric: "LXGW WenKai"
     readonly property real cornerRadius: 10
     readonly property real barHeight: 44
 
