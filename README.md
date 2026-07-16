@@ -23,7 +23,7 @@
 ### 窗口管理与桌面
 
 - **niri** - Wayland 合成器（平铺式窗口管理、模块化配置、IPC 集成）
-- **quickshell** - 现代化桌面 Shell（状态栏、动态岛、锁屏、启动器、壁纸管理、侧边栏控制中心）
+- **quickshell** - 现代化桌面 Shell（状态栏、动态岛、锁屏、启动器、壁纸管理、侧边栏控制中心、逐字歌词系统）
 - **aerospace** - macOS 平铺窗口管理器配置
 - **sketchybar** - macOS 状态栏配置
 
@@ -42,6 +42,7 @@
 ### 多媒体
 
 - **mpv** - 媒体播放器配置（uosc 界面、弹幕支持、Anime4K 画质增强着色器、LXGW WenKai 字幕字体）
+- **歌词引擎** - 多源逐字歌词系统：TTML (AMLL DB) / QQ音乐 QRC+LRC / 网易云 YRC+LRC，浏览器标题智能解析
 
 ### 工具配置
 
@@ -56,14 +57,16 @@ dotfiles/
 │   ├── config.kdl          #   主配置（启动项、环境变量）
 │   ├── binds.kdl           #   快捷键绑定
 │   ├── color.kdl           #   颜色规则
+│   ├── animation.kdl       #   动画配置
+│   ├── blur.kdl            #   模糊效果配置
 │   └── windows-rule.kdl    #   窗口规则
 ├── quickshell/            # QuickShell 桌面 Shell
 │   ├── Modules/            #   功能模块（Bar、DynamicIsland、Lock、Launcher、Wallpaper 等）
-│   ├── Services/           #   后端服务（蓝牙、网络、音量、壁纸、通知等）
-│   ├── Widgets/            #   可复用 UI 组件
-│   ├── Common/             #   共享工具（颜色、动画、尺寸常量）
+│   ├── Services/           #   后端服务（蓝牙、网络、音量、壁纸、通知、AudioSpectrum 等）
+│   ├── Widgets/            #   可复用 UI 组件（RollingDigit、SpringLyricView 等）
+│   ├── Common/             #   共享引擎（LyricsSyncEngine、LyricsDaemon、颜色、动画、尺寸常量）
 │   ├── Components/         #   基础组件（图标等）
-│   ├── scripts/            #   Python 辅助脚本（歌词、天气、日程）
+│   ├── scripts/            #   Python 辅助脚本（歌词、天气、日程、标题解析）
 │   ├── assets/             #   静态资源（着色器等）
 │   └── start-quickshell.sh #   启动脚本
 ├── kitty/                 # Kitty 终端配置
@@ -213,12 +216,41 @@ apt install qt6-base-dev qt6-declarative-dev cmake g++
 apt install qt6-base-dev qt6-wayland
 ```
 
+### 歌词系统
+
+多源逐字歌词引擎，支持从浏览器和本地播放器获取歌词：
+
+**数据源：**
+| 来源 | 格式 | 粒度 | 说明 |
+|------|------|------|------|
+| **AMLL DB** | TTML | 逐字 | 开源歌词数据库，精度最高 |
+| **QQ音乐** | QRC + LRC | 逐字 + 行级 | QRC 逐字回退到 LRC 行级 |
+| **网易云** | YRC + LRC | 逐字 + 行级 | YRC 逐字回退到 LRC 行级 |
+
+**标题解析器 (title_parser.py)：**
+- 从 Bilibili/YouTube 混杂标题中智能提取歌手和歌名
+- 仅在标题含全角括号（`【】` `《》` `「」`）时触发解析
+- `is_likely_music()` 前置判断 — 非音乐内容直接跳过
+- 基于 `get-artist-title` / `youtube_title_parse` 流水线架构
+
+**同步引擎 (LyricsSyncEngine)：**
+- 二分查找定位当前歌词行，支持逐字级进度计算
+- 自适应 Timer：逐字模式 50ms / 行级模式 100ms
+- 跳变检测（seek 超过 2s 自动重新定位）
+
+**界面组件：**
+- `LyricsContent` — 动态岛歌词显示：上下文窗口逐字渲染 + 整行回退 + 频谱可视化
+- `SpringLyricView` — 弹簧物理滚动视图（Media 模块全屏歌词）
+- `Media` 模块 — 专辑封面 + 全屏歌词（spring 动画滚动）
+
 ## 配置说明
 
 ### Niri Wayland 合成器
 
-- 模块化配置（`config.kdl` / `binds.kdl` / `color.kdl` / `windows-rule.kdl`）
+- 模块化配置（`config.kdl` / `binds.kdl` / `color.kdl` / `animation.kdl` / `blur.kdl` / `windows-rule.kdl`）
 - 平铺式窗口管理，Catppuccin 主题色彩
+- 动画配置（窗口开关/切换/工作区切换的弹簧动画）
+- 模糊效果配置（背景模糊、高斯模糊强度）
 - 通过 IPC 与 QuickShell 集成（锁屏、启动器、壁纸切换、动态岛）
 - 自动启动 QuickShell、Emby 播放脚本、微信、Telegram 等应用
 - 窗口规则配置（圆角、透明度、层级）
@@ -229,17 +261,27 @@ apt install qt6-base-dev qt6-wayland
 
 **核心模块：**
 - **Bar** - 顶部状态栏：工作区切换、活动窗口、系统监控（CPU/内存/网络）、系统托盘、快捷设置、电源按钮
-- **DynamicIsland** - macOS 风格动态岛：时钟、通知、媒体控制、歌词显示、天气（支持位置配置）、音量、壁纸预览、工具面板（取色器/截图/录屏）
+- **DynamicIsland** - macOS 风格动态岛：滚动翻页时钟（RollingDigit 弹簧动画）、通知、媒体控制、**逐字歌词显示**（含频谱可视化）、天气（支持城市搜索/经纬度配置）、音量、壁纸预览、工具面板（取色器/截图/录屏）
 - **Lock** - 锁屏界面，支持 PAM 认证，含天气、媒体、通知、系统信息等卡片
 - **Launcher** - 应用启动器（替代 Rofi 部分功能），支持应用/窗口/壁纸页面
 - **Right Sidebar** - 右侧控制中心：音频、网络、蓝牙、通知、快捷设置、电源管理
 - **Wallpaper** - 壁纸系统，含 7 种 GLSL 着色器过渡效果（fade/wipe/disc/stripes 等）
 
 **后端服务：**
-BluetoothService、Network、Volume、Brightness、NotificationManager、MediaManager、WallpaperService、TrayService、ThemeService、Wlsunset 等
+BluetoothService、Network、Volume、Brightness、NotificationManager、MediaManager、WallpaperService、TrayService、ThemeService、Wlsunset、AudioSpectrum 等
+
+**共享引擎 (Common/)：**
+- `LyricsSyncEngine` - 统一歌词同步引擎（二分查找 + 字级进度 + 自适应 Timer，支持跳变检测）
+- `LyricsDaemon` - 歌词获取进程管理器（CLI 模式，每次切歌冷启动 ~50ms）
+
+**可复用组件 (Widgets/common/)：**
+- `RollingDigit` - 弹簧物理翻页数字动画组件（SpringAnimation 驱动）
+- `SpringLyricView` - 弹簧物理歌词滚动视图（支持行级/逐字双模式，自适应动态刚度）
 
 **Python 辅助脚本：**
-- `lyrics_fetcher.py` - 歌词获取
+- `media/lyrics_fetcher.py` - 多源歌词获取器（TTML/QQ音乐/网易云），支持逐字级 + 行级歌词、MD5 缓存
+- `media/title_parser.py` - 通用标题解析器（Bilibili/YouTube 混杂标题 → 歌手+歌名），流水线架构
+- `media/test_title_parser.py` - 标题解析器完整测试套件
 - `weather.py` - 天气数据
 - `parse_schedule.py` - 日程解析
 - `overview.sh` - 系统概览
@@ -267,7 +309,7 @@ BluetoothService、Network、Volume、Brightness、NotificationManager、MediaMa
 
 - Catppuccin 主题（Mocha/Macchiato/Frappe）
 - 模块化配置（`conf.d/` 下的主题、自动补全、键位绑定）
-- 自定义函数：`fish_prompt`（发行版感知）、`yz`（Yazi 集成）、`gateway`（macOS NAT）等
+- 自定义函数：`fish_prompt`（发行版感知）、`yz`（Yazi 集成）、`gateway`（macOS NAT）、`update-system`（系统更新）等
 - 丰富的补全支持（bun、docker、kubectl、orbctl、txget 等）
 - Fisher 插件管理（autopair、catppuccin、bass）
 
