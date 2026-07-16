@@ -114,17 +114,20 @@ _MUSIC_SIGNALS = [
     r'\bLyrics?\b', r'歌词',
     r'\bMusic\b', r'\bAudio\b',
     # 中文系
-    r'歌', r'曲', r'唱', r'演唱',
-    r'主题曲', r'片头曲', r'片尾曲', r'插入曲', r'剧中曲',
+    r'歌', r'曲', r'唱', r'演唱', r'听',
+    r'主题曲', r'片头曲', r'片尾曲', r'插入曲', r'剧中曲', r'主題歌', r'劇中歌',
     r'\bOP\b', r'\bED\b', r'\bOST\b', r'\bBGM\b',
     # 二次元/翻唱系
     r'\bCover\b', r'翻唱', r'歌ってみた', r'踊ってみた',
     r'\bfeat\.?\b', r'\bft\.?\b', r'合唱',
     r'\bVocal\b', r'ボーカル',
     r'Original\s*Song', r'原创曲',
-    # 二次元名曲信号
+    # 二次元声库名
     r'ボカロ', r'VOCALOID', r'UTAU', r'CeVIO',
     r'(?:初音|鏡音|巡音|Megpoid|GUMI|IA|結月|紲星|flower|可不|星界|裏命|狐子|羽累)',
+    # 专辑/音轨
+    r'\bTrack\b', r'\bAlbum\b', r'Soundtrack', r'サントラ',
+    r'\bSingle\b', r'\bEP\b',
 ]
 
 # 非音乐信号词: 含任一且无音乐信号 → 不是音乐
@@ -157,17 +160,13 @@ def is_likely_music(title):
     """判定视频标题是否像是音乐内容。
 
     借鉴 get-artist-title 的 fluff 检测思路:
-      音乐信号词 → True
-      无非音乐信号词 → True (保守放行)
-      只有非音乐信号词 → False
+      含音乐信号词 → True
+      不含音乐信号词 → False (严格: 不猜测)
     """
     if not title or not title.strip():
         return False
-    if _MUSIC_RE.search(title):
-        return True
-    if not _NON_MUSIC_RE.search(title):
-        return True  # 保守: 不明确非音乐就放行
-    return False
+    # 必须至少命中一个音乐信号词
+    return bool(_MUSIC_RE.search(title))
 
 
 # ============================================================
@@ -289,6 +288,9 @@ _FLUFF_KEYWORDS = [
     '本家', '原作', '原曲', '本家様', 'オリジナル',
     '歌ってみた', '踊ってみた', '演奏してみた',
     'MMD', 'モーション',
+    # featuring 标注 (【feat. X】是元数据, 不是艺术家)
+    'feat.', 'ft.', 'feat', 'ft',
+    'Feat.', 'Ft.', 'featuring',
 ]
 
 _FLUFF_KW_RE = re.compile('|'.join(re.escape(kw) for kw in _FLUFF_KEYWORDS), re.IGNORECASE)

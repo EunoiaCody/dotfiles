@@ -30,6 +30,10 @@ Item {
     property string currentLoadedTitle: ""
     readonly property string spectrumToken: "dynamic-island-lyrics"
 
+    // 非音乐内容检测: 标题不含音乐信号词时 emit, 通知 DynamicIsland 退回时钟模式
+    signal notMusicDetected()
+    property bool isNotMusic: false
+
     Component.onCompleted: {
         if (root.active)
             AudioSpectrum.acquire(root.spectrumToken);
@@ -62,6 +66,15 @@ Item {
             if (title !== root.trackTitle) return;
             try {
                 var obj = data;
+                // 非音乐内容: 通知 DynamicIsland 退回时钟模式
+                if (obj.source === "not-music") {
+                    root.isNotMusic = true;
+                    root.lyricsArray = [];
+                    LyricsSyncEngine.lyricsData = [];
+                    root.notMusicDetected();
+                    return;
+                }
+                root.isNotMusic = false;
                 var legacyArr = obj._legacy || obj;
                 var linesArr = obj.lines || [];
                 if (Array.isArray(legacyArr) && legacyArr.length > 0) {

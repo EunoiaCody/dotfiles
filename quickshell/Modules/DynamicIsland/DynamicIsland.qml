@@ -234,6 +234,8 @@ Variants {
                 readonly property bool isMusicPlaying: root.currentPlayer && root.currentPlayer.isPlaying
                 // 只要有播放器就展示 compact lyrics bar（不严格依赖 isPlaying）
                 readonly property bool hasActivePlayer: root.currentPlayer != null
+                // 非音乐内容: LyricsContent 检测到 not-music 后置 true, 退回时钟
+                property bool notMusicDetected: false
                 property bool isLyricsMode: showLyrics
                 property bool isToolsMode: showTools && !isLyricsMode
                 property bool isHubMode: showHub && !isToolsMode && !isLyricsMode
@@ -264,7 +266,22 @@ Variants {
                 property int musicCollapsedW: collapsedW
 
                 onHasActivePlayerChanged: {
-                    if (!hasActivePlayer) musicCollapsedW = collapsedW;
+                    if (!hasActivePlayer) {
+                        musicCollapsedW = collapsedW;
+                        root.notMusicDetected = false;
+                    }
+                }
+
+                // 播放器切换时重置非音乐标记
+                onCurrentPlayerChanged: {
+                    root.notMusicDetected = false;
+                }
+
+                // 非音乐检测到时关闭歌词模式
+                onNotMusicDetectedChanged: {
+                    if (root.notMusicDetected) {
+                        root.showLyrics = false;
+                    }
                 }
 
                 Timer {
@@ -589,7 +606,7 @@ Variants {
                         anchors.horizontalCenter: parent.horizontalCenter
                         width: root.collapsedW + (root.isRecording ? root.recordExtraW : 0)
                         height: root.collapsedH
-                        property bool clockActive: !root.expanded && !root.isNotifMode && !root.isVolumeMode && !root.isLyricsMode && !root.isHubMode && !root.isToolsMode && !root.isAudioMode && !root.hasActivePlayer
+                        property bool clockActive: !root.expanded && !root.isNotifMode && !root.isVolumeMode && !root.isLyricsMode && !root.isHubMode && !root.isToolsMode && !root.isAudioMode && (!root.hasActivePlayer || root.notMusicDetected)
                         visible: clockActive
                         opacity: clockActive ? 1 : 0
 
@@ -607,7 +624,7 @@ Variants {
                         anchors.horizontalCenter: parent.horizontalCenter
                         width: clockRow.width + 10 + sepText.width + 10 + musicLyrics.width
                         height: root.collapsedH
-                        property bool musicActive: root.hasActivePlayer && !root.expanded && !root.isNotifMode && !root.isVolumeMode && !root.isLyricsMode && !root.isHubMode && !root.isToolsMode && !root.isAudioMode
+                        property bool musicActive: root.hasActivePlayer && !root.notMusicDetected && !root.expanded && !root.isNotifMode && !root.isVolumeMode && !root.isLyricsMode && !root.isHubMode && !root.isToolsMode && !root.isAudioMode
                         visible: musicActive
                         opacity: musicActive ? 1 : 0
 
@@ -669,6 +686,8 @@ Variants {
                             showSpectrum: false
                             defaultTextWidth: 80
                             lyricsContextWindow: 9999
+                            // 非音乐内容 → 退回时钟模式
+                            onNotMusicDetected: root.notMusicDetected = true
                         }
                     }
 
@@ -730,6 +749,11 @@ Variants {
                         active: root.isLyricsMode || root.isMusicPlaying
                         opacity: root.isLyricsMode ? 1 : 0
                         visible: opacity > 0.01
+                        // 非音乐内容 → 关闭歌词面板, 退回时钟
+                        onNotMusicDetected: {
+                            root.notMusicDetected = true
+                            root.showLyrics = false
+                        }
 
                         Behavior on opacity {
                             NumberAnimation {
