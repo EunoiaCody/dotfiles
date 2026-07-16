@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """歌词获取器 — 多源获取 + 多格式解析 + 统一输出 + 向后兼容
 
-数据源: 网易云 YRC / LRC, QQ音乐 LRC（QRC 暂不可用）
+数据源: TTML (AMLL DB) / QQ音乐 QRC+LRC / 网易云 YRC+LRC
 输出格式:
 {
     "format": "word" | "line",
-    "source": "netease-yrc" | "netease-lrc" | "qq-lrc",
+    "source": "ttml" | "netease-yrc" | "netease-lrc" | "qq-qrc" | "qq-lrc",
     "lines": [
         {"time": 12.34, "text": "完整行文本", "words": [
             {"word": "字", "startTime": 12.34, "endTime": 12.56}
@@ -15,6 +15,9 @@
         {"time": 12.34, "text": "完整行文本"}
     ]
 }
+
+浏览器标题预处理:
+  调用同目录下的 title_parser.py 做前置解析 (仅含全角括号时触发)
 """
 
 import sys
@@ -25,6 +28,16 @@ import re
 import os
 import hashlib
 import base64
+
+# 同目录下的标题解析器 (仅用于浏览器场景的前置清理)
+try:
+    from title_parser import is_likely_music, parse as parse_title
+except ImportError:
+    # 回退: 如果 title_parser.py 不存在, 定义桩函数
+    def is_likely_music(t):
+        return True
+    def parse_title(t):
+        return None, None
 
 CACHE_DIR = "/tmp/qs_lyrics_cache"
 V2_CACHE_DIR = os.path.join(CACHE_DIR, "v2")
@@ -1037,6 +1050,23 @@ def build_output(result):
 
 def fetch_lyrics(title, artist):
     """获取歌词，返回统一格式 dict。"""
+
+    # Step -1: 浏览器标题预处理 (仅 artist 为空时)
+    #   仅当标题含全角括号时启用解析 (Bilibili/中文平台强信号)
+    #   若判定为非音乐内容则直接返回空
+    if not artist or not artist.strip():
+        if not is_likely_music(title):
+            return {
+                "format": "line", "source": "not-music",
+                "lines": [{"time": 0, "text": "", "words": []}],
+                "_legacy": [{"time": 0, "text": ""}]
+            }
+        parsed_artist, parsed_title = parse_title(title)
+        if parsed_artist:
+            artist = parsed_artist
+        if parsed_title:
+            title = parsed_title
+
     cache_file = get_cache_path(title, artist)
     if os.path.exists(cache_file):
         try:
