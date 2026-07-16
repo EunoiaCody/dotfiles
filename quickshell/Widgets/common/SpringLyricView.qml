@@ -22,7 +22,7 @@ Item {
     property real activeWordProgress: 0.0
     property color wordActiveColor: "#b4befe"
     property color wordInactiveColor: inactiveColor
-    property int fontSize: 18
+    property int fontSize: 20
     property string fontFamily: "LXGW WenKai"
     property bool fontBold: true
     property int horizontalAlignment: Text.AlignLeft

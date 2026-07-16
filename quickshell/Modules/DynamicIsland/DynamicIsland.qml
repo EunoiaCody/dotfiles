@@ -6,6 +6,7 @@ import Quickshell.Services.Mpris
 import Quickshell.Services.Pipewire
 import Quickshell.Wayland
 import qs.Common
+import qs.Services
 import qs.Modules.DynamicIsland.ClockContent
 import qs.Modules.DynamicIsland.Hub
 import qs.Modules.DynamicIsland.LyricsContent
@@ -14,7 +15,7 @@ import qs.Modules.DynamicIsland.NotificationContent
 import qs.Modules.DynamicIsland.Tools
 import qs.Modules.DynamicIsland.VolumeContent
 import qs.Modules.DynamicIsland.audio
-import qs.Services
+import qs.Widgets.common
 
 Variants {
     model: Quickshell.screens
@@ -230,6 +231,9 @@ Variants {
                 property string currentAudioMode: "mic"
                 property int hubTabIndex: 0
                 property bool isRecording: false
+                readonly property bool isMusicPlaying: root.currentPlayer && root.currentPlayer.isPlaying
+                // 只要有播放器就展示 compact lyrics bar（不严格依赖 isPlaying）
+                readonly property bool hasActivePlayer: root.currentPlayer != null
                 property bool isLyricsMode: showLyrics
                 property bool isToolsMode: showTools && !isLyricsMode
                 property bool isHubMode: showHub && !isToolsMode && !isLyricsMode
@@ -257,7 +261,24 @@ Variants {
                 property int audioH: 84
                 property color color: Appearance.colors.colLayer0
                 property int targetR: 12
-                property int targetW: isAudioMode ? audioW : isToolsMode ? toolsW : isHubMode ? hub.implicitWidth : isLyricsMode ? lyricsW : expanded ? expandedW : isVolumeMode ? volW : isNotifMode ? notifW : (collapsedW + (root.isRecording ? recordExtraW : 0) + (isCollapsedHovered ? 16 : 0))
+                property int musicCollapsedW: collapsedW
+
+                onHasActivePlayerChanged: {
+                    if (!hasActivePlayer) musicCollapsedW = collapsedW;
+                }
+
+                Timer {
+                    interval: 100
+                    running: root.hasActivePlayer
+                    repeat: true
+                    onTriggered: {
+                        if (!musicCollapsedBar) return;
+                        var w = musicCollapsedBar.width;
+                        if (w > root.collapsedW) root.musicCollapsedW = w;
+                        else root.musicCollapsedW = root.collapsedW;
+                    }
+                }
+                property int targetW: isAudioMode ? audioW : isToolsMode ? toolsW : isHubMode ? hub.implicitWidth : isLyricsMode ? lyricsW : expanded ? expandedW : isVolumeMode ? volW : isNotifMode ? notifW : (root.hasActivePlayer ? (musicCollapsedW + (isCollapsedHovered ? 16 : 0)) : (collapsedW + (root.isRecording ? recordExtraW : 0) + (isCollapsedHovered ? 16 : 0)))
                 property int targetH: isAudioMode ? audioH : isToolsMode ? toolsH : isHubMode ? hub.implicitHeight : isLyricsMode ? lyricsH : expanded ? expandedH : isVolumeMode ? volH : isNotifMode ? notifH : (collapsedH + (isCollapsedHovered ? 6 : 0))
                 property int wDuration: DynamicIslandMotion.expandingDuration
                 property int hDuration: DynamicIslandMotion.expandingDuration
@@ -563,12 +584,12 @@ Variants {
                     height: 1200
 
                     ClockContent {
+                        id: clockContent
                         anchors.top: parent.top
                         anchors.horizontalCenter: parent.horizontalCenter
                         width: root.collapsedW + (root.isRecording ? root.recordExtraW : 0)
                         height: root.collapsedH
-                        player: root.currentPlayer
-                        property bool clockActive: !root.expanded && !root.isNotifMode && !root.isVolumeMode && !root.isLyricsMode && !root.isHubMode && !root.isToolsMode && !root.isAudioMode
+                        property bool clockActive: !root.expanded && !root.isNotifMode && !root.isVolumeMode && !root.isLyricsMode && !root.isHubMode && !root.isToolsMode && !root.isAudioMode && !root.hasActivePlayer
                         visible: clockActive
                         opacity: clockActive ? 1 : 0
 
@@ -576,9 +597,79 @@ Variants {
                             NumberAnimation {
                                 duration: 200
                             }
+                        }
+                    }
 
+                    // 音乐播放中的 compact 条：滚动时钟 | 逐字歌词
+                    Item {
+                        id: musicCollapsedBar
+                        anchors.top: parent.top
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        width: clockRow.width + 10 + sepText.width + 10 + musicLyrics.width
+                        height: root.collapsedH
+                        property bool musicActive: root.hasActivePlayer && !root.expanded && !root.isNotifMode && !root.isVolumeMode && !root.isLyricsMode && !root.isHubMode && !root.isToolsMode && !root.isAudioMode
+                        visible: musicActive
+                        opacity: musicActive ? 1 : 0
+
+                        Behavior on opacity {
+                            NumberAnimation { duration: 200 }
                         }
 
+                        // 滚动时钟
+                        Row {
+                            id: clockRow
+                            anchors.left: parent.left
+                            anchors.leftMargin: 10
+                            anchors.verticalCenter: parent.verticalCenter
+                            anchors.verticalCenterOffset: -5
+                            spacing: 5
+
+                            Row {
+                                spacing: -1
+                                RollingDigit { targetDigit: clockContent.h0; digitColor: Appearance.colors.colInversePrimary; digitRotation: -3; digitOffset: -2 }
+                                RollingDigit { targetDigit: clockContent.h1; digitColor: Appearance.colors.colPrimary; digitRotation: 3; digitOffset: 1 }
+                            }
+
+                            Column {
+                                spacing: 3
+                                anchors.verticalCenter: parent.verticalCenter
+                                anchors.verticalCenterOffset: 1
+                                Rectangle { width: 4; height: 4; radius: 2; color: Appearance.colors.colOutlineVariant }
+                                Rectangle { width: 4; height: 4; radius: 2; color: Appearance.colors.colOutlineVariant }
+                            }
+
+                            Row {
+                                spacing: 1
+                                RollingDigit { targetDigit: clockContent.m0; digitColor: Appearance.colors.colInversePrimary; digitRotation: -2; digitOffset: -1 }
+                                RollingDigit { targetDigit: clockContent.m1; digitColor: Appearance.colors.colPrimary; digitRotation: 2; digitOffset: 1 }
+                            }
+                        }
+
+                        Text {
+                            id: sepText
+                            text: "|"
+                            color: Appearance.colors.colOutlineVariant
+                            font.family: Sizes.fontFamily
+                            font.pixelSize: 13
+                            anchors.verticalCenter: parent.verticalCenter
+                            anchors.left: clockRow.right
+                            anchors.leftMargin: 10
+                        }
+
+                        LyricsContent {
+                            id: musicLyrics
+                            anchors.verticalCenter: parent.verticalCenter
+                            anchors.left: sepText.right
+                            anchors.leftMargin: 4
+                            width: Math.max(100, musicLyrics.implicitWidth)
+                            height: root.collapsedH
+                            player: root.currentPlayer
+                            active: true
+                            showCover: false
+                            showSpectrum: false
+                            defaultTextWidth: 80
+                            lyricsContextWindow: 9999
+                        }
                     }
 
                     VolumeContent {
@@ -636,7 +727,7 @@ Variants {
                         width: root.lyricsW
                         height: root.lyricsH
                         player: root.currentPlayer
-                        active: root.isLyricsMode
+                        active: root.isLyricsMode || root.isMusicPlaying
                         opacity: root.isLyricsMode ? 1 : 0
                         visible: opacity > 0.01
 

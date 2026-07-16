@@ -13,6 +13,9 @@ Item {
     
     required property var player
     property bool active: false
+    property bool showCover: true
+    property alias lyricsContextWindow: lyricContainer.contextWindow
+    property bool showSpectrum: true
     property var lyricsArray: []
     property int currentLineIndex: -1
     property bool hasWordData: false
@@ -39,8 +42,8 @@ Item {
     property int defaultTextWidth: 350 
     property int currentTextWidth: defaultTextWidth 
     
-    // 左边距(15) + 封面(26) + 间距(12) + 歌词(动态) + 间距(12) + 频谱(22) + 右边距(15) = 102
-    implicitWidth: 102 + currentTextWidth 
+    // 基础左右留白 (showCover/showSpectrum 为 false 时各 10px)
+    implicitWidth: 10 + currentTextWidth + (showCover ? 38 : 0) + (showSpectrum ? 34 : 0) 
 
     Connections {
         target: root
@@ -62,7 +65,7 @@ Item {
                 var legacyArr = obj._legacy || obj;
                 var linesArr = obj.lines || [];
                 if (Array.isArray(legacyArr) && legacyArr.length > 0) {
-                    root.lyricsArray = legacyArr;
+                    root.lyricsArray = linesArr.length > 0 ? linesArr : legacyArr;
                     LyricsSyncEngine.lyricsData = linesArr.length > 0 ? linesArr : legacyArr;
                     LyricsSyncEngine.trackId = root.trackTitle;
                     root.currentLineIndex = 0;
@@ -128,6 +131,7 @@ Item {
         // --- 专辑封面 ---
         Item {
             id: albumCoverContainer
+            visible: root.showCover
             anchors.left: parent.left; anchors.leftMargin: 15; anchors.verticalCenter: parent.verticalCenter
             width: 26; height: 26
             
@@ -149,8 +153,8 @@ Item {
         // --- 歌词显示 (单行, 逐字高亮 或 整行回退) ---
         Item {
             id: lyricContainer
-            anchors.left: albumCoverContainer.right
-            anchors.leftMargin: 12
+            anchors.left: root.showCover ? albumCoverContainer.right : parent.left
+            anchors.leftMargin: root.showCover ? 12 : 0
             anchors.top: parent.top
             anchors.bottom: parent.bottom
             width: root.currentTextWidth
@@ -205,7 +209,7 @@ Item {
                     Text {
                         text: modelData.word || ""
                         font.family: Sizes.fontFamilyLyric
-                        font.pixelSize: 15
+                        font.pixelSize: 18
                         font.weight: Font.Bold
                         color: {
                             if (modelData.isEllipsis) return "#99ffffff";
@@ -225,12 +229,12 @@ Item {
                 anchors.centerIn: parent
                 visible: !lyricContainer.showWords
                 text: lyricContainer.currentText
-                color: "white"
+                color: "#b4befe"
                 font.family: Sizes.fontFamilyLyric
-                font.pixelSize: 15
+                font.pixelSize: 18
                 font.weight: Font.Bold
                 elide: Text.ElideRight
-                horizontalAlignment: Text.AlignHCenter
+                horizontalAlignment: Text.AlignLeft
                 // 宽度自适应
                 onImplicitWidthChanged: {
                     if (lyricContainer.showWords) return;
@@ -260,6 +264,7 @@ Item {
         // ============================================================
         Item {
             id: spectrumContainer
+            visible: root.showSpectrum
             anchors.right: parent.right
             anchors.rightMargin: 15
             anchors.verticalCenter: parent.verticalCenter
@@ -270,7 +275,7 @@ Item {
 
             Timer {
                 interval: 16 
-                running: root.active && AudioSpectrum.available
+                running: root.active && root.showSpectrum && AudioSpectrum.available
                 repeat: true
                 onTriggered: {
                     let s = spectrumContainer.smoothValues;
