@@ -65,6 +65,17 @@ Item {
                 lyricsView.resetToLine(0);
             } catch(e) {}
         }
+        // 渐进式升级: 更高优先级源返回后替换歌词
+        function onLyricsUpgrade(title, data) {
+            if (title !== root.title) return;
+            try {
+                let linesArr = data.lines || [];
+                if (linesArr.length > 0) {
+                    lyricsArray = linesArr;
+                    LyricsSyncEngine.lyricsData = linesArr;
+                }
+            } catch(e) {}
+        }
     }
 
     Connections {

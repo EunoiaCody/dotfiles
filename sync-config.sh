@@ -1,35 +1,54 @@
 #!/bin/bash
 
 # 同步配置文件脚本
-# 这个脚本会将 ~/.config/ 中的配置文件更新到 dotfiles 仓库
+# 这个脚本会将 ~/.config/ 和 ~/ 中的配置文件更新到 dotfiles 仓库
+# ~/.config/<name> → config/<name>
+# ~/<name>          → home/<name>   (name 以 . 开头，如 .pi)
 
 set -e
-
-
 
 echo "开始同步配置文件到 dotfiles 仓库..."
 
 # 进入 dotfiles 目录
 cd "$(dirname "$0")"
 
-# 配置文件夹列表
-CONFIG_DIRS=("kitty" "mpv" "neovide" "nvim" "fish" "aerospace" "sketchybar" "yazi" "figlet" "bat" "niri" "quickshell")
+# ~/.config/ 下的配置目录
+CONFIG_DIRS=("kitty" "mpv" "neovide" "nvim" "fish" "aerospace" "sketchybar" "yazi" "figlet" "bat" "niri" "quickshell" "vscode")
 
-# 同步每个配置文件夹
+# ~/ 下的配置（以 . 开头的文件/目录）
+HOME_DIRS=(".pi")
+
+# ── 同步 ~/.config/ ──
 for dir in "${CONFIG_DIRS[@]}"; do
-    echo "同步 $dir..."
-    
-    # 删除旧的文件夹（如果存在）
-    if [ -d "$dir" ]; then
-        rm -rf "$dir"
+    echo "同步 ~/.config/$dir ..."
+
+    # 删除旧的目录（如果存在）
+    if [ -d "config/$dir" ]; then
+        rm -rf "config/$dir"
     fi
-    
+
     # 复制新的配置文件
     if [ -d "$HOME/.config/$dir" ]; then
-        cp -r "$HOME/.config/$dir" .
-        echo "✓ $dir 同步完成"
+        cp -r "$HOME/.config/$dir" "config/$dir"
+        echo "✓ config/$dir 同步完成"
     else
         echo "⚠ 警告: ~/.config/$dir 不存在，跳过同步"
+    fi
+done
+
+# ── 同步 ~/ ──
+for name in "${HOME_DIRS[@]}"; do
+    echo "同步 ~/$name ..."
+
+    if [ -e "home/$name" ] || [ -d "home/$name" ]; then
+        rm -rf "home/$name"
+    fi
+
+    if [ -e "$HOME/$name" ]; then
+        cp -r "$HOME/$name" "home/$name"
+        echo "✓ home/$name 同步完成"
+    else
+        echo "⚠ 警告: ~/$name 不存在，跳过同步"
     fi
 done
 
@@ -44,15 +63,15 @@ if git diff --quiet && git diff --staged --quiet; then
 else
     echo "检测到配置文件变更，正在提交..."
     git add .
-    
+
     # 生成提交信息
     TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
     git commit -m "更新配置文件 - $TIMESTAMP
 
-自动同步 ~/.config/ 中的配置文件到 dotfiles 仓库"
-    
+自动同步 ~/.config/ 和 ~/ 中的配置文件到 dotfiles 仓库"
+
     echo "提交完成！"
-    
+
     # 询问是否推送到远程仓库
     read -p "是否推送到 GitHub? (Y/n): " -n 1 -r
     echo

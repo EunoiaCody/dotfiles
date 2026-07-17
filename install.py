@@ -26,35 +26,33 @@ RED = "\033[38;2;243;139;168m" if USE_COLOR else ""
 SUB = "\033[38;2;186;194;222m" if USE_COLOR else ""
 
 
-COMPONENTS = [
-	"kitty",
-	"mpv",
-	"neovide",
-	"nvim",
-	"fish",
-	"aerospace",
-	"sketchybar",
-	"yazi",
-	"figlet",
-	"bat",
-	"niri",
-	"quickshell",
-]
+# ── Component registry ──────────────────────────────────────────
+# Each component has a `category` that determines its source/target layout:
+#   "config" → repo: config/<name>  /  target: ~/.config/<name>
+#   "home"   → repo: home/<name>    /  target: ~/<name>
 
-COMPONENT_DESCRIPTIONS = {
-	"kitty": "Kitty terminal and related fonts",
-	"mpv": "MPV media player and codec support",
-	"neovide": "Neovide GUI for Neovim",
-	"nvim": "Neovim + build/search toolchain",
-	"fish": "Fish shell",
-	"aerospace": "AeroSpace config (macOS focused)",
-	"sketchybar": "SketchyBar config (macOS focused)",
-	"yazi": "Yazi terminal file manager",
-	"figlet": "Figlet utility",
-	"bat": "bat pager",
-	"niri": "Niri compositor",
-	"quickshell": "Quickshell (Arch preferred)",
+COMPONENT_SPECS: dict[str, dict] = {
+	"kitty":      {"category": "config", "desc": "Kitty terminal and related fonts"},
+	"mpv":        {"category": "config", "desc": "MPV media player and codec support"},
+	"neovide":    {"category": "config", "desc": "Neovide GUI for Neovim"},
+	"nvim":       {"category": "config", "desc": "Neovim + build/search toolchain"},
+	"fish":       {"category": "config", "desc": "Fish shell"},
+	"aerospace":  {"category": "config", "desc": "AeroSpace config (macOS focused)"},
+	"sketchybar": {"category": "config", "desc": "SketchyBar config (macOS focused)"},
+	"yazi":       {"category": "config", "desc": "Yazi terminal file manager"},
+	"figlet":     {"category": "config", "desc": "Figlet utility"},
+	"bat":        {"category": "config", "desc": "bat pager"},
+	"niri":       {"category": "config", "desc": "Niri compositor"},
+	"quickshell": {"category": "config", "desc": "Quickshell (Arch preferred)"},
+	"vscode":     {"category": "config", "desc": "VSCode custom CSS/JS"},
+
+	# Home-directory dotfiles (~/.*)
+	".pi":        {"category": "home",   "desc": "pi-agent configuration"},
 }
+
+COMPONENTS = list(COMPONENT_SPECS.keys())
+
+COMPONENT_DESCRIPTIONS = {name: spec["desc"] for name, spec in COMPONENT_SPECS.items()}
 
 PACKAGE_MAP = {
 	"apt": {
@@ -534,14 +532,22 @@ def move_to_backup(target: Path, backup_root: Path, name: str, dry_run: bool) ->
 
 def install_component(
 	repo_root: Path,
-	config_root: Path,
 	backup_root: Path,
 	name: str,
 	mode: str,
 	dry_run: bool,
 ) -> InstallResult:
-	source = repo_root / name
-	target = config_root / name
+	spec = COMPONENT_SPECS.get(name, {"category": "config"})
+	category = spec.get("category", "config")
+
+	if category == "home":
+		source = repo_root / "home" / name
+		target = Path.home() / name
+		backup_dir = backup_root / "home"
+	else:
+		source = repo_root / "config" / name
+		target = Path.home() / ".config" / name
+		backup_dir = backup_root
 
 	if not source.exists():
 		return InstallResult(name, "skip", f"source missing: {source}")
@@ -553,7 +559,7 @@ def install_component(
 		except FileNotFoundError:
 			pass
 
-	ok, backup_msg = move_to_backup(target, backup_root, name, dry_run)
+	ok, backup_msg = move_to_backup(target, backup_dir, name, dry_run)
 	if not ok:
 		return InstallResult(name, "fail", backup_msg)
 
@@ -615,9 +621,8 @@ def main() -> int:
 		return fail(str(exc))
 
 	repo_root = Path(__file__).resolve().parent
-	config_root = Path.home() / ".config"
 	timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-	backup_root = config_root / "dotfiles-backup" / timestamp
+	backup_root = Path.home() / ".config" / "dotfiles-backup" / timestamp
 
 	section("Deploying dotfiles configuration")
 	log(f"Install mode: {args.mode}")
@@ -629,7 +634,6 @@ def main() -> int:
 	for name in selected:
 		result = install_component(
 			repo_root=repo_root,
-			config_root=config_root,
 			backup_root=backup_root,
 			name=name,
 			mode=args.mode,
@@ -645,7 +649,7 @@ def main() -> int:
 
 	manifest_path = backup_root / "manifest.json"
 	if args.dry_run:
-		manifest_path = config_root / "dotfiles-backup" / "dry-run-manifest.json"
+		manifest_path = Path.home() / ".config" / "dotfiles-backup" / "dry-run-manifest.json"
 	write_manifest(manifest_path, results, args.dry_run)
 	ok(f"Manifest written to {manifest_path}")
 

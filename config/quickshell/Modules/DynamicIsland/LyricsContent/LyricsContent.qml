@@ -92,6 +92,19 @@ Item {
                 LyricsSyncEngine.lyricsData = [];
             }
         }
+        // 渐进式升级: 更高优先级源返回后替换歌词，不重置状态
+        function onLyricsUpgrade(title, data) {
+            if (title !== root.trackTitle) return;
+            try {
+                var obj = data;
+                if (obj.source === "not-music") return;
+                var linesArr = obj.lines || [];
+                if (linesArr.length > 0) {
+                    root.lyricsArray = linesArr;
+                    LyricsSyncEngine.lyricsData = linesArr;
+                }
+            } catch (e) {}
+        }
     }
 
     onTrackTitleChanged: triggerReload()
