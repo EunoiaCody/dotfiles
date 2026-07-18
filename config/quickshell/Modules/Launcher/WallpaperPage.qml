@@ -167,12 +167,11 @@ Item {
         animateAppearance: false
         animateMovement: false
         showVerticalScrollBar: false
-        smoothWheelEnabled: false
         visible: !root.isLoading && filteredWallpaperModel.count > 0
         model: filteredWallpaperModel
 
         boundsBehavior: Flickable.StopAtBounds
-        interactive: false
+        maximumFlickVelocity: 3000
         highlightFollowsCurrentItem: true
         highlightRangeMode: ListView.NoHighlightRange
 

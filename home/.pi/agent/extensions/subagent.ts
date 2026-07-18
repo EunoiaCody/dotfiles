@@ -224,9 +224,12 @@ export default function (pi: ExtensionAPI) {
       };
       subAgents.set(id, sa);
 
-      // Queue the sub-agent task as a follow-up message
+      // Queue the sub-agent task as an invisible follow-up message
       const msg = encodeStartMessage(id, params.name, params.prompt);
-      pi.sendUserMessage(msg, { deliverAs: "followUp" });
+      pi.sendMessage(
+        { customType: "subagent-start", content: msg, display: false },
+        { triggerTurn: true, deliverAs: "followUp" },
+      );
 
       return {
         content: [
@@ -236,7 +239,7 @@ export default function (pi: ExtensionAPI) {
               `🚀 Sub-agent **${params.name}** spawned (id: \`${id}\`).\n` +
               `Status: pending → will run as a follow-up turn.\n` +
               `Check progress with task_status() or Ctrl+Shift+G. Collect results with task_result("${id}") when done.\n` +
-              `${params.contextFiles.length > 0 ? `Focus files: ${params.contextFiles.join(", ")}` : ""}`,
+              `${(params.contextFiles ?? []).length > 0 ? `Focus files: ${(params.contextFiles ?? []).join(", ")}` : ""}`,
           },
         ],
         details: { id, name: params.name, status: "pending" },
@@ -510,9 +513,12 @@ export default function (pi: ExtensionAPI) {
       const doneName = sa.name;
       activeSubAgentId = null;
 
-      // Notify the main agent that this sub-agent finished
+      // Notify the main agent that this sub-agent finished (invisible)
       const doneMsg = encodeDoneMessage(doneId, doneName);
-      pi.sendUserMessage(doneMsg, { deliverAs: "followUp" });
+      pi.sendMessage(
+        { customType: "subagent-done", content: doneMsg, display: false },
+        { triggerTurn: true, deliverAs: "followUp" },
+      );
 
       return {
         content: [
@@ -599,40 +605,54 @@ export default function (pi: ExtensionAPI) {
   pi.on("before_agent_start", async (event, ctx) => {
     const text = event.prompt;
 
-    // Check for sub-agent start marker
+    // Check for sub-agent start marker (text-based or custom-type)
     const startMarker = parseStartMarker(text);
-    if (startMarker) {
-      const sa = subAgents.get(startMarker.id);
+    const isCustomStart = (event as any).message?.customType === "subagent-start";
+
+    if (startMarker || isCustomStart) {
+      const markerId = startMarker?.id;
+      const markerName = startMarker?.name ?? "unknown";
+      const sa = markerId ? subAgents.get(markerId) : undefined;
+
       if (sa) {
         sa.status = "running";
         sa.startedAt = Date.now();
         activeSubAgentId = sa.id;
       }
 
+      const fileList = sa?.contextFiles ?? [];
       const contextHint =
-        sa && sa.contextFiles.length > 0
-          ? `\n\n**Files to focus on**: ${sa.contextFiles.join(", ")}\nRead these files first before taking any action.`
+        fileList.length > 0
+          ? `\n\n**Files to focus on**: ${fileList.join(", ")}\nRead these files first before taking any action.`
           : "";
 
       return {
         systemPrompt: event.systemPrompt + "\n\n" + SUBAGENT_SYSTEM_PROMPT + contextHint,
         message: {
           customType: "subagent-start",
-          content: `Sub-agent **${startMarker.name}** is now active.`,
+          content: `Sub-agent **${markerName}** is now active.`,
           display: false,
         },
       };
     }
 
-    // Check for sub-agent done marker
+    // Check for sub-agent done marker (text-based or custom-type)
     const doneMarker = parseDoneMarker(text);
-    if (doneMarker) {
-      activeSubAgentId = null;
+    const isCustomDone = (event as any).message?.customType === "subagent-done";
+
+    if (doneMarker || isCustomDone) {
+      const markerDoneId = doneMarker?.id;
+      const markerDoneName = doneMarker?.name ?? "unknown";
+
+      if (markerDoneId && activeSubAgentId === markerDoneId) {
+        activeSubAgentId = null;
+      }
+
       return {
         systemPrompt:
           event.systemPrompt +
-          `\n\nA sub-agent ("${doneMarker.name}") has completed its task. ` +
-          `Call task_result("${doneMarker.id}") to retrieve the full result ` +
+          `\n\nA sub-agent ("${markerDoneName}") has completed its task. ` +
+          `Call task_result("${markerDoneId ?? "unknown"}") to retrieve the full result ` +
           `and incorporate it into your work. Then continue with the main task.`,
       };
     }

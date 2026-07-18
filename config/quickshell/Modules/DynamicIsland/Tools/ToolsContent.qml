@@ -27,10 +27,9 @@ Item {
         { icon: "videocam",         tip: "录屏" },        
         { icon: "gif",              tip: "录制 GIF" },    
         { icon: "crop_free",        tip: "普通截屏" },
-        { icon: "height",           tip: "截长屏" },
         { icon: "document_scanner", tip: "OCR 识别" },
-        { icon: "mic",              tip: "录麦克风" },       // 索引 6
-        { icon: "speaker",          tip: "录电脑声音" }      // 【新增】：索引 7
+        { icon: "mic",              tip: "录麦克风" },
+        { icon: "speaker",          tip: "录电脑声音" }
     ]
 
     property int selectedIndex: 0
@@ -69,10 +68,12 @@ Item {
             toolsBackend.startRecord("gif")
         } else if (selectedIndex === 3) {
             toolsBackend.takeScreenshot()
-        } else if (selectedIndex === 6) { // 录音 - 麦克风
+        } else if (selectedIndex === 4) { // OCR 识别
+            toolsBackend.recognizeOcr()
+        } else if (selectedIndex === 5) { // 录音 - 麦克风
             toolsRoot.requestShowAudio("mic")
             toolsBackend.startAudio("audio_mic")
-        } else if (selectedIndex === 7) { // 录音 - 系统声音
+        } else if (selectedIndex === 6) { // 录音 - 系统声音
             toolsRoot.requestShowAudio("sys")
             toolsBackend.startAudio("audio_sys")
         } else {

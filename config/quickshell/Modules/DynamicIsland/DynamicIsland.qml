@@ -120,11 +120,11 @@ Variants {
                     visible: false
 
                     Rectangle {
-                        // 【宽度 340，左移至 18 完美对齐右侧卡片】
-                        width: 340
+                        // 【宽度 448，从中心线起始，对齐右侧 Illust/Hitokoto 卡片】
+                        width: 448
                         height: 456
                         anchors.left: parent.horizontalCenter
-                        anchors.leftMargin: 48
+                        anchors.leftMargin: 0
                         anchors.top: parent.top
                         anchors.topMargin: 132
                         radius: 24
@@ -234,8 +234,8 @@ Variants {
                 readonly property bool isMusicPlaying: root.currentPlayer && root.currentPlayer.isPlaying
                 // 只要有播放器就展示 compact lyrics bar（不严格依赖 isPlaying）
                 readonly property bool hasActivePlayer: root.currentPlayer != null
-                // 非音乐内容: LyricsContent 检测到 not-music 后置 true, 退回时钟
-                property bool notMusicDetected: false
+                // 非音乐内容: 绑定到 musicLyrics.isNotMusic (自动跟随标题变化)
+                property bool notMusicDetected: musicLyrics.isNotMusic
                 property bool isLyricsMode: showLyrics
                 property bool isToolsMode: showTools && !isLyricsMode
                 property bool isHubMode: showHub && !isToolsMode && !isLyricsMode
@@ -268,13 +268,7 @@ Variants {
                 onHasActivePlayerChanged: {
                     if (!hasActivePlayer) {
                         musicCollapsedW = collapsedW;
-                        root.notMusicDetected = false;
                     }
-                }
-
-                // 播放器切换时重置非音乐标记
-                onCurrentPlayerChanged: {
-                    root.notMusicDetected = false;
                 }
 
                 // 非音乐检测到时关闭歌词模式
@@ -408,11 +402,11 @@ Variants {
                     visible: false
 
                     Rectangle {
-                        // 【同步对齐】
-                        width: 340
+                        // 【同步对齐 — 宽度 448 从中心线起始】
+                        width: 448
                         height: 456
                         anchors.left: parent.horizontalCenter
-                        anchors.leftMargin: 48
+                        anchors.leftMargin: 0
                         anchors.top: parent.top
                         anchors.topMargin: 132
                         radius: 24
@@ -606,7 +600,7 @@ Variants {
                         anchors.horizontalCenter: parent.horizontalCenter
                         width: root.collapsedW + (root.isRecording ? root.recordExtraW : 0)
                         height: root.collapsedH
-                        property bool clockActive: !root.expanded && !root.isNotifMode && !root.isVolumeMode && !root.isLyricsMode && !root.isHubMode && !root.isToolsMode && !root.isAudioMode && (!root.hasActivePlayer || root.notMusicDetected)
+                        property bool clockActive: !root.expanded && !root.isNotifMode && !root.isVolumeMode && !root.isLyricsMode && !root.isHubMode && !root.isToolsMode && !root.isAudioMode && (!root.hasActivePlayer || !root.isMusicPlaying || root.notMusicDetected)
                         visible: clockActive
                         opacity: clockActive ? 1 : 0
 
@@ -624,7 +618,7 @@ Variants {
                         anchors.horizontalCenter: parent.horizontalCenter
                         width: clockRow.width + 10 + sepText.width + 10 + musicLyrics.width
                         height: root.collapsedH
-                        property bool musicActive: root.hasActivePlayer && !root.notMusicDetected && !root.expanded && !root.isNotifMode && !root.isVolumeMode && !root.isLyricsMode && !root.isHubMode && !root.isToolsMode && !root.isAudioMode
+                        property bool musicActive: root.hasActivePlayer && root.isMusicPlaying && !root.notMusicDetected && !root.expanded && !root.isNotifMode && !root.isVolumeMode && !root.isLyricsMode && !root.isHubMode && !root.isToolsMode && !root.isAudioMode
                         visible: musicActive
                         opacity: musicActive ? 1 : 0
 
@@ -686,8 +680,6 @@ Variants {
                             showSpectrum: false
                             defaultTextWidth: 80
                             lyricsContextWindow: 9999
-                            // 非音乐内容 → 退回时钟模式
-                            onNotMusicDetected: root.notMusicDetected = true
                         }
                     }
 
@@ -749,11 +741,6 @@ Variants {
                         active: root.isLyricsMode || root.isMusicPlaying
                         opacity: root.isLyricsMode ? 1 : 0
                         visible: opacity > 0.01
-                        // 非音乐内容 → 关闭歌词面板, 退回时钟
-                        onNotMusicDetected: {
-                            root.notMusicDetected = true
-                            root.showLyrics = false
-                        }
 
                         Behavior on opacity {
                             NumberAnimation {

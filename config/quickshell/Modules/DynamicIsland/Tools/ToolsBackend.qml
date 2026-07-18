@@ -10,6 +10,7 @@ Item {
 
     function pickColor() { colorPickerProcess.running = false; colorPickerProcess.running = true }
     function takeScreenshot() { screenshotProcess.running = false; screenshotProcess.running = true }
+    function recognizeOcr()     { ocrProcess.running = false; ocrProcess.running = true }
 
     // --- 调用外部脚本开始录制 ---
     function startRecord(mode) {
@@ -42,10 +43,38 @@ Item {
         stopAudioProcess.running = true
     }
 
-    // 简单工具依然保持内联
-    Process { id: colorPickerProcess; command: ["bash", "-c", "nohup bash -c 'sleep 0.3; hyprpicker -a' >/dev/null 2>&1 &"] }
-    Process { id: screenshotProcess; command: ["bash", "-c", "nohup bash -c 'sleep 0.3; grim -g \"$(slurp)\" - | wl-copy' >/dev/null 2>&1 &"] }
-    
+    // --- 简单工具: 内联命令 ---
+    Process {
+        id: colorPickerProcess
+        command: ["bash", "-c", "nohup bash -c 'sleep 0.3; hyprpicker -a' >/dev/null 2>&1 &"]
+    }
+
+    Process {
+        id: screenshotProcess
+        command: ["bash", "-c",
+            "sleep 0.3; " +
+            "DIR=\"$HOME/Pictures/Screenshots\"; " +
+            "mkdir -p \"$DIR\"; " +
+            "FILE=\"$DIR/Screenshot from $(date +'%Y-%m-%d %H-%M-%S').png\"; " +
+            "grim -g \"$(slurp)\" \"$FILE\" && wl-copy < \"$FILE\" && notify-send -a 截屏 '✅ 截图已保存' \"$FILE\" -i camera-photo"]
+    }
+
+    Process {
+        id: ocrProcess
+        command: ["bash", "-c",
+            "sleep 0.3; " +
+            "TMP=/tmp/niri-ocr-$$.png; " +
+            "DIR=\"$HOME/Pictures/OCR\"; " +
+            "mkdir -p \"$DIR\"; " +
+            "SAVE=\"$DIR/OCR $(date +'%Y-%m-%d %H-%M-%S').png\"; " +
+            "grim -g \"$(slurp)\" \"$TMP\"; " +
+            "cp \"$TMP\" \"$SAVE\"; " +
+            "if tesseract \"$TMP\" - -l chi_sim+eng 2>/dev/null | wl-copy; then " +
+            "notify-send -a OCR '✅ OCR 识别完成' \"文字已复制到剪贴板 | 图片: $SAVE\" -i accessories-text-editor; " +
+            "else notify-send -a OCR '❌ OCR 失败' '请确认已安装 tesseract 和 tesseract-data-chi_sim' -u critical; fi; " +
+            "rm -f \"$TMP\""]
+    }
+
     Process { id: recordProcess }
     Process { id: stopProcess }
 

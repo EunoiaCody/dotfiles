@@ -96,4 +96,31 @@ Item {
             return WallpaperService.setWallpaperFolder(path || "", true) ? "OK" : "PENDING";
         }
     }
+
+    // IPC handler for clipboard history toggle
+    IpcHandler {
+        target: "clipboard"
+
+        function toggle() {
+            if (WidgetState.qsOpen && WidgetState.qsView === "clipboard") {
+                WidgetState.qsOpen = false
+            } else {
+                WidgetState.qsView = "clipboard"
+                WidgetState.qsOpen = true
+            }
+            return "CLIPBOARD_TOGGLED"
+        }
+
+        function show() {
+            WidgetState.qsView = "clipboard"
+            WidgetState.qsOpen = true
+            return "CLIPBOARD_SHOWN"
+        }
+
+        function hide() {
+            if (WidgetState.qsView === "clipboard")
+                WidgetState.qsOpen = false
+            return "CLIPBOARD_HIDDEN"
+        }
+    }
 }

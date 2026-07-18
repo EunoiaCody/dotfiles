@@ -26,7 +26,7 @@ Item {
     }
     
     // 【恢复 860 总宽】
-    implicitWidth: currentIndex === 0 ? 860 : 
+    implicitWidth: currentIndex === 0 ? 960 : 
                    currentIndex === 2 ? 960 : 
                    760
     Behavior on implicitWidth { NumberAnimation { duration: 400; easing.type: Easing.OutQuint } }

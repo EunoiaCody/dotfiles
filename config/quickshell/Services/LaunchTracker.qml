@@ -15,6 +15,7 @@ Singleton {
     readonly property string configDir: Paths.homeDir + "/.cache/quickshell"
     readonly property string filePath: configDir + "/app-launch-freq.json"
     property bool storeReady: false
+    property bool ready: false
 
     property bool _dirty: false
     property var _saveTimer: Timer {
@@ -63,11 +64,15 @@ Singleton {
         freqFile.setText(JSON.stringify(frequencies, null, 2))
     }
 
-    // Ensure cache directory exists
+    // 在单例创建时立即初始化（不延迟到首次访问）
+    Component.onCompleted: {
+        ensureDir.running = true
+    }
+
+    // 确保缓存目录存在
     Process {
         id: ensureDir
         command: ["mkdir", "-p", root.configDir]
-        running: true
         onExited: {
             root.storeReady = true
             freqFile.reload()
@@ -90,10 +95,12 @@ Singleton {
                 root._dirty = true
                 root._doSave()
             }
+            root.ready = true
         }
 
         onLoadFailed: {
             root.frequencies = {}
+            root.ready = true
         }
     }
 }

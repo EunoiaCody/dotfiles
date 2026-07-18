@@ -1,0 +1,9 @@
+{
+  "name": "plan",
+  "title": "Planning...",
+  "task": "那你把那8个小功能都实现了吧，并且录屏、录制 GIF、普通截屏、OCR 识别要落盘，截长屏不需要，可以删除",
+  "content": "## 计划已生成\n\n计划保存在 `.pi/plan.md`。以下是核心要点：\n\n---\n\n### 7 个功能实现方案\n\n| # | 功能 | 方案 | 落盘路径 |\n|---|---|---|---|\n| 0 | **取色器** | 已可用 (`hyprpicker -a`)，不动 | 剪贴板 |\n| 1 | **录屏** | `slurp` 选区域 → `wf-recorder` → `.mp4` | `~/Videos/Recordings/` |\n| 2 | **录制 GIF** | `slurp` 选区 → `wf-recorder` 录临时 MP4 → stop 时 `ffmpeg` + `gifski` 转 GIF | `~/Videos/Recordings/` |\n| 3 | **普通截屏** | `grim -g \"$(slurp)\"` → 同时落盘 PNG + `wl-copy` 剪贴板 | `~/Pictures/Screenshots/` |\n| 4 | **OCR 识别** | `grim` 选区 → `tesseract` (chi_sim+eng) → `wl-copy` + PNG 留存 | `~/Pictures/OCR/` |\n| 5 | **录麦克风** | `pw-record` 录麦克风 source | `~/Videos/Recordings/` |\n| 6 | **录电脑声音** | `pw-record` 录 monitor source | `~/Videos/Recordings/` |\n\n### 需要改动的文件\n\n```\n新建:\n  scripts/capture/record.sh       ← 录屏/GIF/录音统一控制脚本\n  scripts/audio/wave_mic.sh       ← 麦克风波形可视化\n  scripts/audio/wave_sys.sh       ← 系统音频波形可视化\n\n修改:\n  ToolsBackend.qml     ← 截屏落盘 + OCR 命令\n  ToolsContent.qml     ← 删除「截长屏」、索引重排\n  Paths.qml            ← 新增 Recordings/OCR 路径常量\n```\n\n### 预览：record.sh 结构\n\n```bash\nrecord.sh start video     # slurp选区 → wf-recorder录制 → PID锁文件\nrecord.sh stop  video     # 发SIGINT → notify-send提示路径\nrecord.sh start gif       # slurp选区 → wf-recorder临时MP4\nrecord.sh stop  gif       # 终止录制 → ffmpeg+gifski转GIF → 删临时文件\nrecord.sh start audio_mic # pw-record 麦克风\nrecord.sh start audio_sys # pw-record 系统音频\nrecord.sh stop  audio     # 停止录音\n```\n\n---\n\n**PLAN COMPLETE** — 请审阅，批准后我开始逐步实现。",
+  "steps": [],
+  "approvedAt": null,
+  "createdAt": 1784290379286
+}

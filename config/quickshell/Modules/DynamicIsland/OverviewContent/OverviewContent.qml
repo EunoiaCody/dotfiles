@@ -10,38 +10,10 @@ Item {
     id: root
     signal closeRequested() 
 
-    implicitWidth: 860 
+    implicitWidth: 960
     implicitHeight: 520 
 
     property int activeSliderIndex: 0 
-
-    // ============================================================
-    // 【挖孔浮动卡片组件】
-    // 外层透明区域对齐 DynamicIsland.qml 中的物理挖孔，
-    // 内层纯色卡片悬浮在洞内，四周保留桌面透视边。
-    // ============================================================
-    component FloatingHoleCard : Item {
-        id: cardRoot
-        default property alias content: innerContainer.data
-        property real floatMargin: 10
-        property real contentMargin: 14
-
-        Rectangle {
-            id: cardBackground
-            anchors.fill: parent
-            anchors.margins: cardRoot.floatMargin
-            radius: 20
-            color: Appearance.colors.colLayer0
-            border.width: 0
-            border.color: "transparent"
-        }
-
-        Item {
-            id: innerContainer
-            anchors.fill: cardBackground
-            anchors.margins: cardRoot.contentMargin
-        }
-    }
 
     component ExpandableVertSlider : Item {
         id: sliderCol
@@ -161,22 +133,28 @@ Item {
             CalendarWidget { Layout.fillWidth: true; Layout.fillHeight: true }
         }
 
-        // 第三列：日程卡片
+        // 第三列：插画 + 一言
         Item {
             Layout.fillWidth: true
             Layout.fillHeight: true
 
-            FloatingHoleCard {
-                width: 340
+            IllustrationHitokoto {
+                id: illoWidget
+                width: 448
                 anchors.left: parent.left
-                anchors.leftMargin: 30
+                anchors.leftMargin: 32
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
-
-                ScheduleWidget {
-                    anchors.fill: parent
-                }
+                onRequestPickImage: imagePickerOverlay.open()
             }
         }
+    }
+
+    // ── 图片选择器 overlay ──
+    ImagePickerOverlay {
+        id: imagePickerOverlay
+        anchors.fill: parent
+        z: 100
+        onImageSelected: (path) => illoWidget.setImagePath(path)
     }
 }

@@ -6,6 +6,9 @@
 spawn-at-startup "/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1"
 spawn-at-startup "sh" "-c" "/home/eunoia/.config/quickshell/start-quickshell.sh"
 
+spawn-at-startup "wl-paste" "--type" "text" "--watch" "cliphist" "store"
+spawn-at-startup "wl-paste" "--type" "image" "--watch" "cliphist" "store"
+
 // 自动启动 emby 本地播放脚本
 spawn-at-startup "sh" "-c" "/home/eunoia/Apps/embyToLocalPlayer/etlp_run.command"
 

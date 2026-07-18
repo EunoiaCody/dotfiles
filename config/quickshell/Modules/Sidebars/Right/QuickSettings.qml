@@ -20,6 +20,7 @@ Item {
  case "notifications": return notificationsContent.contentImplicitHeight;
  case "power": return powerContent.contentImplicitHeight;
  case "bluetooth": return bluetoothContent.contentImplicitHeight;
+ case "clipboard": return clipboardContent.contentImplicitHeight;
  default: return640;
  }
  }
@@ -100,6 +101,18 @@ Item {
 
  opacity: WidgetState.qsView === "bluetooth" ?1.0 :0.0
  scale: WidgetState.qsView === "bluetooth" ?1.0 :0.95
+ visible: opacity >0
+
+ Behavior on opacity { NumberAnimation { duration:200; easing.type: Easing.OutQuint } }
+ Behavior on scale { NumberAnimation { duration:250; easing.type: Easing.OutBack; easing.overshoot:0.5 } }
+ }
+
+ ClipboardContent {
+ id: clipboardContent
+ anchors.fill: parent
+
+ opacity: WidgetState.qsView === "clipboard" ?1.0 :0.0
+ scale: WidgetState.qsView === "clipboard" ?1.0 :0.95
  visible: opacity >0
 
  Behavior on opacity { NumberAnimation { duration:200; easing.type: Easing.OutQuint } }

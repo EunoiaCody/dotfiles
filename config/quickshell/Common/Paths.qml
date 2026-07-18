@@ -36,6 +36,13 @@ Singleton {
     readonly property string wallpaperCacheDir: cacheDir + "/quickshell-wallpaper"
     readonly property string currentWallpaperFile: cacheDir + "/quickshell-wallpaper/current"
 
+    // 截图 / 录屏 / OCR 落盘路径
+    readonly property string screenshotsDir: picturesDir + "/Screenshots"
+    readonly property string recordingsDir: homeDir + "/Videos/Recordings"
+    readonly property string ocrDir: picturesDir + "/OCR"
+    // 临时文件目录（用于 GIF 转码中间产物等）
+    readonly property string captureTmpDir: tmpDir + "/niri-capture"
+
     function fileUrl(path) {
         const v = String(path);
         return v.startsWith("file://") ? v : "file://" + v;

@@ -74,6 +74,7 @@ Item {
         }
     }
 
+    // ── 搜索更新 ──
     onQueryChanged: search(query)
 
     onVisibleChanged: {
@@ -98,35 +99,11 @@ Item {
         visible: root.filteredWindows.length === 0
     }
 
-    StyledListView {
-        id: windowsList
-        width: parent.width
-        height: rofiStyle.listHeight
-        anchors.top: parent.top
-        clip: true
-        spacing: rofiStyle.listSpacing
-        animateAppearance: false
-        animateMovement: false
-        showVerticalScrollBar: false
-        smoothWheelEnabled: false
-        visible: root.filteredWindows.length > 0
+    // 提取 delegate 为命名 Component
+    Component {
+        id: windowDelegate
 
-        model: root.filteredWindows
-
-        boundsBehavior: Flickable.StopAtBounds
-        interactive: false
-        highlightFollowsCurrentItem: true
-        highlightRangeMode: ListView.NoHighlightRange
-
-        highlight: Rectangle {
-            width: windowsList.width
-            height: rofiStyle.rowHeight
-            color: Appearance.colors.colPrimary
-            radius: rofiStyle.controlRadius
-        }
-        highlightMoveDuration: 0
-
-        delegate: Item {
+        Item {
             id: delegateItem
             width: ListView.view.width
             height: rofiStyle.rowHeight
@@ -185,6 +162,43 @@ Item {
                     verticalAlignment: Text.AlignVCenter
                     elide: Text.ElideRight
                     Layout.alignment: Qt.AlignVCenter
+                }
+            }
+        }
+    }
+
+    StyledListView {
+        id: windowsList
+        width: parent.width
+        height: rofiStyle.listHeight
+        anchors.top: parent.top
+        clip: true
+        spacing: rofiStyle.listSpacing
+        animateAppearance: true
+        animateMovement: true
+        showVerticalScrollBar: false
+        visible: root.filteredWindows.length > 0
+
+        model: root.filteredWindows
+        delegate: windowDelegate
+
+        boundsBehavior: Flickable.StopAtBounds
+        maximumFlickVelocity: 3000
+        highlightFollowsCurrentItem: false
+        highlightRangeMode: ListView.NoHighlightRange
+
+        highlight: Rectangle {
+            width: windowsList.width
+            height: rofiStyle.rowHeight
+            color: Appearance.colors.colPrimary
+            radius: rofiStyle.controlRadius
+            y: windowsList.currentItem ? windowsList.currentItem.y : 0
+
+            Behavior on y {
+                NumberAnimation {
+                    duration: Appearance.animation.expressiveDefaultSpatial.duration
+                    easing.type: Appearance.animation.expressiveDefaultSpatial.type
+                    easing.bezierCurve: Appearance.animation.expressiveDefaultSpatial.bezierCurve
                 }
             }
         }

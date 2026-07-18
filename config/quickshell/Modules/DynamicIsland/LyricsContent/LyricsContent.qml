@@ -30,8 +30,7 @@ Item {
     property string currentLoadedTitle: ""
     readonly property string spectrumToken: "dynamic-island-lyrics"
 
-    // 非音乐内容检测: 标题不含音乐信号词时 emit, 通知 DynamicIsland 退回时钟模式
-    signal notMusicDetected()
+    // 非音乐内容检测: DynamicIsland 绑定此属性, 自动跟随当前标题切换
     property bool isNotMusic: false
 
     Component.onCompleted: {
@@ -66,12 +65,11 @@ Item {
             if (title !== root.trackTitle) return;
             try {
                 var obj = data;
-                // 非音乐内容: 通知 DynamicIsland 退回时钟模式
+                // 非音乐内容: 设置 isNotMusic → DynamicIsland 的绑定自动跟随
                 if (obj.source === "not-music") {
                     root.isNotMusic = true;
                     root.lyricsArray = [];
                     LyricsSyncEngine.lyricsData = [];
-                    root.notMusicDetected();
                     return;
                 }
                 root.isNotMusic = false;

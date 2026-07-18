@@ -51,6 +51,9 @@ Item {
  screen: root.screen
  }
  NotificationButton {}
+ ClipboardButton {
+ screen: root.screen
+ }
  PowerButton {
  screen: root.screen
  }

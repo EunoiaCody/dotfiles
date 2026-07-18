@@ -18,3 +18,4 @@ singleton WallpaperService 1.0 WallpaperService.qml
 singleton AudioSpectrum 1.0 AudioSpectrum.qml
 singleton Wlsunset 1.0 Wlsunset.qml
 singleton LaunchTracker 1.0 LaunchTracker.qml
+singleton ClipboardService 1.0 ClipboardService.qml
