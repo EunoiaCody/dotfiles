@@ -234,8 +234,24 @@ Variants {
                 readonly property bool isMusicPlaying: root.currentPlayer && root.currentPlayer.isPlaying
                 // 只要有播放器就展示 compact lyrics bar（不严格依赖 isPlaying）
                 readonly property bool hasActivePlayer: root.currentPlayer != null
-                // 非音乐内容: 绑定到 musicLyrics.isNotMusic (自动跟随标题变化)
-                property bool notMusicDetected: musicLyrics.isNotMusic
+                // 非音乐内容: 浏览器播放器 → 退回时钟
+                // MediaManager.getIdentity 已在 Services 中定义, 直接复用
+                property bool notMusicDetected: false
+
+                Timer {
+                    id: browserCheckTimer
+                    interval: 300; repeat: true
+                    running: root.hasActivePlayer
+                    onTriggered: {
+                        if (!root.currentPlayer || !root.currentPlayer.identity) return;
+                        var identity = MediaManager.getIdentity(root.currentPlayer);
+                        var isBrowser = (identity === "Browser" || identity === "Firefox" || identity === "Edge");
+                        if (isBrowser !== root.notMusicDetected) {
+                            root.notMusicDetected = isBrowser;
+                            if (isBrowser) root.showLyrics = false;
+                        }
+                    }
+                }
                 property bool isLyricsMode: showLyrics
                 property bool isToolsMode: showTools && !isLyricsMode
                 property bool isHubMode: showHub && !isToolsMode && !isLyricsMode
@@ -268,13 +284,7 @@ Variants {
                 onHasActivePlayerChanged: {
                     if (!hasActivePlayer) {
                         musicCollapsedW = collapsedW;
-                    }
-                }
-
-                // 非音乐检测到时关闭歌词模式
-                onNotMusicDetectedChanged: {
-                    if (root.notMusicDetected) {
-                        root.showLyrics = false;
+                        root.notMusicDetected = false;
                     }
                 }
 

@@ -31,21 +31,6 @@ Item {
     readonly property string spectrumToken: "dynamic-island-lyrics"
 
     // 浏览器播放器: 标题不可靠, 不解析歌词, 直接退回时钟
-    // 用函数而非属性绑定——player.identity 可能是异步填充的 C++ 属性,
-    // 绑定在 identity 变化时不触发重算, 但在 triggerReload 中主动调用有效
-    function isBrowserPlayerNow() {
-        if (!player) return false;
-        var id = (player.identity || "").toLowerCase();
-        var bus = (player.busName || "").toLowerCase();
-        var combined = id + "|" + bus;
-        return combined.includes("firefox") || combined.includes("chrome")
-            || combined.includes("chromium") || combined.includes("brave")
-            || combined.includes("edge") || combined.includes("opera")
-            || combined.includes("vivaldi") || combined.includes("zen")
-            || combined.includes("mozilla") || combined.includes("google");
-    }
-
-    // 非音乐内容: DynamicIsland 绑定此属性
     property bool isNotMusic: false
 
     Component.onCompleted: {
@@ -123,29 +108,8 @@ Item {
     onTrackTitleChanged: triggerReload()
     onActiveChanged: { if (active && root.trackTitle !== root.currentLoadedTitle) triggerReload() }
 
-    // player 变化时: 立刻检查 + 延迟重查 (identity 可能是异步填充的)
-    onPlayerChanged: {
-        checkBrowserDelayed.restart();
-    }
-
-    Timer {
-        id: checkBrowserDelayed; interval: 500; repeat: false;
-        onTriggered: {
-            if (root.isBrowserPlayerNow()) {
-                root.isNotMusic = true;
-                root.lyricsArray = [];
-                LyricsSyncEngine.lyricsData = [];
-            }
-        }
-    }
-
     function triggerReload() {
         if (!root.active) return
-        if (root.isBrowserPlayerNow()) {  // 主动调用, 不依赖属性绑定
-            root.isNotMusic = true;
-            root.lyricsArray = [];
-            return;
-        }
         debounceTimer.restart()
     }
 
