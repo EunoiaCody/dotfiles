@@ -1,8 +1,0 @@
-{
-  "lastChangelogVersion": "0.80.8",
-  "theme": "catppuccin-mocha-lavender",
-  "defaultProvider": "opencode-go",
-  "defaultModel": "deepseek-v4-pro",
-  "defaultThinkingLevel": "max",
-  "hideThinkingBlock": true
-}

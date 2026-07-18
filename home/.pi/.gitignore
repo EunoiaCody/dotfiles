@@ -1,0 +1,5 @@
+# pi-agent — ignore runtime data, keep only config files
+agent/auth.json
+agent/models-store.json
+agent/settings.json
+agent/sessions/
