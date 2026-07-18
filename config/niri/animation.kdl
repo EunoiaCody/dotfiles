@@ -73,54 +73,6 @@ animations {
     window-close {
         duration-ms 570
         custom-shader r"
-            float hash21(vec2 p) {
-                p = fract(p * vec2(123.34, 456.21));
-                p += dot(p, p + 45.32);
-                return fract(p.x * p.y);
-            }
-
-            mat2 rot(float a) {
-                float s = sin(a);
-                float c = cos(a);
-                return mat2(c, -s, s, c);
-            }
-
-            // 花瓣形状 mask：返回 0.0 ~ 1.0
-            float petal_mask(vec2 uv, float t) {
-                // 想更像大花瓣：vec2(24.0, 13.0)
-                // 想更碎更密：vec2(40.0, 22.0)
-                vec2 grid = uv * vec2(24.0, 13.0);
-
-                vec2 id = floor(grid);
-                vec2 f = fract(grid) - 0.5;
-
-                float rnd = hash21(id);
-
-                vec2 jitter = vec2(
-                    hash21(id + vec2(3.1, 5.7)),
-                    hash21(id + vec2(7.7, 2.4))
-                ) * 0.36 - 0.18;
-
-                f += jitter;
-
-                // 关闭时花瓣随风旋转得稍微明显一点
-                float angle = rnd * 6.2831853 + t * 2.2;
-                f = rot(angle) * f;
-
-                float ellipse = length(vec2(f.x * 2.75, f.y * 0.80));
-
-                float petal = 1.0 - smoothstep(0.15, 0.25, ellipse);
-
-                // 花瓣尖端
-                float tip = smoothstep(-0.48, 0.22, f.y);
-                petal *= tip;
-
-                // 控制花瓣数量
-                float appear = step(0.58, rnd);
-
-                return petal * appear;
-            }
-
             vec4 close_color(vec3 coords_geo, vec3 size_geo) {
                 float t = niri_clamped_progress;
 
@@ -129,9 +81,7 @@ animations {
                     discard;
                 }
 
-                // ==========================================
                 // 风力系统：关闭时向右、向上轻轻吹散
-                // ==========================================
                 float wind_x = t * 0.38;
 
                 float turbulence =
@@ -153,34 +103,15 @@ animations {
                 vec3 coords_tex = niri_geo_to_tex * vec3(wind_blown_coords, 1.0);
                 vec4 color = texture2D(niri_tex, coords_tex.st);
 
-                vec3 lavender = vec3(0.78, 0.65, 0.90);
-                vec3 pale_pink = vec3(1.00, 0.72, 0.86);
-                vec3 petal_color = mix(lavender, pale_pink, 0.38);
-
-                // 花瓣随风向右上漂
-                vec2 petal_uv = wind_blown_coords + vec2(t * 0.25, -t * 0.10);
-                float petal = petal_mask(petal_uv, t);
-
                 // 消散扫描：从下方向上、略带右斜
-                float dissolve_wave =
+                float dissolve =
                     wind_blown_coords.y
                     - t * 1.22
                     + wind_blown_coords.x * 0.22;
 
-                // 花瓣区域保留更久，形成“画面碎成花瓣”的感觉
-                float dissolve = dissolve_wave + petal * 0.78;
-
                 if (dissolve < 0.0) {
                     discard;
                 }
-
-                float edge = smoothstep(0.0, 0.16, dissolve) *
-                             (1.0 - smoothstep(0.16, 0.38, dissolve));
-
-                float petal_glow = petal * smoothstep(0.0, 0.32, dissolve);
-
-                color.rgb = mix(color.rgb, petal_color, petal_glow * 0.72);
-                color.rgb += petal_color * edge * 0.45 * (1.0 - t);
 
                 // 整体淡出
                 float alpha = color.a * (1.0 - smoothstep(0.0, 1.0, t));

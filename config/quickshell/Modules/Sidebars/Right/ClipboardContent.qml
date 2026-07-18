@@ -49,11 +49,11 @@ WidgetPanel {
         if (!ClipboardService.entries || ClipboardService.entries.length === 0)
             return []
         if (searchQuery.trim() === "")
-            return ClipboardService.entries.slice().reverse()  // 最新在前
+            return ClipboardService.entries.slice()
         var q = searchQuery.toLowerCase()
         return ClipboardService.entries.filter(function(e) {
             return e.preview.toLowerCase().indexOf(q) >= 0
-        }).reverse()
+        })
     }
 
     readonly property int count: filteredEntries.length
