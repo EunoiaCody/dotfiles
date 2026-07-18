@@ -22,7 +22,7 @@ Item {
     function decrementCurrentIndex() { setCurrentIndex(appsList.currentIndex - 1) }
     function incrementCurrentIndex() { setCurrentIndex(appsList.currentIndex + 1) }
 
-    function setCurrentIndex(index) {
+    function setCurrentIndex(index, skipScroll) {
         if (filteredAppsModel.count === 0) {
             appsList.currentIndex = -1
             appsList.contentY = 0
@@ -30,7 +30,7 @@ Item {
         }
 
         appsList.currentIndex = Math.max(0, Math.min(index, filteredAppsModel.count - 1))
-        ensureCurrentVisible()
+        if (!skipScroll) ensureCurrentVisible()
     }
 
     function ensureCurrentVisible() {
@@ -186,11 +186,13 @@ Item {
 
             MouseArea {
                 anchors.fill: parent
+                hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
                 onClicked: {
                     root.setCurrentIndex(index)
                     runSelectedApp()
                 }
+                onEntered: root.setCurrentIndex(index, true)
             }
 
             RowLayout {
