@@ -1,16 +1,193 @@
 animations {
-    // slowdown 5
+    slowdown 2
 
     workspace-switch {
         spring damping-ratio=0.80 stiffness=523 epsilon=0.0001
     }
     window-open {
-        duration-ms 300
-        curve "ease-out-expo"
+        duration-ms 600
+        custom-shader r"
+            float hash21(vec2 p) {
+            p = fract(p * vec2(123.34, 456.21));
+            p += dot(p, p + 45.32);
+            return fract(p.x * p.y);
+        }
+
+        vec4 open_color(vec3 coords_geo, vec3 size_geo) {
+            float t = niri_clamped_progress;
+
+            if (coords_geo.x < 0.0 || coords_geo.x > 1.0 ||
+                coords_geo.y < 0.0 || coords_geo.y > 1.0) {
+                discard;
+            }
+
+            float ease = smoothstep(0.0, 1.0, t);
+
+            float inv_t = 1.0 - ease;
+
+            float wave_x =
+                sin(coords_geo.y * 10.0 + t * 3.2) * 0.012 * inv_t +
+                sin(coords_geo.y * 22.0 - t * 4.0) * 0.004 * inv_t;
+
+            float wave_y =
+                sin(coords_geo.x * 8.0 - t * 2.4) * 0.006 * inv_t;
+
+            vec2 uv = vec2(
+                coords_geo.x - inv_t * 0.055 + wave_x,
+                coords_geo.y + wave_y
+            );
+
+            if (uv.x < 0.0 || uv.x > 1.0 ||
+                uv.y < 0.0 || uv.y > 1.0) {
+                discard;
+            }
+
+            vec3 coords_tex = niri_geo_to_tex * vec3(uv, 1.0);
+            vec4 color = texture2D(niri_tex, coords_tex.st);
+
+            // 薰衣草 + 淡粉高光，只在 opening 初期出现
+            vec3 lavender = vec3(0.78, 0.65, 0.90);
+            vec3 pale_pink = vec3(1.00, 0.72, 0.86);
+            vec3 glow_color = mix(lavender, pale_pink, 0.35);
+
+            // 从左下到右上的柔和光幕
+            float veil =
+                smoothstep(-0.25, 0.85, coords_geo.x + coords_geo.y * 0.28 + t * 0.55)
+                * (1.0 - smoothstep(0.55, 1.35, coords_geo.x + coords_geo.y * 0.28 + t * 0.55));
+
+            // 边缘轻微发光，不要出现颗粒
+            color.rgb = mix(color.rgb, glow_color, veil * 0.16 * inv_t);
+            color.rgb += glow_color * veil * 0.10 * inv_t;
+
+            // 初期稍微白一点，像柔光浮现
+            color.rgb = mix(vec3(1.0), color.rgb, 0.88 + 0.12 * ease);
+
+            // 透明度淡入
+            float alpha = color.a * ease;
+
+            return vec4(color.rgb, alpha);
+        }
+        "
     }
+
     window-close {
-        duration-ms 300
-        curve "ease-out-quad"
+        duration-ms 570
+        custom-shader r"
+            float hash21(vec2 p) {
+                p = fract(p * vec2(123.34, 456.21));
+                p += dot(p, p + 45.32);
+                return fract(p.x * p.y);
+            }
+
+            mat2 rot(float a) {
+                float s = sin(a);
+                float c = cos(a);
+                return mat2(c, -s, s, c);
+            }
+
+            // 花瓣形状 mask：返回 0.0 ~ 1.0
+            float petal_mask(vec2 uv, float t) {
+                // 想更像大花瓣：vec2(24.0, 13.0)
+                // 想更碎更密：vec2(40.0, 22.0)
+                vec2 grid = uv * vec2(24.0, 13.0);
+
+                vec2 id = floor(grid);
+                vec2 f = fract(grid) - 0.5;
+
+                float rnd = hash21(id);
+
+                vec2 jitter = vec2(
+                    hash21(id + vec2(3.1, 5.7)),
+                    hash21(id + vec2(7.7, 2.4))
+                ) * 0.36 - 0.18;
+
+                f += jitter;
+
+                // 关闭时花瓣随风旋转得稍微明显一点
+                float angle = rnd * 6.2831853 + t * 2.2;
+                f = rot(angle) * f;
+
+                float ellipse = length(vec2(f.x * 2.75, f.y * 0.80));
+
+                float petal = 1.0 - smoothstep(0.15, 0.25, ellipse);
+
+                // 花瓣尖端
+                float tip = smoothstep(-0.48, 0.22, f.y);
+                petal *= tip;
+
+                // 控制花瓣数量
+                float appear = step(0.58, rnd);
+
+                return petal * appear;
+            }
+
+            vec4 close_color(vec3 coords_geo, vec3 size_geo) {
+                float t = niri_clamped_progress;
+
+                if (coords_geo.x < 0.0 || coords_geo.x > 1.0 ||
+                    coords_geo.y < 0.0 || coords_geo.y > 1.0) {
+                    discard;
+                }
+
+                // ==========================================
+                // 风力系统：关闭时向右、向上轻轻吹散
+                // ==========================================
+                float wind_x = t * 0.38;
+
+                float turbulence =
+                    sin(coords_geo.y * 6.0 - t * 4.0) * 0.060 * (1.0 - t) +
+                    sin(coords_geo.x * 9.0 + t * 3.0) * 0.018 * (1.0 - t);
+
+                float wind_offset = wind_x + turbulence;
+
+                vec2 wind_blown_coords = vec2(
+                    coords_geo.x - wind_offset,
+                    coords_geo.y + t * 0.045
+                );
+
+                if (wind_blown_coords.x < 0.0 || wind_blown_coords.x > 1.0 ||
+                    wind_blown_coords.y < 0.0 || wind_blown_coords.y > 1.0) {
+                    discard;
+                }
+
+                vec3 coords_tex = niri_geo_to_tex * vec3(wind_blown_coords, 1.0);
+                vec4 color = texture2D(niri_tex, coords_tex.st);
+
+                vec3 lavender = vec3(0.78, 0.65, 0.90);
+                vec3 pale_pink = vec3(1.00, 0.72, 0.86);
+                vec3 petal_color = mix(lavender, pale_pink, 0.38);
+
+                // 花瓣随风向右上漂
+                vec2 petal_uv = wind_blown_coords + vec2(t * 0.25, -t * 0.10);
+                float petal = petal_mask(petal_uv, t);
+
+                // 消散扫描：从下方向上、略带右斜
+                float dissolve_wave =
+                    wind_blown_coords.y
+                    - t * 1.22
+                    + wind_blown_coords.x * 0.22;
+
+                // 花瓣区域保留更久，形成“画面碎成花瓣”的感觉
+                float dissolve = dissolve_wave + petal * 0.78;
+
+                if (dissolve < 0.0) {
+                    discard;
+                }
+
+                float edge = smoothstep(0.0, 0.16, dissolve) *
+                             (1.0 - smoothstep(0.16, 0.38, dissolve));
+
+                float petal_glow = petal * smoothstep(0.0, 0.32, dissolve);
+
+                color.rgb = mix(color.rgb, petal_color, petal_glow * 0.72);
+                color.rgb += petal_color * edge * 0.45 * (1.0 - t);
+
+                // 整体淡出
+                float alpha = color.a * (1.0 - smoothstep(0.0, 1.0, t));
+
+                return vec4(color.rgb, alpha);
+            }
+        "
     }
     horizontal-view-movement {
         spring damping-ratio=0.85 stiffness=423 epsilon=0.0001

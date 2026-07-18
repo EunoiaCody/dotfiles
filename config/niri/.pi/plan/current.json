@@ -1,0 +1,32 @@
+{
+  "name": "修改-mod+h-l-绑定为-consume-or-expel-window",
+  "title": "修改 Mod+H/L 绑定为 consume-or-expel-window",
+  "task": "niri的Mod+h/l逻辑不对，应该是Mod+h/l使窗口加入左/右列",
+  "content": "## Plan: 修改 Mod+H/L 绑定为 consume-or-expel-window\n\n### Overview\n将 `Mod+H` 和 `Mod+L`（以及对应的方向键绑定）从焦点移动操作 (`focus-column-left/right`) 改为窗口合并/分离操作 (`consume-or-expel-window-left/right`)。这样按 Mod+H 会将当前窗口合并到左侧列（或从左侧列分离），按 Mod+L 同理，实现用户期望的「窗口加入左/右列」行为。\n\n### Affected Files\n- `/home/eunoia/.config/niri/binds.kdl` — 修改 4 处 bind 的 action\n\n### Step-by-Step Plan\n\n#### Phase 1: 修改键盘绑定\n\n**修改 HJKL 键绑定（第3行、第6行）**：\n- [ ] `Mod+H` 从 `focus-column-left` 改为 `consume-or-expel-window-left`\n- [ ] `Mod+L` 从 `focus-column-right` 改为 `consume-or-expel-window-right`\n\n**修改方向键绑定（第9行、第12行）**：\n- [ ] `Mod+Left` 从 `focus-column-left` 改为 `consume-or-expel-window-left`\n- [ ] `Mod+Right` 从 `focus-column-right` 改为 `consume-or-expel-window-right`\n\n**保持不变的绑定**：\n- `Mod+J/K` (`focus-window-down/up`) — 列内垂直焦点移动，保持不变\n- `Mod+Shift+H/L` (`move-column-left/right`) — 整列位置移动，保持不变\n- `Mod+Shift+J/K` (`move-window-down/up`) — 列内窗口位置移动，保持不变\n\n### 修改前后对比\n\n| 按键 | 修改前 | 修改后 |\n|------|--------|--------|\n| `Mod+H` | `focus-column-left` | `consume-or-expel-window-left` |\n| `Mod+L` | `focus-column-right` | `consume-or-expel-window-right` |\n| `Mod+Left` | `focus-column-left` | `consume-or-expel-window-left` |\n| `Mod+Right` | `focus-column-right` | `consume-or-expel-window-right` |\n\n### 行为说明\n\n- **Consume 方向**：当窗口是列中的活跃窗口（顶部位置），会将相邻列的窗口拉入当前列\n- **Expel 方向**：当窗口在列底部，会将当前窗口踢出到相邻方向成为独立列\n- 焦点始终跟随被操作的窗口，因此不影响后续操作\n\n### Risks & Considerations\n\n- **失去纯焦点移动能力**：修改后不再有仅移动焦点的列切换快捷键。如果需要，可以后续将 `focus-column-left/right` 绑定到其他按键（如 `Mod+Ctrl+H/L`），但不在此计划范围内\n- **consume-or-expel 是双向操作**：它根据窗口在列中的位置决定是 consume 还是 expel，可能不完全等于「总是合并到左列」。如果实际使用中发现不符合预期，可以进一步调整为其他 action（如纯 `consume-window-into-column` 配合方向变体）\n\n### Estimated Impact\n- Files to modify: 1 (`binds.kdl`)\n- Files to create: 0\n- Files to delete: 0\n\n---\n\nPLAN COMPLETE",
+  "steps": [
+    {
+      "id": 1,
+      "text": "`Mod+H` 从 `focus-column-left` 改为 `consume-or-expel-window-left`",
+      "done": false
+    },
+    {
+      "id": 2,
+      "text": "`Mod+L` 从 `focus-column-right` 改为 `consume-or-expel-window-right`",
+      "done": false
+    },
+    {
+      "id": 3,
+      "text": "`Mod+Left` 从 `focus-column-left` 改为 `consume-or-expel-window-left`",
+      "done": false
+    },
+    {
+      "id": 4,
+      "text": "`Mod+Right` 从 `focus-column-right` 改为 `consume-or-expel-window-right`",
+      "done": false
+    }
+  ],
+  "approvedAt": 1784368301361,
+  "createdAt": 1784366508464,
+  "state": "executing",
+  "language": "zh"
+}
