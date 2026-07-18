@@ -22,7 +22,7 @@
  * Plans are persisted to <cwd>/.pi/plan/ as JSON for reliability across
  * sessions, plus a human-readable plan.md for each plan.
  *
- * In planning phase: ALL write/edit/bash-mutation tools are BLOCKED.
+ * In planning & reviewing phases: ALL write/edit/bash-mutation tools are BLOCKED.
  * In execution phase: plan steps sync to todo list, full tools available.
  *
  * Auto-discovered from ~/.pi/agent/extensions/.
@@ -355,18 +355,30 @@ After the user approves, you will enter execution mode and follow the plan step 
 }
 
 function reviewPrompt(lang: "zh" | "en" | "other"): string {
+  if (lang === "zh") {
+    return `
+## 🟡 计划审阅中 — 等待批准
+
+计划已生成，正在等待用户审批。**严格禁止**执行任何修改操作。
+
+你的任务：向用户总结计划内容，并请用户选择：
+- \`/plan approve\` — 批准并开始执行
+- \`/plan reject\` — 放弃计划
+- \`/plan revise <意见>\` — 提出修改意见
+
+**重要：** 在用户明确批准之前，所有写入/编辑/bash 修改工具均被硬性阻止。你只能进行只读分析。不要尝试执行计划中的任何步骤。`;
+  }
   return `
-## 🟡 PLAN READY FOR REVIEW
+## 🟡 PLAN READY FOR REVIEW — AWAITING APPROVAL
 
-A plan has been prepared and is awaiting user approval. ${LANG[lang].reviewInstruction}
+A plan has been prepared and is awaiting user approval. **Strictly NO modifications allowed.**
 
-The user can:
+Your task: summarize the plan for the user and let them choose:
 - \`/plan approve\` — approve and start executing
 - \`/plan reject\` — discard the plan
 - \`/plan revise <notes>\` — request changes
-- \`/plan list\` — see all saved plans
 
-Do NOT start executing the plan until the user explicitly approves.`;
+**Important:** All write/edit/bash-mutation tools are HARD-BLOCKED until the user explicitly approves. You may only perform read-only analysis. Do NOT attempt to execute any plan steps.`;
 }
 
 function executionPrompt(lang: "zh" | "en" | "other"): string {
@@ -1039,11 +1051,22 @@ export default function (pi: ExtensionAPI) {
   });
 
   // =========================================================================
-  // tool_call: block write tools during planning
+  // tool_call: block write tools during planning AND reviewing
   // =========================================================================
 
   pi.on("tool_call", async (event, ctx) => {
-    if (planState !== "planning") return;
+    // Block mutation tools during both planning and reviewing.
+    // Only allow after explicit user approval (executing state).
+    if (planState !== "planning" && planState !== "reviewing") return;
+
+    const phaseLabel =
+      planState === "reviewing"
+        ? userLanguage === "zh"
+          ? "审阅模式"
+          : "Review mode"
+        : userLanguage === "zh"
+          ? "计划模式"
+          : "Plan mode";
 
     // write: allow .md files (plan documents), block everything else
     if (isToolCallEventType("write", event)) {
@@ -1051,8 +1074,8 @@ export default function (pi: ExtensionAPI) {
       if (!path.endsWith(".md")) {
         const reasonWrite =
           userLanguage === "zh"
-            ? `计划模式已激活 — write 仅允许 .md 文档。当前文件: ${path}。请先生成计划并获取批准后再修改代码文件。`
-            : `Plan mode is active — write is only allowed for .md files. Target: ${path}. Create the plan first, then get approval before modifying code.`;
+            ? `${phaseLabel}已激活 — write 仅允许 .md 文档。当前文件: ${path}。请先获取计划批准后再修改代码文件。`
+            : `${phaseLabel} is active — write is only allowed for .md files. Target: ${path}. Get the plan approved before modifying code.`;
         return { block: true, reason: reasonWrite };
       }
       return;
@@ -1064,8 +1087,8 @@ export default function (pi: ExtensionAPI) {
       if (!path.endsWith(".md")) {
         const reasonEdit =
           userLanguage === "zh"
-            ? `计划模式已激活 — edit 仅允许 .md 文档。当前文件: ${path}。请先生成计划并获取批准后再修改代码文件。`
-            : `Plan mode is active — edit is only allowed for .md files. Target: ${path}. Create the plan first, then get approval before modifying code.`;
+            ? `${phaseLabel}已激活 — edit 仅允许 .md 文档。当前文件: ${path}。请先获取计划批准后再修改代码文件。`
+            : `${phaseLabel} is active — edit is only allowed for .md files. Target: ${path}. Get the plan approved before modifying code.`;
         return { block: true, reason: reasonEdit };
       }
       return;
@@ -1074,8 +1097,8 @@ export default function (pi: ExtensionAPI) {
     if (event.toolName === "task") {
       const reasonTask =
         userLanguage === "zh"
-          ? `计划模式已激活 — 不允许创建子代理。请先完成计划。`
-          : `Plan mode is active — spawning sub-agents is not allowed. Complete the plan first.`;
+          ? `${phaseLabel}已激活 — 不允许创建子代理。请先获取计划批准。`
+          : `${phaseLabel} is active — spawning sub-agents is not allowed. Get the plan approved first.`;
       return { block: true, reason: reasonTask };
     }
 
@@ -1085,8 +1108,8 @@ export default function (pi: ExtensionAPI) {
         if (pattern.test(cmd)) {
           const reasonBash =
             userLanguage === "zh"
-              ? `计划模式已激活 — 此 bash 命令疑似修改文件。只允许只读分析。请先生成计划。`
-              : `Plan mode is active — this bash command appears to modify files. Read-only analysis only. Create the plan first.`;
+              ? `${phaseLabel}已激活 — 此 bash 命令疑似修改文件。只允许只读分析。请先获取计划批准。`
+              : `${phaseLabel} is active — this bash command appears to modify files. Read-only analysis only. Get the plan approved first.`;
           return { block: true, reason: reasonBash };
         }
       }
