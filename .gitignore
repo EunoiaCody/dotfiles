@@ -1,0 +1,9 @@
+# pi-agent runtime data (never sync)
+home/.pi/agent/auth.json
+home/.pi/agent/models-store.json
+home/.pi/agent/settings.json
+home/.pi/agent/sessions/
+
+# pi-agent plans and working files inside other config dirs
+**/.pi/plan*
+**/.pi/plan/

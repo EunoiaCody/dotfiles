@@ -29,7 +29,9 @@ for dir in "${CONFIG_DIRS[@]}"; do
 
     # 复制新的配置文件
     if [ -d "$HOME/.config/$dir" ]; then
-        cp -r "$HOME/.config/$dir" "config/$dir"
+        cp -r "$HOME/.config/$dir/." "config/$dir/"
+        # 从 git 恢复 .gitignore（源目录可能没有）
+        git checkout -- "config/$dir/.gitignore" 2>/dev/null || true
         echo "✓ config/$dir 同步完成"
     else
         echo "⚠ 警告: ~/.config/$dir 不存在，跳过同步"
@@ -45,7 +47,9 @@ for name in "${HOME_DIRS[@]}"; do
     fi
 
     if [ -e "$HOME/$name" ]; then
-        cp -r "$HOME/$name" "home/$name"
+        cp -r "$HOME/$name/." "home/$name/"
+        # 从 git 恢复 .gitignore（源目录可能没有）
+        git checkout -- "home/$name/.gitignore" 2>/dev/null || true
         echo "✓ home/$name 同步完成"
     else
         echo "⚠ 警告: ~/$name 不存在，跳过同步"

@@ -176,6 +176,7 @@ Item {
         spacing: rofiStyle.listSpacing
         animateAppearance: true
         animateMovement: true
+        smoothWheelEnabled: false
         showVerticalScrollBar: false
         visible: root.filteredWindows.length > 0
 
@@ -201,6 +202,24 @@ Item {
                     easing.bezierCurve: Appearance.animation.expressiveDefaultSpatial.bezierCurve
                 }
             }
+        }
+
+        add: Transition {
+            ParallelAnimation {
+                NumberAnimation { property: "x"; from: windowsList.width * 0.3; to: 0; duration: 250; easing.type: Easing.OutCubic }
+                NumberAnimation { property: "opacity"; from: 0; to: 1; duration: 200; easing.type: Easing.OutCubic }
+            }
+        }
+
+        remove: Transition {
+            ParallelAnimation {
+                NumberAnimation { property: "x"; to: windowsList.width * 0.3; duration: 200; easing.type: Easing.InCubic }
+                NumberAnimation { property: "opacity"; to: 0; duration: 150; easing.type: Easing.InCubic }
+            }
+        }
+
+        displaced: Transition {
+            NumberAnimation { property: "y"; duration: 250; easing.type: Easing.OutCubic }
         }
     }
 

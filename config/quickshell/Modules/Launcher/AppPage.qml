@@ -13,7 +13,7 @@ Item {
     signal requestCloseLauncher()
 
     property string query: ""
-    ListModel { id: filteredAppsModel }
+    ListModel { id: appModel }
 
     RofiStyle {
         id: rofiStyle
@@ -23,13 +23,13 @@ Item {
     function incrementCurrentIndex() { setCurrentIndex(appsList.currentIndex + 1) }
 
     function setCurrentIndex(index, skipScroll) {
-        if (filteredAppsModel.count === 0) {
+        if (appModel.count === 0) {
             appsList.currentIndex = -1
             appsList.contentY = 0
             return
         }
 
-        appsList.currentIndex = Math.max(0, Math.min(index, filteredAppsModel.count - 1))
+        appsList.currentIndex = Math.max(0, Math.min(index, appModel.count - 1))
         if (!skipScroll) ensureCurrentVisible()
     }
 
@@ -43,71 +43,71 @@ Item {
         else if (appsList.currentIndex >= firstVisibleIndex + rofiStyle.listRows)
             firstVisibleIndex = appsList.currentIndex - rofiStyle.listRows + 1
 
-        const maxFirstIndex = Math.max(0, filteredAppsModel.count - rofiStyle.listRows)
+        const maxFirstIndex = Math.max(0, appModel.count - rofiStyle.listRows)
         firstVisibleIndex = Math.max(0, Math.min(firstVisibleIndex, maxFirstIndex))
         appsList.contentY = firstVisibleIndex * rofiStyle.listStep
     }
 
-    // ── 增量搜索（避免 modelReset，让 ListView 的 add/remove/move 过渡生效）──
+    // ── 搜索：直接存 DesktopEntry 原生对象 → Qt 按引用 diff → 匹配 item 保留 + 平滑移动 ──
     function search(text) {
-        let raw = AppManager.updateFilter(text, DesktopEntries)
-        // 无搜索词时按频率排序，搜索时保持字母序
-        if (text.trim() === "") {
-            raw = LaunchTracker.sortByFrequency(raw)
+        var wrapped = AppManager.updateFilter(text, DesktopEntries)
+        var target = []
+        for (var i = 0; i < wrapped.length; i++) {
+            target.push(wrapped[i].appObj)
         }
 
-        // 构建目标列表
-        let target = raw.map(a => ({
-            name: a.name,
-            icon: a.icon || "",
-            appObj: a.appObj,
-            appId: a.appObj ? a.appObj.id : (a.name || "")
-        }))
+        if (text.trim() === "") {
+            target = LaunchTracker.sortByFrequencyRaw(target)
+        }
 
         // ── 增量 diff：移除 → 插入 → 移动 ──
-        let targetIds = new Set(target.map(t => t.appId))
+        // 1) 建立目标 ID 集合
+        var targetIds = {}
+        for (var ti = 0; ti < target.length; ti++) {
+            targetIds[target[ti].id] = true
+        }
 
-        // 1) 移除不在目标中的 item（倒序）
-        for (let i = filteredAppsModel.count - 1; i >= 0; i--) {
-            if (!targetIds.has(filteredAppsModel.get(i).appId)) {
-                filteredAppsModel.remove(i)
+        // 2) 移除不在目标中的 item（倒序）
+        for (var ri = appModel.count - 1; ri >= 0; ri--) {
+            if (!targetIds[appModel.get(ri).app.id]) {
+                appModel.remove(ri)
             }
         }
 
-        // 2) 当前位置快照
-        let curPos = {}
-        for (let i = 0; i < filteredAppsModel.count; i++) {
-            curPos[filteredAppsModel.get(i).appId] = i
+        // 3) 建立当前 ID→位置 的映射
+        var curPos = {}
+        for (var ci = 0; ci < appModel.count; ci++) {
+            curPos[appModel.get(ci).app.id] = ci
         }
 
-        // 3) 插入新 item（按目标顺序）
-        for (let ti = 0; ti < target.length; ti++) {
-            let tid = target[ti].appId
+        // 4) 插入新 item（按目标顺序）
+        for (var ii = 0; ii < target.length; ii++) {
+            var tid = target[ii].id
             if (curPos[tid] === undefined) {
-                filteredAppsModel.insert(ti, target[ti])
-                for (let id in curPos) {
-                    if (curPos[id] >= ti) curPos[id]++
+                appModel.insert(ii, { app: target[ii] })
+                for (var id in curPos) {
+                    if (curPos[id] >= ii) curPos[id]++
                 }
-                curPos[tid] = ti
+                curPos[tid] = ii
             }
         }
 
-        // 4) 移动已存在的 item 到正确位置（从上到下，逐个归位）
-        for (let ti = 0; ti < Math.min(target.length, filteredAppsModel.count); ti++) {
-            let expectedId = target[ti].appId
-            let ci = -1
-            for (let j = ti; j < filteredAppsModel.count; j++) {
-                if (filteredAppsModel.get(j).appId === expectedId) {
-                    ci = j
+        // 5) 移动已存在的 item 到正确位置（从上到下逐个归位 → displaced 过渡触发）
+        for (var mi = 0; mi < target.length && mi < appModel.count; mi++) {
+            var expectedId = target[mi].id
+            var curIdx = -1
+            for (var sj = mi; sj < appModel.count; sj++) {
+                if (appModel.get(sj).app.id === expectedId) {
+                    curIdx = sj
                     break
                 }
             }
-            if (ci >= 0 && ci !== ti) {
-                filteredAppsModel.move(ci, ti, 1)
-                for (let id in curPos) {
-                    if (curPos[id] >= ti && curPos[id] < ci) curPos[id]++
+            if (curIdx >= 0 && curIdx !== mi) {
+                appModel.move(curIdx, mi, 1)
+                for (var id2 in curPos) {
+                    if (curPos[id2] >= mi && curPos[id2] < curIdx) curPos[id2]++
                 }
-                curPos[expectedId] = ti
+                curPos[expectedId] = mi
             }
         }
 
@@ -214,7 +214,7 @@ Item {
                         smooth: true
 
                         property bool fallbackApplied: false
-                        readonly property string requestedSource: root.iconSource(model.icon)
+                        readonly property string requestedSource: root.iconSource(model.app.icon)
                         readonly property string fallbackSource: root.fallbackIconSource()
 
                         source: fallbackApplied ? fallbackSource : requestedSource
@@ -229,7 +229,7 @@ Item {
                 }
 
                 Text {
-                    text: root.highlightText(model.name, root.query)
+                    text: root.highlightText(model.app.name, root.query)
                     textFormat: Text.StyledText
                     color: delegateItem.ListView.isCurrentItem ? Appearance.colors.colOnPrimary : Appearance.colors.colOnLayer0
                     font.family: Sizes.fontFamilyMono
@@ -253,9 +253,10 @@ Item {
         spacing: rofiStyle.listSpacing
         animateAppearance: true
         animateMovement: true
+        smoothWheelEnabled: false
         showVerticalScrollBar: false
 
-        model: filteredAppsModel
+        model: appModel
         delegate: appDelegate
 
         boundsBehavior: Flickable.StopAtBounds
@@ -300,12 +301,11 @@ Item {
     }
 
     function runSelectedApp() {
-        if (filteredAppsModel.count > 0 && appsList.currentIndex >= 0) {
-            let appData = filteredAppsModel.get(appsList.currentIndex)
-            if (appData && appData.appObj) {
-                // Record launch for frequency tracking
-                LaunchTracker.recordLaunch(appData.appObj.id)
-                appData.appObj.execute()
+        if (appModel.count > 0 && appsList.currentIndex >= 0) {
+            var appData = appModel.get(appsList.currentIndex).app
+            if (appData) {
+                LaunchTracker.recordLaunch(appData.id)
+                appData.execute()
             }
             root.requestCloseLauncher()
         }

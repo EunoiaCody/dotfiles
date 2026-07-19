@@ -57,6 +57,24 @@ Singleton {
         return sorted
     }
 
+    // 直接对 DesktopEntry 对象排序（引用不变，Qt 可按引用 diff）
+    function sortByFrequencyRaw(apps) {
+        if (!apps || apps.length === 0) return apps || []
+
+        var sorted = apps.slice()
+        sorted.sort(function(a, b) {
+            var freqA = root.getFrequency(a.id || "")
+            var freqB = root.getFrequency(b.id || "")
+            if (freqA !== freqB) return freqB - freqA
+            var nameA = (a.name || "").toLowerCase()
+            var nameB = (b.name || "").toLowerCase()
+            if (nameA < nameB) return -1
+            if (nameA > nameB) return 1
+            return 0
+        })
+        return sorted
+    }
+
     // Internal: write frequencies to disk
     function _doSave() {
         if (!_dirty || !storeReady) return

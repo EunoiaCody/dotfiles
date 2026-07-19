@@ -164,15 +164,16 @@ Item {
         anchors.top: parent.top
         clip: true
         spacing: rofiStyle.listSpacing
-        animateAppearance: false
-        animateMovement: false
+        animateAppearance: true
+        animateMovement: true
+        smoothWheelEnabled: false
         showVerticalScrollBar: false
         visible: !root.isLoading && filteredWallpaperModel.count > 0
         model: filteredWallpaperModel
 
         boundsBehavior: Flickable.StopAtBounds
         maximumFlickVelocity: 3000
-        highlightFollowsCurrentItem: true
+        highlightFollowsCurrentItem: false
         highlightRangeMode: ListView.NoHighlightRange
 
         highlight: Rectangle {
@@ -180,8 +181,34 @@ Item {
             height: rofiStyle.rowHeight
             color: Appearance.colors.colPrimary
             radius: rofiStyle.controlRadius
+            y: wallpaperList.currentItem ? wallpaperList.currentItem.y : 0
+
+            Behavior on y {
+                NumberAnimation {
+                    duration: Appearance.animation.expressiveDefaultSpatial.duration
+                    easing.type: Appearance.animation.expressiveDefaultSpatial.type
+                    easing.bezierCurve: Appearance.animation.expressiveDefaultSpatial.bezierCurve
+                }
+            }
         }
-        highlightMoveDuration: 0
+
+        add: Transition {
+            ParallelAnimation {
+                NumberAnimation { property: "x"; from: wallpaperList.width * 0.3; to: 0; duration: 250; easing.type: Easing.OutCubic }
+                NumberAnimation { property: "opacity"; from: 0; to: 1; duration: 200; easing.type: Easing.OutCubic }
+            }
+        }
+
+        remove: Transition {
+            ParallelAnimation {
+                NumberAnimation { property: "x"; to: wallpaperList.width * 0.3; duration: 200; easing.type: Easing.InCubic }
+                NumberAnimation { property: "opacity"; to: 0; duration: 150; easing.type: Easing.InCubic }
+            }
+        }
+
+        displaced: Transition {
+            NumberAnimation { property: "y"; duration: 250; easing.type: Easing.OutCubic }
+        }
 
         onCurrentIndexChanged: root.updateSelectedPreview()
 
