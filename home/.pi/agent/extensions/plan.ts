@@ -100,12 +100,17 @@ function planMarkdownPath(cwd: string, name: string): string {
 
 /** Sanitize a title into a filename-safe plan name. */
 function sanitizePlanName(title: string): string {
-  return title
+  const sanitized = title
     .replace(/[\s/\\?%*:|"<>]+/g, "-")
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "")
     .toLowerCase()
-    .slice(0, 64) || "untitled";
+    .slice(0, 64);
+  // Avoid "untitled" / "untitled-plan" collisions by appending timestamp
+  if (!sanitized || sanitized === "untitled" || sanitized.startsWith("untitled-")) {
+    return `plan-${Date.now()}`;
+  }
+  return sanitized;
 }
 
 // ---------------------------------------------------------------------------
@@ -282,7 +287,7 @@ const LANG: Record<
   { planRules: string; reviewInstruction: string; completeInstruction: string }
 > = {
   zh: {
-    planRules: `\n**语言要求**: 用户使用中文交流。请用中文撰写整个计划，包括标题、概述、步骤描述和风险分析。`,
+    planRules: `\n**语言要求**: 用户使用中文交流。请用中文撰写整个计划，包括标题、概述、步骤描述和风险分析。\n**标题格式**: 计划第一行必须使用 \`## Plan: <标题>\` 或 \`## 计划：<标题>\` 作为标题（支持中英文冒号），以便系统正确解析计划名称。`,
     reviewInstruction: `用中文向用户总结计划要点，请求审批。`,
     completeInstruction: `用中文确认计划已完成。`,
   },
@@ -446,9 +451,10 @@ const MUTATION_PATTERNS = [
 // ---------------------------------------------------------------------------
 
 function parsePlanFromText(text: string): { title: string; steps: PlanStep[] } | null {
-  // Extract title from "## Plan: <title>" or "# Plan: <title>"
-  const titleMatch = text.match(/^#+\s*Plan:\s*(.+)$/m);
-  const title = titleMatch ? titleMatch[1]!.trim() : "Untitled Plan";
+  // Extract title from "## Plan: <title>", "## 计划：<title>", "## Plan - <title>", etc.
+  // Supports English & Chinese, case-insensitive, colon (:/：) and dash (–/—) separators
+  const titleMatch = text.match(/^#+\s*(?:Plan|计划|方案)\s*[:：\-–—]\s*(.+)$/im);
+  const title = titleMatch ? titleMatch[1]!.trim() : "";
 
   // Extract checkbox steps like "- [ ] Step description"
   const stepRe = /^[-*]\s+\[ \]\s+(.+)$/gm;
@@ -1146,12 +1152,14 @@ export default function (pi: ExtensionAPI) {
     if (isComplete) {
       const parsed = parsePlanFromText(textContent);
       if (parsed && parsed.steps.length > 0) {
-        currentPlan.title = parsed.title;
+        // Use parsed title; fall back to task text or a timestamp label if empty
+        currentPlan.title = parsed.title || currentPlan.task.slice(0, 80) || `Plan ${new Date().toLocaleString()}`;
         currentPlan.steps = parsed.steps;
-        currentPlan.name = sanitizePlanName(parsed.title);
+        currentPlan.name = sanitizePlanName(currentPlan.title);
       } else {
         // Still capture content even without structured steps
-        currentPlan.name = sanitizePlanName(currentPlan.title !== "Planning..." ? currentPlan.title : "plan");
+        const fallbackTitle = currentPlan.title !== "Planning..." ? currentPlan.title : currentPlan.task || "plan";
+        currentPlan.name = sanitizePlanName(fallbackTitle);
       }
       currentPlan.content = textContent;
       planState = "reviewing";

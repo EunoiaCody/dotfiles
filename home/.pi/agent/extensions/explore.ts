@@ -17,6 +17,20 @@ import { readFileSync, existsSync, statSync } from "node:fs";
 import { join, relative, basename, resolve } from "node:path";
 
 // ---------------------------------------------------------------------------
+// Language detection
+// ---------------------------------------------------------------------------
+
+function detectLanguage(text: string): "zh" | "en" | "other" {
+  const cjkCount = (
+    text.match(/[\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff\u3000-\u303f\uff00-\uffef]/g) || []
+  ).length;
+  const totalChars = text.replace(/\s/g, "").length;
+  if (totalChars > 0 && cjkCount / totalChars > 0.15) return "zh";
+  if (/[\u4e00-\u9fff]/.test(text)) return "zh";
+  return "en";
+}
+
+// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
@@ -170,8 +184,10 @@ function getDirectoryTree(cwd: string, maxDepth: number = 3): string {
  */
 function gatherConfigFiles(cwd: string): string[] {
   const sections: string[] = [];
+  let configCount = 0;
 
   for (const pattern of KEY_CONFIG_FILES) {
+    if (configCount >= 10) break;
     // Handle glob patterns like "*.csproj", "*.fsproj", "*.sln"
     if (pattern.includes("*")) {
       try {
@@ -184,6 +200,7 @@ function gatherConfigFiles(cwd: string): string[] {
           .filter(Boolean);
 
         for (const file of found) {
+          if (configCount >= 10) break;
           try {
             const path = join(cwd, file);
             if (statSync(path).isDirectory()) continue;
@@ -195,6 +212,7 @@ function gatherConfigFiles(cwd: string): string[] {
             sections.push(
               `### ${file.replace(/^\.\//, "")}\n\`\`\`\n${truncated}\n\`\`\``,
             );
+            configCount++;
           } catch {
             // skip unreadable files
           }
@@ -218,6 +236,7 @@ function gatherConfigFiles(cwd: string): string[] {
         sections.push(
           `### ${pattern}\n\`\`\`\n${truncated}\n\`\`\``,
         );
+        configCount++;
       } catch {
         // skip unreadable files
       }
@@ -282,12 +301,12 @@ function detectProjectType(cwd: string): string[] {
 // Prompt builders
 // ---------------------------------------------------------------------------
 
-function buildOverviewPrompt(
+function buildOverviewPromptEN(
   projectName: string,
   relativePath: string,
   context: string,
 ): string {
-  return `Please thoroughly explore and analyze this project:
+  return `Please explore and analyze this project:
 
 **Project**: \`${projectName}\` at \`${relativePath}\`
 
@@ -295,48 +314,89 @@ ${context}
 
 ---
 
-Please provide a comprehensive codebase overview covering:
+Provide a concise codebase overview:
 
-1. **Tech Stack Summary**: What languages, frameworks, runtimes, and key libraries are used?
-2. **Project Purpose & Domain**: What problem does this project solve? Who is it for?
-3. **Architecture & Design**: How is the code organized? What are the key architectural patterns (monolith, microservices, layered, modular, etc.)?
-4. **Directory Map**: What lives in each top-level directory and why?
-5. **Entry Points**: Where does execution start? Main files, CLI entry, server bootstrap, build scripts, etc.
+1. **Tech Stack**: Languages, frameworks, key libraries.
+2. **Purpose**: What does this project do? Who is it for?
+3. **Architecture**: How is the code organized? Key patterns?
+4. **Directory Map**: What lives in each top-level directory?
+5. **Entry Points**: Where does execution start? Main files, CLI, server bootstrap.
 6. **Key Dependencies**: Most important external dependencies and their roles.
-7. **Data Flow**: How does data move through the system? Request lifecycle, pipeline stages, etc.
-8. **Testing & Quality**: Testing frameworks, linting setup, CI indicators.
-9. **Deployment & Operations**: How is it built, run, deployed? Docker, configs, environments.
-10. **Onboarding Guide**: Concrete steps to set up, build, and run this project locally.
-11. **Notable Patterns & Conventions**: Code style, naming conventions, file organization patterns.
-12. **Potential Concerns**: Anything that stands out (missing docs, complex areas, deprecated patterns).
+7. **How to Run**: Steps to build and run locally.
 
-Be thorough but concise. Structure the response clearly so a new developer can understand the codebase in minutes.`;
+Be concise. Prefer bullet lists over paragraphs. If something is standard/obvious, skip or mention briefly. Under ~300 words.`;
 }
 
-function buildTopicPrompt(
+function buildOverviewPromptZH(
   projectName: string,
   relativePath: string,
-  topic: string,
   context: string,
 ): string {
-  return `Explore the topic **"${topic}"** in the project \`${projectName}\` at \`${relativePath}\`.
+  return `请分析以下项目：
+
+**项目**: \`${projectName}\` 路径: \`${relativePath}\`
 
 ${context}
 
 ---
 
-Please provide a focused analysis of how **${topic}** is handled in this project:
+请言简意赅地提供代码库概览：
 
-1. **Where is it?** — Which files, directories, and modules deal with ${topic}? Map the relevant code locations.
-2. **How does it work?** — Explain the architecture, data structures, algorithms, and flow related to ${topic}.
-3. **Key Interfaces** — What are the main functions, classes, APIs, or components that implement or interact with ${topic}?
-4. **Dependencies** — What external libraries or internal modules does ${topic} depend on?
-5. **Configuration** — Are there config files, env vars, or build settings specific to ${topic}?
-6. **Data Flow** — Trace how data related to ${topic} moves through the system.
-7. **Edge Cases & Limitations** — Are there known constraints, TODOs, or potential issues?
-8. **How to Modify** — If someone wanted to change or extend ${topic}-related functionality, where should they start?
+1. **技术栈**: 语言、框架、关键库。
+2. **项目用途**: 解决什么问题？面向谁？
+3. **架构**: 代码如何组织？用了什么模式？
+4. **目录结构**: 每个顶层目录放什么？
+5. **入口文件**: 从哪里开始执行？
+6. **关键依赖**: 最重要的外部依赖及其作用。
+7. **如何运行**: 本地构建和运行的步骤。
 
-Be specific. Reference real file paths, function names, and code patterns. Use code snippets where helpful.`;
+请言简意赅，优先用列表而非段落。常规内容一笔带过。控制在 500 字以内。`;
+}
+
+function buildTopicPromptEN(
+  projectName: string,
+  relativePath: string,
+  topic: string,
+  context: string,
+): string {
+  return `Explore **"${topic}"** in \`${projectName}\` at \`${relativePath}\`.
+
+${context}
+
+---
+
+Concise analysis of how **${topic}** is handled:
+
+1. **Where?** — Files, directories, modules dealing with ${topic}.
+2. **How?** — Architecture, data structures, algorithms.
+3. **Key Interfaces** — Main functions, classes, APIs.
+4. **Data Flow** — How does ${topic}-related data move through the system?
+5. **How to Modify** — Where to start if changing/extending ${topic}.
+
+Be specific. Reference real file paths and function names. Be concise — under ~300 words.`;
+}
+
+function buildTopicPromptZH(
+  projectName: string,
+  relativePath: string,
+  topic: string,
+  context: string,
+): string {
+  return `探索 **"${topic}"** 在 \`${projectName}\` 中的实现，路径: \`${relativePath}\`。
+
+${context}
+
+---
+
+请言简意赅地分析 **${topic}** 的处理方式：
+
+1. **在哪？** — 哪些文件、目录、模块涉及 ${topic}。
+2. **怎么实现？** — 架构、数据结构、算法。
+3. **关键接口** — 主要函数、类、API。
+4. **数据流** — ${topic} 相关数据如何在系统中流转？
+5. **如何修改** — 如果要改动 ${topic}，从哪入手？
+
+请引用具体文件路径和函数名。言简意赅，控制在 500 字以内。`;
 }
 
 /**
@@ -394,13 +454,13 @@ function searchTopic(cwd: string, topic: string): string {
         `-i -n -C 1 "${topic.replace(/"/g, '\\"')}" . ` +
         `--exclude-dir=node_modules --exclude-dir=.git --exclude-dir=dist --exclude-dir=build ` +
         `--exclude-dir=target --exclude-dir=.next --exclude-dir=coverage ` +
-        `--exclude-dir=__pycache__ 2>/dev/null | head -80`,
+        `--exclude-dir=__pycache__ 2>/dev/null | head -40`,
       { cwd, maxBuffer: 512 * 1024, encoding: "utf-8", timeout: 8000 },
     ).trim();
     if (contextResults) {
       const truncated =
-        contextResults.length > 4000
-          ? contextResults.substring(0, 4000) + "\n... (truncated)"
+        contextResults.length > 2000
+          ? contextResults.substring(0, 2000) + "\n... (truncated)"
           : contextResults;
       parts.push(
         `### Code snippets matching "${topic}"\n\`\`\`\n${truncated}\n\`\`\``,
@@ -482,7 +542,7 @@ export default function (pi: ExtensionAPI) {
       const tree = getDirectoryTree(targetDir, topic ? 5 : 4);
       if (tree) {
         contextParts.push(
-          `## Project Structure (${relativePath})\n\`\`\`\n${tree.substring(0, 10000)}\n\`\`\``,
+          `## Project Structure (${relativePath})\n\`\`\`\n${tree.substring(0, 4000)}\n\`\`\``,
         );
       }
 
@@ -508,12 +568,17 @@ export default function (pi: ExtensionAPI) {
         contextParts.push(searchTopic(targetDir, topic));
       }
 
-      const explorationContext = contextParts.join("\n\n");
+      // Cap total context to ~12,000 chars
+      const explorationContextRaw = contextParts.join("\n\n");
+      const explorationContext = explorationContextRaw.length > 12000
+        ? explorationContextRaw.substring(0, 12000) + "\n\n...(context trimmed for brevity)"
+        : explorationContextRaw;
 
-      // Build prompt
+      // Detect language from user's query; build prompt in that language
+      const lang = detectLanguage(topic ?? input);
       const prompt = topic
-        ? buildTopicPrompt(projectName, relativePath, topic, explorationContext)
-        : buildOverviewPrompt(projectName, relativePath, explorationContext);
+        ? (lang === "zh" ? buildTopicPromptZH : buildTopicPromptEN)(projectName, relativePath, topic, explorationContext)
+        : (lang === "zh" ? buildOverviewPromptZH : buildOverviewPromptEN)(projectName, relativePath, explorationContext);
 
       await ctx.waitForIdle();
       pi.sendUserMessage(prompt);

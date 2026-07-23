@@ -72,8 +72,8 @@ Singleton {
     property string wallpaperTransitionType: "fade"
     property var includedTransitions: root.baseTransitions
     property int transitionDurationMs: 1000
-    property string transitionEasingMode: "customBezier"
-    property var transitionBezierCurve: [0.43, 1.19, 1.0, 0.4, 1.0, 1.0]
+    property string transitionEasingMode: "linear"
+    property var transitionBezierCurve: [0, 0, 1, 1, 1, 1]
 
     property string themeMode: "dark"
     property string cursorTheme: ""
@@ -417,7 +417,7 @@ Singleton {
         root.wallpaperTransitionType = normalizedTransition(transition.type || "fade");
         root.includedTransitions = normalizedIncluded(transition.included);
         root.transitionDurationMs = normalizedDurationMs(transition.durationMs, 1000);
-        root.transitionEasingMode = normalizedEasingMode(transition.easingMode || "customBezier");
+        root.transitionEasingMode = normalizedEasingMode(transition.easingMode || "linear");
         root.transitionBezierCurve = normalizedBezier(transition.bezierCurve);
 
         root.themeMode = theme.mode === "light" ? "light" : "dark";
