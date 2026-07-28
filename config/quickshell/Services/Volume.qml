@@ -10,15 +10,24 @@ Singleton {
     // ============================================================
     // 【底层追踪引擎】
     // ============================================================
-    PwObjectTracker {
-        objects: [Pipewire.defaultAudioSink, Pipewire.defaultAudioSource]
-    }
+    readonly property bool ready: Pipewire.ready
 
     // --- 智能设备判断 ---
     property bool isHeadphone: {
         if (!Pipewire.defaultAudioSink) return false
-        const desc = (Pipewire.defaultAudioSink.description || "").toLowerCase()
-        return desc.includes("headphone")
+        return root.nodeIsHeadphone(Pipewire.defaultAudioSink)
+    }
+
+    function nodeIsHeadphone(node) {
+        if (!node) return false
+        const desc = (node.description || node.name || "").toLowerCase()
+        return desc.includes("headphone") || desc.includes("耳机") || desc.includes("headset")
+    }
+
+    function nodeIsMic(node) {
+        if (!node) return false
+        const desc = (node.description || node.name || "").toLowerCase()
+        return desc.includes("microphone") || desc.includes("麦克风") || desc.includes("mic")
     }
 
     // ============================================================
@@ -63,6 +72,19 @@ Singleton {
                 Pipewire.defaultAudioSource.audio.muted = false;
             }
         }
+    }
+
+    // ============================================================
+    // 【设备切换】
+    // ============================================================
+    function switchSink(node) {
+        if (!node || !node.isSink) return
+        Pipewire.preferredDefaultAudioSink = node
+    }
+
+    function switchSource(node) {
+        if (!node || !node.audio) return
+        Pipewire.preferredDefaultAudioSource = node
     }
 
     function openMixer() {

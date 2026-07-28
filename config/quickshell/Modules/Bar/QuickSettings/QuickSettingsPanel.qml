@@ -368,68 +368,124 @@ Item {
     Component {
         id: audioViewComp
         ColumnLayout {
+            id: audioRoot
             spacing: 0
             Layout.fillWidth: true
 
-            Item {
-                Layout.fillWidth: true
-                implicitHeight: 44
+            // 输出设备列表
+            Text {
+                text: "输出设备"; font.pixelSize: 11; font.bold: true
+                color: Appearance.colors.colOnLayer0; Layout.topMargin: 4
                 Layout.leftMargin: 10; Layout.rightMargin: 10
+            }
 
-                ColumnLayout {
-                    anchors.verticalCenter: parent.verticalCenter
-                    anchors.left: parent.left; anchors.right: parent.right
-                    spacing: 4
+            // 直接用 Pipewire.nodes，Repeater 中过滤
+            ColumnLayout {
+                Layout.fillWidth: true
+                Layout.leftMargin: 10; Layout.rightMargin: 10
+                spacing: 2
 
-                    RowLayout {
-                        Layout.fillWidth: true; spacing: 8
-                        Text { text: "输出音量"; color: Appearance.colors.colOnLayer0; font.pixelSize: 12; font.family: Sizes.fontFamily; Layout.fillWidth: true }
-                        Text { text: Math.round(Volume.sinkVolume * 100) + "%"; color: Volume.sinkMuted ? Appearance.colors.colError : Appearance.colors.colOnSurfaceVariant; font.pixelSize: 12; font.bold: true; font.family: Sizes.fontFamily }
-                    }
+                Repeater {
+                    id: sinkRepeater
+                    model: Pipewire.nodes
+                    delegate: Rectangle {
+                        required property var modelData
+                        readonly property var node: modelData
+                        readonly property bool matches: node && node.isSink && !node.isStream
+                        readonly property bool active: matches && node === Pipewire.defaultAudioSink
+                        readonly property string desc: matches ? (node.description || node.name || "未知") : ""
 
-                    Rectangle {
-                        Layout.fillWidth: true; implicitHeight: 4; radius: 2; color: Appearance.colors.colLayer2
-                        Rectangle {
-                            anchors.left: parent.left; anchors.top: parent.top; anchors.bottom: parent.bottom
-                            width: parent.width * (Volume.sinkMuted ? 0 : Volume.sinkVolume); radius: 2
-                            color: (Volume.sinkMuted || Volume.sinkVolume <= 0) ? Appearance.colors.colError : Appearance.colors.colPrimary
-                            Behavior on width { NumberAnimation { duration: Appearance.animation.elementResize.duration; easing.type: Appearance.animation.elementResize.type; easing.bezierCurve: Appearance.animation.elementResize.bezierCurve } }
+                        Layout.fillWidth: true
+                        implicitHeight: matches ? 32 : 0
+                        visible: matches
+                        radius: 8
+                        color: active ? Appearance.colors.colLayer2 : (hoverArea.containsMouse ? Appearance.colors.colLayer1Hover : "transparent")
+                        Behavior on color { ColorAnimation { duration: 150 } }
+
+                        MouseArea {
+                            id: hoverArea; anchors.fill: parent; hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: { if (node) Volume.switchSink(node) }
+                        }
+
+                        RowLayout {
+                            anchors.fill: parent; anchors.margins: 6; spacing: 8
+                            Text {
+                                text: active ? "\u25c9" : "\u25cb"
+                                font.pixelSize: 12
+                                color: active ? Appearance.colors.colPrimary : Appearance.colors.colOnLayer1
+                            }
+                            Text {
+                                text: desc; font.pixelSize: 12; elide: Text.ElideRight
+                                color: active ? Appearance.colors.colPrimary : Appearance.colors.colOnLayer0
+                                Layout.fillWidth: true
+                            }
                         }
                     }
                 }
             }
 
-            Item {
-                Layout.fillWidth: true
-                implicitHeight: 44
+            // 输入设备列表
+            Text {
+                text: "输入设备"; font.pixelSize: 11; font.bold: true
+                color: Appearance.colors.colOnLayer0; Layout.topMargin: 8
                 Layout.leftMargin: 10; Layout.rightMargin: 10
+            }
 
-                ColumnLayout {
-                    anchors.verticalCenter: parent.verticalCenter
-                    anchors.left: parent.left; anchors.right: parent.right
-                    spacing: 4
+            ColumnLayout {
+                Layout.fillWidth: true
+                Layout.leftMargin: 10; Layout.rightMargin: 10
+                spacing: 2
 
-                    RowLayout {
-                        Layout.fillWidth: true; spacing: 8
-                        Text { text: "输入音量"; color: Appearance.colors.colOnLayer0; font.pixelSize: 12; font.family: Sizes.fontFamily; Layout.fillWidth: true }
-                        Text { text: Math.round(Volume.sourceVolume * 100) + "%"; color: Volume.sourceMuted ? Appearance.colors.colError : Appearance.colors.colOnSurfaceVariant; font.pixelSize: 12; font.bold: true; font.family: Sizes.fontFamily }
-                    }
+                Repeater {
+                    id: sourceRepeater
+                    model: Pipewire.nodes
+                    delegate: Rectangle {
+                        required property var modelData
+                        readonly property var node: modelData
+                        readonly property bool matches: node && !node.isSink && !node.isStream && node.audio
+                        readonly property bool active: matches && node === Pipewire.defaultAudioSource
+                        readonly property string desc: matches ? (node.description || node.name || "未知") : ""
 
-                    Rectangle {
-                        Layout.fillWidth: true; implicitHeight: 4; radius: 2; color: Appearance.colors.colLayer2
-                        Rectangle {
-                            anchors.left: parent.left; anchors.top: parent.top; anchors.bottom: parent.bottom
-                            width: parent.width * (Volume.sourceMuted ? 0 : Volume.sourceVolume); radius: 2
-                            color: (Volume.sourceMuted || Volume.sourceVolume <= 0) ? Appearance.colors.colError : Appearance.colors.colPrimary
-                            Behavior on width { NumberAnimation { duration: Appearance.animation.elementResize.duration; easing.type: Appearance.animation.elementResize.type; easing.bezierCurve: Appearance.animation.elementResize.bezierCurve } }
+                        Layout.fillWidth: true
+                        implicitHeight: matches ? 32 : 0
+                        visible: matches
+                        radius: 8
+                        color: active ? Appearance.colors.colLayer2 : (hoverArea2.containsMouse ? Appearance.colors.colLayer1Hover : "transparent")
+                        Behavior on color { ColorAnimation { duration: 150 } }
+
+                        MouseArea {
+                            id: hoverArea2; anchors.fill: parent; hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: { if (node) Volume.switchSource(node) }
+                        }
+
+                        RowLayout {
+                            anchors.fill: parent; anchors.margins: 6; spacing: 8
+                            Text {
+                                text: active ? "\u25c9" : "\u25cb"
+                                font.pixelSize: 12
+                                color: active ? Appearance.colors.colPrimary : Appearance.colors.colOnLayer1
+                            }
+                            Text {
+                                text: desc; font.pixelSize: 12; elide: Text.ElideRight
+                                color: active ? Appearance.colors.colPrimary : Appearance.colors.colOnLayer0
+                                Layout.fillWidth: true
+                            }
                         }
                     }
                 }
+            }
+
+            // 按钮栏
+            Rectangle {
+                Layout.fillWidth: true; implicitHeight: 1; color: Appearance.colors.colSubtext
+                Layout.topMargin: 8; Layout.bottomMargin: 4
             }
 
             MaterialRippleButton {
                 Layout.fillWidth: true
-                implicitHeight: 36
+                implicitHeight: 34
                 buttonRadius: 14
                 colBackground: "transparent"
                 colBackgroundHover: Appearance.colors.colSecondaryContainer
@@ -447,7 +503,7 @@ Item {
                         Layout.alignment: Qt.AlignVCenter
                     }
                     Text {
-                        text: "打开 PulseAudio 控制"
+                        text: "打开音频控制面板"
                         color: parent.parent.pointerHovered ? Appearance.colors.colOnSecondaryContainer : Appearance.colors.colOnLayer0
                         font.family: Sizes.fontFamily; font.pixelSize: 13
                         Layout.fillWidth: true; Layout.alignment: Qt.AlignVCenter

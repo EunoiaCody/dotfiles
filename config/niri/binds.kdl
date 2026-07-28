@@ -49,7 +49,7 @@ binds {
     Mod+Shift+Right { consume-or-expel-window-right; }
 
     // 截图（区域选择，保存到剪贴板）
-    Mod+Shift+S { screenshot; }
+    Mod+Shift+S { spawn "mark-shot"; }
 
     // 切换当前窗口为浮动模式
     Mod+F { toggle-window-floating; }

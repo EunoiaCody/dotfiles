@@ -8,4 +8,5 @@ NotificationsContent 1.0 NotificationsContent.qml
 PowerContent 1.0 PowerContent.qml
 BluetoothContent 1.0 BluetoothContent.qml
 ClipboardContent 1.0 ClipboardContent.qml
+BrightnessContent 1.0 BrightnessContent.qml
 QuickSliders 1.0 QuickSliders.qml

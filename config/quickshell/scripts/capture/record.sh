@@ -59,6 +59,7 @@ stop_old_pid() {
 start_video() {
     check_dep wf-recorder
     check_dep slurp
+    check_dep pactl
     stop_old_pid "record-video"
 
     local geometry
@@ -67,8 +68,17 @@ start_video() {
         exit 0
     }
 
+    # 获取默认音频输出设备的 monitor 源（录制系统声音）
+    local default_sink
+    default_sink=$(pactl get-default-sink 2>/dev/null || echo "")
+    if [ -z "$default_sink" ]; then
+        notify_err "无法获取默认音频输出" "请确认 PipeWire/PulseAudio 正在运行"
+        exit 1
+    fi
+
+    local audio_source="${default_sink}.monitor"
     local filename="$RECORDINGS_DIR/Recording from $(date '+%Y-%m-%d %H-%M-%S').mp4"
-    wf-recorder -g "$geometry" -f "$filename" &
+    wf-recorder -g "$geometry" -f "$filename" -a "$audio_source" &
     local pid=$!
     echo "$pid" > "$PID_DIR/record-video.pid"
     notify_ok "🔴 录屏中..." "单击灵动岛红色按钮停止录制"

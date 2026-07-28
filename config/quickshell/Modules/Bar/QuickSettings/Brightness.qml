@@ -39,10 +39,25 @@ Item {
             Brightness.setBrightnessForScreen(root.screen, newBri)
             wheel.accepted = true
         }
+        onClicked: {
+            const gpos = root.mapToGlobal(0, 0);
+            WidgetState.qsAnchorGlobalX = gpos.x;
+            WidgetState.qsAnchorGlobalY = gpos.y;
+            WidgetState.qsAnchorWidth = root.width;
+            WidgetState.qsAnchorHeight = root.height;
+            if (root.screen && root.screen.name)
+                WidgetState.qsScreenName = root.screen.name;
+            if (WidgetState.qsOpen && WidgetState.qsView === "brightness") {
+                WidgetState.qsOpen = false;
+            } else {
+                WidgetState.qsView = "brightness";
+                WidgetState.qsOpen = true;
+            }
+        }
     }
 
     PopupToolTip {
         extraVisibleCondition: mouseArea.containsMouse
-        text: "亮度: " + Math.round(root.brightnessValue * 100) + "%\n滚轮调节"
+        text: "亮度: " + Math.round(root.brightnessValue * 100) + "%\n滚轮调节，点击打开亮度设置"
     }
 }

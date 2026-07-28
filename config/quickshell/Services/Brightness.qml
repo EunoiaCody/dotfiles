@@ -19,9 +19,18 @@ Singleton {
     property bool hasDdcutil: false
     property bool hasBrightnessctl: false
 
+    // 自动亮度 —— 由 wluma systemd 服务控制
+    property bool autoBrightness: false
+    readonly property int brightnessMax: root.activeMonitor ? root.activeMonitor.rawMaxBrightness : 100
+    // 全局代理属性 — 对比度 / RGB 增益
+    readonly property real contrastValue: root.activeMonitor ? root.activeMonitor.contrast : 0.5
+    readonly property real redGainValue: root.activeMonitor ? root.activeMonitor.redGain : 0.5
+    readonly property real greenGainValue: root.activeMonitor ? root.activeMonitor.greenGain : 0.5
+    readonly property real blueGainValue: root.activeMonitor ? root.activeMonitor.blueGain : 0.5
+
     Process {
         id: toolCheck
-        command: ["sh", "-c", "command -v ddcutil brightnessctl 2>/dev/null"]
+        command: ["sh", "-c", "command -v ddcutil >/dev/null 2>&1 && echo ddcutil; command -v brightnessctl >/dev/null 2>&1 && echo brightnessctl"]
         running: false
         stdout: StdioCollector {
             onStreamFinished: {
@@ -29,6 +38,9 @@ Singleton {
                 const found = new Set(out.split(/\s+/).filter(s => s.length > 0));
                 root.hasDdcutil = found.has("ddcutil");
                 root.hasBrightnessctl = found.has("brightnessctl");
+                // 检测到 ddcutil 后，立即扫描 DDC 显示器
+                if (root.hasDdcutil)
+                    root.rescanDdcMonitors();
             }
         }
     }
@@ -115,10 +127,19 @@ Singleton {
     }
 
     function setBrightness(val, allowZero) {
+        // 手动调节亮度时，关闭自动亮度（不触发 refresh，避免覆盖用户设置）
+        if (root.autoBrightness) {
+            root.autoBrightness = false;
+            wlumaControlProc.exec(["systemctl", "--user", "stop", "wluma.service"]);
+        }
         root.setBrightnessForScreen(null, val, allowZero);
     }
 
     function setBrightnessForScreen(screen, val, allowZero) {
+        if (root.autoBrightness) {
+            root.autoBrightness = false;
+            wlumaControlProc.exec(["systemctl", "--user", "stop", "wluma.service"]);
+        }
         const monitor = root.getMonitorForScreen(screen);
         if (monitor) {
             monitor.setBrightness(val, allowZero);
@@ -134,6 +155,12 @@ Singleton {
         fallbackSetProc.exec(["brightnessctl", "--class", "backlight", "s", pct + "%", "--quiet"]);
         root.brightnessChanged();
     }
+
+    // 对比度 & RGB 增益 — 直接委托给活动显示器
+    function setContrast(val) { if (root.activeMonitor) root.activeMonitor.setContrast(val); }
+    function setRedGain(val)  { if (root.activeMonitor) root.activeMonitor.setRedGain(val); }
+    function setGreenGain(val) { if (root.activeMonitor) root.activeMonitor.setGreenGain(val); }
+    function setBlueGain(val)  { if (root.activeMonitor) root.activeMonitor.setBlueGain(val); }
 
     function rescanDdcMonitors() {
         if (ddcDetectProcess.running)
@@ -179,15 +206,18 @@ Singleton {
 
         command: ["ddcutil", "detect", "--brief"]
 
-        stdout: SplitParser {
-            splitMarker: "\n\n"
-            onRead: data => root.parseDdcBlock(data)
-        }
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const text = this.text || "";
+                // 单显示器或末尾没空行时分隔符
+                const blocks = text.split("\n\n").filter(b => b.trim().length > 0);
+                for (let i = 0; i < blocks.length; i += 1)
+                    root.parseDdcBlock(blocks[i]);
 
-        onExited: {
-            root.ddcMonitors = root.pendingDdcMonitors;
-            root.pendingDdcMonitors = [];
-            root.initializeMonitor(0);
+                root.ddcMonitors = root.pendingDdcMonitors;
+                root.pendingDdcMonitors = [];
+                root.initializeMonitor(0);
+            }
         }
     }
 
@@ -205,14 +235,63 @@ Singleton {
         }
     }
 
+    // 自动亮度管理 — 启动时检查 wluma 状态，之后每 5 秒轮询
     Timer {
-        id: pollTimer
+        id: wlumaStatusTimer
 
         interval: 5000
         running: true
         repeat: true
+        triggeredOnStart: true
+        onTriggered: wlumaStatusProc.running = true
+    }
+
+    Process {
+        id: wlumaStatusProc
+
+        command: ["systemctl", "--user", "is-active", "wluma.service"]
+        running: false
+
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const status = (this.text || "").trim();
+                const isActive = (status === "active");
+                if (root.autoBrightness !== isActive) {
+                    root.autoBrightness = isActive;
+                }
+            }
+        }
+    }
+
+    Process {
+        id: wlumaControlProc
+    }
+
+    function setAutoBrightness(enabled) {
+        if (enabled === root.autoBrightness)
+            return;
+
+        root.autoBrightness = enabled;
+        const svc = "wluma.service";
+        if (enabled) {
+            wlumaControlProc.exec(["systemctl", "--user", "start", svc]);
+        } else {
+            wlumaControlProc.exec(["systemctl", "--user", "stop", svc]);
+            // 停止 wluma 后，立即读取当前亮度值作为手动值起点
+            if (root.activeMonitor)
+                root.activeMonitor.refresh();
+        }
+    }
+
+    Timer {
+        id: pollTimer
+
+        interval: 3000
+        running: true
+        repeat: true
         onTriggered: {
-            if (root.activeMonitor && !root.activeMonitor.isDdc)
+            // 自动模式下也更频繁地轮询 DDC 亮度（wluma 在后台改值）
+            if (root.activeMonitor && (root.autoBrightness || !root.activeMonitor.isDdc))
                 root.activeMonitor.refresh();
         }
     }
@@ -236,6 +315,10 @@ Singleton {
             property string busNum: ""
             property int rawMaxBrightness: 100
             property real brightness: root.fallbackBrightnessValue
+            property real contrast: 0.5
+            property real redGain: 0.49
+            property real greenGain: 0.44
+            property real blueGain: 0.44
             property bool ready: false
             property bool pendingSync: false
             property bool reading: false
@@ -274,7 +357,7 @@ Singleton {
                         ready = true;
                         return;
                     }
-                    readProcess.command = ["ddcutil", "-b", busNum, "getvcp", "10", "--brief"];
+                    readProcess.command = ["ddcutil", "-b", busNum, "getvcp", "10", "12", "16", "18", "1A", "--brief"];
                 } else {
                     if (!root.hasBrightnessctl) {
                         reading = false;
@@ -292,14 +375,24 @@ Singleton {
                     return;
 
                 if (isDdc) {
-                    const fields = data.split(/\s+/);
-                    if (fields.length < 5)
-                        return;
-                    const current = parseInt(fields[3]);
-                    const max = parseInt(fields[4]);
-                    if (!isNaN(current) && !isNaN(max) && max > 0) {
-                        rawMaxBrightness = max;
-                        brightness = Math.max(0, Math.min(1, current / max));
+                    const lines = data.split("\n");
+                    for (let i = 0; i < lines.length; i += 1) {
+                        const parts = lines[i].trim().split(/\s+/);
+                        if (parts.length < 5)
+                            continue;
+                        const vcpCode = parseInt(parts[1], 16);
+                        const current = parseInt(parts[3]);
+                        const max = parseInt(parts[4]);
+                        if (isNaN(current) || isNaN(max) || max <= 0)
+                            continue;
+                        const val = Math.max(0, Math.min(1, current / max));
+                        switch (vcpCode) {
+                        case 0x10: rawMaxBrightness = max; brightness = val; break;
+                        case 0x12: contrast = val; break;
+                        case 0x16: redGain = val; break;
+                        case 0x18: greenGain = val; break;
+                        case 0x1A: blueGain = val; break;
+                        }
                     }
                     return;
                 }
@@ -318,6 +411,36 @@ Singleton {
 
             function setBrightness(value, allowZero) {
                 brightness = root.clampBrightness(value, allowZero);
+            }
+
+            function setContrast(value) {
+                contrast = root.clampBrightness(value, false);
+                if (!isDdc || !ready) return;
+                syncVcp("12", contrast);
+            }
+
+            function setRedGain(value) {
+                redGain = root.clampBrightness(value, false);
+                if (!isDdc || !ready) return;
+                syncVcp("16", redGain);
+            }
+
+            function setGreenGain(value) {
+                greenGain = root.clampBrightness(value, false);
+                if (!isDdc || !ready) return;
+                syncVcp("18", greenGain);
+            }
+
+            function setBlueGain(value) {
+                blueGain = root.clampBrightness(value, false);
+                if (!isDdc || !ready) return;
+                syncVcp("1A", blueGain);
+            }
+
+            function syncVcp(code, val) {
+                if (!root.hasDdcutil) return;
+                const raw = Math.max(1, Math.floor(val * 100));
+                vcpSetProcess.exec(["ddcutil", "-b", busNum, "setvcp", code, String(raw)]);
             }
 
             function scheduleSync() {
@@ -363,6 +486,8 @@ Singleton {
             }
 
             readonly property Process setProcess: Process {}
+
+            readonly property Process vcpSetProcess: Process {}
 
             readonly property Timer ddcSetTimer: Timer {
                 id: ddcSetTimer

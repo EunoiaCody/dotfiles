@@ -21,6 +21,7 @@ Item {
  case "power": return powerContent.contentImplicitHeight;
  case "bluetooth": return bluetoothContent.contentImplicitHeight;
  case "clipboard": return clipboardContent.contentImplicitHeight;
+ case "brightness": return brightnessContent.contentImplicitHeight;
  default: return640;
  }
  }
@@ -113,6 +114,18 @@ Item {
 
  opacity: WidgetState.qsView === "clipboard" ?1.0 :0.0
  scale: WidgetState.qsView === "clipboard" ?1.0 :0.95
+ visible: opacity >0
+
+ Behavior on opacity { NumberAnimation { duration:200; easing.type: Easing.OutQuint } }
+ Behavior on scale { NumberAnimation { duration:250; easing.type: Easing.OutBack; easing.overshoot:0.5 } }
+ }
+
+ BrightnessContent {
+ id: brightnessContent
+ anchors.fill: parent
+
+ opacity: WidgetState.qsView === "brightness" ?1.0 :0.0
+ scale: WidgetState.qsView === "brightness" ?1.0 :0.95
  visible: opacity >0
 
  Behavior on opacity { NumberAnimation { duration:200; easing.type: Easing.OutQuint } }
