@@ -116,7 +116,13 @@ Item {
     Timer { 
         id: debounceTimer; interval: 300; repeat: false; 
         onTriggered: {
-            if (root.trackTitle !== "") { 
+            if (root.trackTitle !== "") {
+                // 浏览器播放器: 不请求歌词
+                var id = (root.player && root.player.identity || "").toLowerCase();
+                if (id.includes("firefox") || id.includes("chrome") || id.includes("edge")
+                    || id.includes("brave") || id.includes("opera")) {
+                    return;
+                }
                 root.lyricsArray = []; root.currentLineIndex = 0; 
                 LyricsDaemon.request(root.trackTitle, root.trackArtist)
             }
@@ -127,6 +133,10 @@ Item {
     Timer {
         interval: 100
         running: root.active && root.lyricsArray.length > 1 && root.player
+            && !((root.player.identity || "").toLowerCase().includes("firefox")
+              || (root.player.identity || "").toLowerCase().includes("chrome")
+              || (root.player.identity || "").toLowerCase().includes("edge")
+              || (root.player.identity || "").toLowerCase().includes("brave"))
         repeat: true
         onTriggered: {
             if (!root.player) return
