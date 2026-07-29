@@ -5,119 +5,50 @@ animations {
         spring damping-ratio=0.80 stiffness=523 epsilon=0.0001
     }
     window-open {
-        duration-ms 600
+        duration-ms 300
+        curve "ease-out-quad"
         custom-shader r"
-            float hash21(vec2 p) {
-            p = fract(p * vec2(123.34, 456.21));
-            p += dot(p, p + 45.32);
-            return fract(p.x * p.y);
-        }
-
-        vec4 open_color(vec3 coords_geo, vec3 size_geo) {
-            float t = niri_clamped_progress;
-
-            if (coords_geo.x < 0.0 || coords_geo.x > 1.0 ||
-                coords_geo.y < 0.0 || coords_geo.y > 1.0) {
-                discard;
-            }
-
-            float ease = smoothstep(0.0, 1.0, t);
-
-            float inv_t = 1.0 - ease;
-
-            float wave_x =
-                sin(coords_geo.y * 10.0 + t * 3.2) * 0.012 * inv_t +
-                sin(coords_geo.y * 22.0 - t * 4.0) * 0.004 * inv_t;
-
-            float wave_y =
-                sin(coords_geo.x * 8.0 - t * 2.4) * 0.006 * inv_t;
-
-            vec2 uv = vec2(
-                coords_geo.x - inv_t * 0.055 + wave_x,
-                coords_geo.y + wave_y
-            );
-
-            if (uv.x < 0.0 || uv.x > 1.0 ||
-                uv.y < 0.0 || uv.y > 1.0) {
-                discard;
-            }
-
-            vec3 coords_tex = niri_geo_to_tex * vec3(uv, 1.0);
+          vec4 zoom_in(vec3 coords_geo, vec3 size_geo) {
+            float progress = niri_clamped_progress;
+            float eased = 1.0 - pow(1.0 - progress, 3.0);
+            float scale = eased;
+            vec2 coords = (coords_geo.xy - vec2(0.5, 0.5)) * size_geo.xy;
+            coords = coords / scale;
+            coords_geo = vec3(coords / size_geo.xy + vec2(0.5, 0.5), 1.0);
+            vec3 coords_tex = niri_geo_to_tex * coords_geo;
             vec4 color = texture2D(niri_tex, coords_tex.st);
-
-            // 薰衣草 + 淡粉高光，只在 opening 初期出现
-            vec3 lavender = vec3(0.78, 0.65, 0.90);
-            vec3 pale_pink = vec3(1.00, 0.72, 0.86);
-            vec3 glow_color = mix(lavender, pale_pink, 0.35);
-
-            // 从左下到右上的柔和光幕
-            float veil =
-                smoothstep(-0.25, 0.85, coords_geo.x + coords_geo.y * 0.28 + t * 0.55)
-                * (1.0 - smoothstep(0.55, 1.35, coords_geo.x + coords_geo.y * 0.28 + t * 0.55));
-
-            // 边缘轻微发光，不要出现颗粒
-            color.rgb = mix(color.rgb, glow_color, veil * 0.16 * inv_t);
-            color.rgb += glow_color * veil * 0.10 * inv_t;
-
-            // 初期稍微白一点，像柔光浮现
-            color.rgb = mix(vec3(1.0), color.rgb, 0.88 + 0.12 * ease);
-
-            // 透明度淡入
-            float alpha = color.a * ease;
-
-            return vec4(color.rgb, alpha);
-        }
+            color.a *= progress;
+            return color;
+          }
+          vec4 open_color(vec3 coords_geo, vec3 size_geo) {
+            return zoom_in(coords_geo, size_geo);
+          }
         "
     }
 
     window-close {
-        duration-ms 570
+        duration-ms 300
+        curve "linear"
         custom-shader r"
-            vec4 close_color(vec3 coords_geo, vec3 size_geo) {
-                float t = niri_clamped_progress;
-
-                if (coords_geo.x < 0.0 || coords_geo.x > 1.0 ||
-                    coords_geo.y < 0.0 || coords_geo.y > 1.0) {
-                    discard;
-                }
-
-                // 风力系统：关闭时向右、向上轻轻吹散
-                float wind_x = t * 0.38;
-
-                float turbulence =
-                    sin(coords_geo.y * 6.0 - t * 4.0) * 0.060 * (1.0 - t) +
-                    sin(coords_geo.x * 9.0 + t * 3.0) * 0.018 * (1.0 - t);
-
-                float wind_offset = wind_x + turbulence;
-
-                vec2 wind_blown_coords = vec2(
-                    coords_geo.x - wind_offset,
-                    coords_geo.y + t * 0.045
-                );
-
-                if (wind_blown_coords.x < 0.0 || wind_blown_coords.x > 1.0 ||
-                    wind_blown_coords.y < 0.0 || wind_blown_coords.y > 1.0) {
-                    discard;
-                }
-
-                vec3 coords_tex = niri_geo_to_tex * vec3(wind_blown_coords, 1.0);
-                vec4 color = texture2D(niri_tex, coords_tex.st);
-
-                // 消散扫描：从下方向上、略带右斜
-                float dissolve =
-                    wind_blown_coords.y
-                    - t * 1.22
-                    + wind_blown_coords.x * 0.22;
-
-                if (dissolve < 0.0) {
-                    discard;
-                }
-
-                // 整体淡出
-                float alpha = color.a * (1.0 - smoothstep(0.0, 1.0, t));
-
-                return vec4(color.rgb, alpha);
-            }
+          vec4 fall_and_rotate(vec3 coords_geo, vec3 size_geo) {
+            float progress = niri_clamped_progress * niri_clamped_progress;
+            vec2 coords = (coords_geo.xy - vec2(0.5, 1.0)) * size_geo.xy;
+            coords.y -= progress * 1440.0;
+            float random = (niri_random_seed - 0.5) / 2.0;
+            random = sign(random) - random;
+            float max_angle = 0.5 * random;
+            float angle = progress * max_angle;
+            mat2 rotate = mat2(cos(angle), -sin(angle), sin(angle), cos(angle));
+            coords = rotate * coords;
+            coords_geo = vec3(coords / size_geo.xy + vec2(0.5, 1.0), 1.0);
+            vec3 coords_tex = niri_geo_to_tex * coords_geo;
+            vec4 color = texture2D(niri_tex, coords_tex.st);
+            color.a *= (1.0 - progress);
+            return color;
+          }
+          vec4 close_color(vec3 coords_geo, vec3 size_geo) {
+            return fall_and_rotate(coords_geo, size_geo);
+          }
         "
     }
     horizontal-view-movement {
