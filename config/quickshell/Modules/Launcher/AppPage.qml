@@ -53,66 +53,100 @@ Item {
         var wrapped = AppManager.updateFilter(text, DesktopEntries)
         var target = []
         for (var i = 0; i < wrapped.length; i++) {
-            target.push(wrapped[i].appObj)
-        }
-
-        if (text.trim() === "") {
-            target = LaunchTracker.sortByFrequencyRaw(target)
-        }
-
-        // ── 增量 diff：移除 → 插入 → 移动 ──
-        // 1) 建立目标 ID 集合
-        var targetIds = {}
-        for (var ti = 0; ti < target.length; ti++) {
-            targetIds[target[ti].id] = true
-        }
-
-        // 2) 移除不在目标中的 item（倒序）
-        for (var ri = appModel.count - 1; ri >= 0; ri--) {
-            if (!targetIds[appModel.get(ri).app.id]) {
-                appModel.remove(ri)
+            var entry = wrapped[i].appObj
+            if (entry && entry.id) {
+                target.push(entry)
             }
         }
 
-        // 3) 建立当前 ID→位置 的映射
-        var curPos = {}
+        // 始终按使用频率排序
+        target = LaunchTracker.sortByFrequencyRaw(target)
+
+        // ── 安全增量 diff（有空值防护）──
+        // 若模型中有失效条目，先整体重建
+        var needsRebuild = false
         for (var ci = 0; ci < appModel.count; ci++) {
-            curPos[appModel.get(ci).app.id] = ci
-        }
-
-        // 4) 插入新 item（按目标顺序）
-        for (var ii = 0; ii < target.length; ii++) {
-            var tid = target[ii].id
-            if (curPos[tid] === undefined) {
-                appModel.insert(ii, { app: target[ii] })
-                for (var id in curPos) {
-                    if (curPos[id] >= ii) curPos[id]++
-                }
-                curPos[tid] = ii
+            var item = appModel.get(ci)
+            if (!item || !item.app || !item.app.id) {
+                needsRebuild = true
+                break
             }
         }
 
-        // 5) 移动已存在的 item 到正确位置（从上到下逐个归位 → displaced 过渡触发）
-        for (var mi = 0; mi < target.length && mi < appModel.count; mi++) {
-            var expectedId = target[mi].id
-            var curIdx = -1
-            for (var sj = mi; sj < appModel.count; sj++) {
-                if (appModel.get(sj).app.id === expectedId) {
-                    curIdx = sj
-                    break
+        if (needsRebuild) {
+            appModel.clear()
+            for (var j = 0; j < target.length; j++) {
+                appModel.append({ app: target[j] })
+            }
+        } else {
+            // 1) 建立目标 ID 集合
+            var targetIds = {}
+            for (var ti = 0; ti < target.length; ti++) {
+                targetIds[target[ti].id] = true
+            }
+
+            // 2) 移除不在目标中的 item（倒序）→ remove 过渡
+            for (var ri = appModel.count - 1; ri >= 0; ri--) {
+                if (!targetIds[appModel.get(ri).app.id]) {
+                    appModel.remove(ri)
                 }
             }
-            if (curIdx >= 0 && curIdx !== mi) {
-                appModel.move(curIdx, mi, 1)
-                for (var id2 in curPos) {
-                    if (curPos[id2] >= mi && curPos[id2] < curIdx) curPos[id2]++
+
+            // 3) 建立当前 ID→位置 映射
+            var curPos = {}
+            for (var ci2 = 0; ci2 < appModel.count; ci2++) {
+                curPos[appModel.get(ci2).app.id] = ci2
+            }
+
+            // 4) 插入新 item → add 过渡
+            for (var ii = 0; ii < target.length; ii++) {
+                var tid = target[ii].id
+                if (curPos[tid] === undefined) {
+                    appModel.insert(ii, { app: target[ii] })
+                    for (var id in curPos) {
+                        if (curPos[id] >= ii) curPos[id]++
+                    }
+                    curPos[tid] = ii
                 }
-                curPos[expectedId] = mi
+            }
+
+            // 5) 移动已存在 item 到正确位置 → displaced 过渡
+            for (var mi = 0; mi < target.length && mi < appModel.count; mi++) {
+                var expectedId = target[mi].id
+                var curIdx = -1
+                for (var sj = mi; sj < appModel.count; sj++) {
+                    if (appModel.get(sj).app.id === expectedId) {
+                        curIdx = sj
+                        break
+                    }
+                }
+                if (curIdx >= 0 && curIdx !== mi) {
+                    appModel.move(curIdx, mi, 1)
+                    for (var id2 in curPos) {
+                        if (curPos[id2] >= mi && curPos[id2] < curIdx) curPos[id2]++
+                    }
+                    curPos[expectedId] = mi
+                }
             }
         }
 
         appsList.contentY = 0
         setCurrentIndex(0)
+    }
+
+    // 检测应用安装/卸载 → 下次搜索时自动重建
+    property int _lastAppCount: 0
+    Timer {
+        interval: 2000
+        repeat: true
+        running: root.visible
+        onTriggered: {
+            var cur = DesktopEntries.applications.values.length
+            if (cur !== root._lastAppCount) {
+                root._lastAppCount = cur
+                root.search(root.query)
+            }
+        }
     }
 
     // 轮询等待 DesktopEntries 和 LaunchTracker 都就绪后再初始化搜索
