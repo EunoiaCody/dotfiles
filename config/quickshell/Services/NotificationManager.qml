@@ -64,6 +64,8 @@ Singleton {
     property int unread: 0
     property int idOffset: 0
     property list<Notif> list: []
+    // 历史通知上限：超限后最旧的会被销毁，防止长时间运行内存无限增长
+    readonly property int maxNotifications: 200
     property var popupList: list.filter((notif) => notif.popup).sort((a, b) => b.time - a.time)
     property var latestTimeForApp: ({})
     property var groupsByAppName: groupsForList(root.list)
@@ -145,6 +147,7 @@ Singleton {
 
             root.list = [...root.list, newNotifObject];
             root.trimPopupList(3);
+            root.trimHistory(root.maxNotifications);
             root.saveNotifications();
             root.notify(newNotifObject);
         }
@@ -182,6 +185,8 @@ Singleton {
                     });
                 });
                 root.idOffset = maxId;
+                // 加载历史同样受上限约束（磁盘文件可能累积了数周）
+                root.trimHistory(root.maxNotifications);
                 root.initDone();
             } catch (error) {
                 console.log("NotificationManager failed to load history:", error);
@@ -285,6 +290,36 @@ Singleton {
             root.triggerListChange();
     }
 
+    // 销毁一个通知对象及其定时器（所有从 list 移除的路径都必须走这里，否则 createObject 的对象会泄漏）
+    function destroyNotif(notif) {
+        if (!notif)
+            return;
+        if (notif.timer) {
+            notif.timer.stop();
+            notif.timer.destroy();
+            notif.timer = null;
+        }
+        notif.destroy();
+    }
+
+    // 裁剪历史列表：从最旧的通知开始移除（新通知 append 在数组末尾）
+    function trimHistory(maxCount) {
+        const overflow = root.list.length - maxCount;
+        if (overflow <= 0)
+            return;
+        const removed = root.list.splice(0, overflow);
+        for (const notif of removed) {
+            // 同步关闭服务端通知，避免悬挂
+            const serverIdx = notif.serverNotificationId !== -1
+                ? notifServer.trackedNotifications.values.findIndex((n) => n.id === notif.serverNotificationId)
+                : -1;
+            if (serverIdx !== -1)
+                notifServer.trackedNotifications.values[serverIdx].dismiss();
+            root.destroyNotif(notif);
+        }
+        root.triggerListChange();
+    }
+
     function setSilent(value) {
         UiPreferences.setDndEnabled(value);
     }
@@ -318,9 +353,8 @@ Singleton {
             const notif = root.list[i];
             if (notif.replaceKey !== replaceKey)
                 continue;
-            if (notif.timer)
-                notif.timer.stop();
             root.list.splice(i, 1);
+            root.destroyNotif(notif);
             changed = true;
         }
 
@@ -337,9 +371,8 @@ Singleton {
             : -1;
         if (index !== -1) {
             const notif = root.list[index];
-            if (notif.timer)
-                notif.timer.stop();
             root.list.splice(index, 1);
+            root.destroyNotif(notif);
             root.triggerListChange();
             root.saveNotifications();
         }
@@ -350,8 +383,7 @@ Singleton {
 
     function discardAllNotifications() {
         root.list.forEach((notif) => {
-            if (notif.timer)
-                notif.timer.stop();
+            root.destroyNotif(notif);
         });
         root.list = [];
         notifServer.trackedNotifications.values.forEach((notif) => notif.dismiss());

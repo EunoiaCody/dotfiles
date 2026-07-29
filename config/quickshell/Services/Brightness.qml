@@ -297,7 +297,9 @@ Singleton {
     }
 
     Timer {
-        interval: 1000
+        // 从 1s 降至 5s：focused-output 只在焦点屏幕变化时才需要更新，
+        // 原 1s 轮询每秒派生一次 `niri msg` 子进程，属于资源浪费
+        interval: 5000
         running: true
         repeat: true
         onTriggered: root.refreshFocusedOutput()

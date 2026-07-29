@@ -224,7 +224,13 @@ Item {
         let count = lyricRepeater.count;
         let running = false;
 
-        for (let i = 0; i < count; i++) {
+        // 仅推进可见窗口附近的行：layoutLines() 对窗口外的行使用 immediate 分配，
+        // 不存在待动画状态，无需每帧计算（长歌词时显著减少 CPU）
+        let activeIndex = root.clampIndex(root.activeLine);
+        let firstVisible = Math.max(0, activeIndex - root.renderBefore - 1);
+        let lastVisible = Math.min(count - 1, activeIndex + root.renderAfter + 1);
+
+        for (let i = firstVisible; i <= lastVisible; i++) {
             let item = lyricRepeater.itemAt(i);
             if (item && item.advance(deltaSeconds))
                 running = true;

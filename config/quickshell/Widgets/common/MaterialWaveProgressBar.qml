@@ -36,7 +36,9 @@ Item {
         id: waveContainer
         anchors.fill: parent
 
-        property real targetPlayhead: seekMa.pressed ? Math.max(0, Math.min(seekMa.mouseX, width)) : (root.progress * width)
+        // NaN 防护：新注册的 MPRIS 播放器（浏览器）progress 可能短暂为 NaN，
+        // 传播到 PathSvg 会导致 Qt CurveRenderer 描边时崩溃
+        property real targetPlayhead: seekMa.pressed ? Math.max(0, Math.min(seekMa.mouseX, width)) : ((isFinite(root.progress) ? Math.max(0, Math.min(1, root.progress)) : 0) * width)
         property real playheadX: targetPlayhead
         property real wavePhase: 0
         property real centerY: height / 2
@@ -55,7 +57,9 @@ Item {
             const padding = root.lineWidth / 2;
             const endX = waveEndX;
 
-            if (endX <= padding)
+            // NaN 防护：NaN <= padding 恒为 false，必须显式检查 isFinite，
+            // 否则会生成 moveto-only 路径导致 CurveRenderer 崩溃
+            if (!isFinite(endX) || !isFinite(centerY) || endX <= padding)
                 return "";
 
             let path = "M " + padding.toFixed(2) + " " + waveY(padding).toFixed(2);
@@ -106,7 +110,8 @@ Item {
                 strokeWidth: root.lineWidth
                 strokeColor: root.trackColor
                 fillColor: "transparent"
-                startX: Math.min(waveContainer.width - root.lineWidth / 2, waveContainer.playheadX + root.gap)
+                // playheadX 为 NaN 时 Math.min 会传播 NaN，按 0 处理
+                startX: Math.min(waveContainer.width - root.lineWidth / 2, (isFinite(waveContainer.playheadX) ? waveContainer.playheadX : 0) + root.gap)
                 startY: waveContainer.centerY
 
                 PathLine {
@@ -151,6 +156,8 @@ Item {
             cursorShape: Qt.PointingHandCursor
 
             onReleased: (mouse) => {
+                if (waveContainer.width <= 0)
+                    return;
                 let clampedX = Math.max(0, Math.min(mouse.x, waveContainer.width));
                 root.seekRequested(clampedX / waveContainer.width);
             }

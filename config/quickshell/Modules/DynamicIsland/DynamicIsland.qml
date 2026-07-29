@@ -240,7 +240,9 @@ Variants {
 
                 Timer {
                     id: browserCheckTimer
-                    interval: 300; repeat: true
+                    // 从 300ms 降至 1000ms：浏览器检测不需要高频，
+                    // 播放器身份切换是低频事件，降低 CPU 占用
+                    interval: 1000; repeat: true
                     running: root.hasActivePlayer
                     onTriggered: {
                         if (!root.currentPlayer || !root.currentPlayer.identity) return;

@@ -62,7 +62,14 @@ Rectangle {
         readonly property real progressSize: Math.min(width, height)
         readonly property real progressPadding: Sizes.lockResourceProgressPadding
         readonly property real strokeSize: Sizes.lockResourceProgressStroke
-        readonly property real progressValue: Math.max(1 / 360, Math.min(1, Math.max(0, animatedValue)))
+        // NaN 防护：系统监控数据异常时 animatedValue 可能为 NaN，
+        // Math.min/Math.max 会传播 NaN 导致 CurveRenderer 描边崩溃
+        readonly property real progressValue: {
+            const v = Number(animatedValue);
+            if (!isFinite(v))
+                return 1 / 360;
+            return Math.max(1 / 360, Math.min(1, Math.max(0, v)));
+        }
         readonly property real arcRadius: Math.max(1, (progressSize - progressPadding - strokeSize) / 2)
         readonly property real gapAngle: ((Sizes.lockResourceProgressGap + strokeSize) / arcRadius) * (180 / Math.PI)
 

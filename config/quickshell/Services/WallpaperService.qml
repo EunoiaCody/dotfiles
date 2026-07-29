@@ -130,6 +130,7 @@ Singleton {
             return;
 
         root.wallpapers = [];
+        root._scanBuffer = [];
         scanProcess.command = [
             "find", PersonalizationConfig.wallpaperFolder,
             "-type", "f",
@@ -411,6 +412,10 @@ Singleton {
         }
     }
 
+    // 扫描缓冲：逐行 push 到本地数组，结束后一次性赋值，
+    // 避免每张壁纸都 concat 创建新数组（数百张时 GC 压力大）
+    property var _scanBuffer: []
+
     Process {
         id: scanProcess
         onRunningChanged: if (running) root.scanning = true
@@ -419,12 +424,13 @@ Singleton {
             onRead: file => {
                 const path = file.trim();
                 if (path !== "")
-                    root.wallpapers = root.wallpapers.concat([path]);
+                    root._scanBuffer.push(path);
             }
         }
         onExited: {
             root.scanning = false;
-            const sorted = root.wallpapers.slice().sort();
+            const sorted = root._scanBuffer.slice().sort();
+            root._scanBuffer = [];
             const unique = [];
             for (let i = 0; i < sorted.length; i += 1) {
                 if (i === 0 || sorted[i] !== sorted[i - 1])

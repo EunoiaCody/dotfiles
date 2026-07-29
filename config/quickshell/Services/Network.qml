@@ -36,6 +36,18 @@ Singleton {
             getNetworks.running = true;
     }
 
+    // 防抖：nmcli monitor 在事件风暴时逐行触发，
+    // 每次 refresh() 会派生 5 个子进程，合并到 500ms 一次
+    property Timer _monitorDebounce: Timer {
+        interval: 500
+        repeat: false
+        onTriggered: root.refresh()
+    }
+
+    function scheduleRefresh() {
+        _monitorDebounce.restart();
+    }
+
     function enableWifi(enabled = true) {
         root.wifiEnabled = enabled;
         if (!enabled)
@@ -420,7 +432,8 @@ Singleton {
         running: true
         command: ["nmcli", "monitor"]
         stdout: SplitParser {
-            onRead: root.refresh()
+            // 高频输出走防抖，避免进程风暴
+            onRead: root.scheduleRefresh()
         }
     }
 

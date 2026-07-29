@@ -24,12 +24,36 @@ QtObject {
     signal lyricsUpgrade(string title, var data)
 
     property string _pendingTitle: ""
+    property string _pendingArtist: ""
     property string _currentTitle: ""
     property int _lineCount: 0
+    // 有请求在等待旧进程退出后再启动
+    property bool _restartPending: false
+
+    // 看门狗：旧进程挂死不退出时，2s 后强制启动新进程
+    property Timer _restartWatchdog: Timer {
+        interval: 2000
+        repeat: false
+        onTriggered: {
+            if (root._restartPending) {
+                root._restartPending = false;
+                root._startProcess();
+            }
+        }
+    }
 
     property Process proc: Process {
         id: lyricsProc
         command: ["python3", Paths.scriptPath("media", "lyrics_fetcher.py"), "", ""]
+
+        onExited: {
+            // 旧进程退出后，若有排队的请求则启动
+            root._restartWatchdog.stop();
+            if (root._restartPending) {
+                root._restartPending = false;
+                root._startProcess();
+            }
+        }
 
         stdout: SplitParser {
             splitMarker: "\n"
@@ -57,12 +81,22 @@ QtObject {
         }
     }
 
+    function _startProcess() {
+        root.proc.command = ["python3", Paths.scriptPath("media", "lyrics_fetcher.py"), root._pendingTitle, root._pendingArtist];
+        root.proc.running = true;
+    }
+
     function request(title, artist) {
         root._pendingTitle = title;
+        root._pendingArtist = artist || "";
         root._lineCount = 0;
-        // 重启进程
-        root.proc.running = false;
-        root.proc.command = ["python3", Paths.scriptPath("media", "lyrics_fetcher.py"), title, artist || ""];
-        root.proc.running = true;
+        if (root.proc.running) {
+            // 旧进程还在运行：排队等待退出后再启动，避免僵尸进程重叠
+            root._restartPending = true;
+            root.proc.running = false;
+            root._restartWatchdog.restart();
+        } else {
+            root._startProcess();
+        }
     }
 }

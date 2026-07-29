@@ -129,9 +129,13 @@ Item {
         repeat: true
         onTriggered: {
             if (root.player && !mediaProgress.pressed) {
-                root.currentPos = root.player.position;
-                // 标准化 position 为秒: MPRIS 返回微秒, 需要 /1000000
+                // 新注册的播放器（浏览器/zen）position 可能短暂为 NaN/undefined，
+                // 直接传播会让波形进度条生成 NaN 坐标导致 CurveRenderer 崩溃
                 let rawPos = root.player.position;
+                if (typeof rawPos !== "number" || !isFinite(rawPos))
+                    rawPos = 0;
+                root.currentPos = rawPos;
+                // 标准化 position 为秒: MPRIS 返回微秒, 需要 /1000000
                 let posSec = (rawPos > 100000) ? (rawPos / 1000000) : rawPos;
                 LyricsSyncEngine.playbackSeconds = posSec;
                 LyricsSyncEngine.isPlaying = root.player.isPlaying;
@@ -157,7 +161,13 @@ Item {
         let s = seconds % 60;
         return m + ":" + (s < 10 ? "0" : "") + s;
     }
-    property double realProgress: (player && player.length > 0) ? (currentPos / player.length) : 0
+    // 双重防护：length/currentPos 任一为 NaN 时进度回退为 0，并钳制到 [0,1]
+    property double realProgress: {
+        if (!player || !isFinite(player.length) || player.length <= 0)
+            return 0;
+        const p = currentPos / player.length;
+        return isFinite(p) ? Math.max(0, Math.min(1, p)) : 0;
+    }
 
     // ==========================================
     // 界面渲染层
