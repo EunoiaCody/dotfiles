@@ -47,6 +47,3 @@ abbr --add parui "paru -S"
 abbr --add parur "paru -R"
 abbr --add paruu "paru -Syu"
 abbr --add parus "paru -Ss"
-
-# hmcl(minecraft launcher) abbr
-abbr --add hmcl "/opt/homebrew/Cellar/openjdk@17/17.0.17/bin/java -jar /Applications/HMCL-3.8.2.jar"

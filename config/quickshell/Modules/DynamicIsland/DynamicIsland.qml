@@ -245,7 +245,9 @@ Variants {
                     onTriggered: {
                         if (!root.currentPlayer || !root.currentPlayer.identity) return;
                         var identity = MediaManager.getIdentity(root.currentPlayer);
-                        var isBrowser = (identity === "Browser" || identity === "Firefox" || identity === "Edge");
+                        var id = identity.toLowerCase();
+                        var isBrowser = (id === "browser" || id === "firefox" || id === "edge"
+                            || id.includes("zen") || id.includes("brave") || id.includes("vivaldi"));
                         if (isBrowser !== root.notMusicDetected) {
                             root.notMusicDetected = isBrowser;
                             if (isBrowser) root.showLyrics = false;

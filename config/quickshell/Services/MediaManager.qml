@@ -46,6 +46,10 @@ Item {
         
         if (name.includes("chrome") || name.includes("chromium")) return "Browser";
         if (name.includes("firefox")) return "Firefox";
+        if (name.includes("zen")) return "Browser";
+        if (name.includes("brave")) return "Browser";
+        if (name.includes("vivaldi")) return "Browser";
+        if (name.includes("browser")) return "Browser";
         if (name.includes("spotify")) return "Spotify";
         if (name.includes("vlc")) return "VLC";
         if (name.includes("edge")) return "Edge";

@@ -120,7 +120,8 @@ Item {
                 // 浏览器播放器: 不请求歌词
                 var id = (root.player && root.player.identity || "").toLowerCase();
                 if (id.includes("firefox") || id.includes("chrome") || id.includes("edge")
-                    || id.includes("brave") || id.includes("opera")) {
+                    || id.includes("brave") || id.includes("opera") || id.includes("zen")
+                    || id.includes("vivaldi") || id.includes("browser")) {
                     return;
                 }
                 root.lyricsArray = []; root.currentLineIndex = 0; 
@@ -136,7 +137,11 @@ Item {
             && !((root.player.identity || "").toLowerCase().includes("firefox")
               || (root.player.identity || "").toLowerCase().includes("chrome")
               || (root.player.identity || "").toLowerCase().includes("edge")
-              || (root.player.identity || "").toLowerCase().includes("brave"))
+              || (root.player.identity || "").toLowerCase().includes("brave")
+              || (root.player.identity || "").toLowerCase().includes("zen")
+              || (root.player.identity || "").toLowerCase().includes("vivaldi")
+              || (root.player.identity || "").toLowerCase().includes("opera")
+              || (root.player.identity || "").toLowerCase().includes("browser"))
         repeat: true
         onTriggered: {
             if (!root.player) return
