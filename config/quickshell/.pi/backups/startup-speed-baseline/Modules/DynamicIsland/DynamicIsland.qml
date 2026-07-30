@@ -303,9 +303,8 @@ Variants {
                         else root.musicCollapsedW = root.collapsedW;
                     }
                 }
-                // hub 懒加载：未加载时用默认尺寸退底（加载后绑定自动刷新，经 Behavior 平滑过渡）
-                property int targetW: isAudioMode ? audioW : isToolsMode ? toolsW : isHubMode ? (hubLoader.item ? hubLoader.item.implicitWidth : 960) : isLyricsMode ? lyricsW : expanded ? expandedW : isVolumeMode ? volW : isNotifMode ? notifW : (root.hasActivePlayer ? (musicCollapsedW + (isCollapsedHovered ? 16 : 0)) : (collapsedW + (root.isRecording ? recordExtraW : 0) + (isCollapsedHovered ? 16 : 0)))
-                property int targetH: isAudioMode ? audioH : isToolsMode ? toolsH : isHubMode ? (hubLoader.item ? hubLoader.item.implicitHeight : 620) : isLyricsMode ? lyricsH : expanded ? expandedH : isVolumeMode ? volH : isNotifMode ? notifH : (collapsedH + (isCollapsedHovered ? 6 : 0))
+                property int targetW: isAudioMode ? audioW : isToolsMode ? toolsW : isHubMode ? hub.implicitWidth : isLyricsMode ? lyricsW : expanded ? expandedW : isVolumeMode ? volW : isNotifMode ? notifW : (root.hasActivePlayer ? (musicCollapsedW + (isCollapsedHovered ? 16 : 0)) : (collapsedW + (root.isRecording ? recordExtraW : 0) + (isCollapsedHovered ? 16 : 0)))
+                property int targetH: isAudioMode ? audioH : isToolsMode ? toolsH : isHubMode ? hub.implicitHeight : isLyricsMode ? lyricsH : expanded ? expandedH : isVolumeMode ? volH : isNotifMode ? notifH : (collapsedH + (isCollapsedHovered ? 6 : 0))
                 property int wDuration: DynamicIslandMotion.expandingDuration
                 property int hDuration: DynamicIslandMotion.expandingDuration
                 property int rDuration: DynamicIslandMotion.radiusDuration
@@ -387,7 +386,6 @@ Variants {
                         rBezier = DynamicIslandMotion.radiusBezier;
                     }
                 }
-
                 focus: root.hasClosablePopup
                 onHasClosablePopupChanged: {
                     if (root.hasClosablePopup)
@@ -727,32 +725,23 @@ Variants {
 
                     }
 
-                    // 懒加载：首个通知到达时才实例化（加载后常驻）
-                    // 几何挂在 Loader 上：Loader 会把内容 resize 到自身大小
-                    Loader {
-                        id: notifLoader
+                    NotificationContent {
                         anchors.top: parent.top
                         anchors.horizontalCenter: parent.horizontalCenter
                         anchors.topMargin: 10
                         width: root.notifW - 20
                         height: root.notifH - 20
-                        active: root.isNotifMode || status === Loader.Ready
-                        asynchronous: true
-                        sourceComponent: Component {
-                            NotificationContent {
-                                manager: NotificationManager
-                                opacity: root.isNotifMode ? 1 : 0
-                                visible: opacity > 0.01
+                        manager: NotificationManager
+                        opacity: root.isNotifMode ? 1 : 0
+                        visible: opacity > 0.01
 
-                                Behavior on opacity {
-                                    NumberAnimation {
-                                        duration: 200
-                                    }
-
-                                }
-
+                        Behavior on opacity {
+                            NumberAnimation {
+                                duration: 200
                             }
+
                         }
+
                     }
 
                     LyricsContent {
@@ -776,128 +765,100 @@ Variants {
 
                     }
 
-                    // 懒加载：首次展开时才实例化（加载后常驻）
-                    Loader {
-                        id: mediaLoader
+                    MediaContent {
                         anchors.top: parent.top
                         anchors.horizontalCenter: parent.horizontalCenter
                         anchors.topMargin: 20
                         width: root.expandedW - 40
                         height: root.expandedH - 40
-                        active: (root.expanded && !root.isLyricsMode && !root.isHubMode) || status === Loader.Ready
-                        asynchronous: true
-                        sourceComponent: Component {
-                            MediaContent {
-                                opacity: (root.expanded && !root.isLyricsMode && !root.isHubMode) ? 1 : 0
-                                visible: opacity > 0.01
+                        opacity: (root.expanded && !root.isLyricsMode && !root.isHubMode) ? 1 : 0
+                        visible: opacity > 0.01
 
-                                Behavior on opacity {
-                                    NumberAnimation {
-                                        duration: 200
-                                    }
-
-                                }
-
+                        Behavior on opacity {
+                            NumberAnimation {
+                                duration: 200
                             }
+
                         }
+
                     }
 
-                    // 懒加载：首次进入 Hub 模式时才实例化（加载后常驻）
-                    // HubContent 为隐式尺寸：Loader 尺寸绑定 item 隐式尺寸，防止被拉伸
-                    Loader {
-                        id: hubLoader
+                    HubContent {
+                        id: hub
+
                         anchors.top: parent.top
                         anchors.horizontalCenter: parent.horizontalCenter
-                        width: item ? item.implicitWidth : 0
-                        height: item ? item.implicitHeight : 0
-                        active: root.isHubMode || status === Loader.Ready
-                        asynchronous: true
-                        sourceComponent: Component {
-                            HubContent {
-                                player: root.currentPlayer
-                                currentIndex: root.hubTabIndex
-                                onCurrentIndexChanged: root.hubTabIndex = currentIndex
-                                onCloseRequested: root.showHub = false
-                                opacity: root.isHubMode ? 1 : 0
-                                visible: opacity > 0.01
+                        width: implicitWidth
+                        height: implicitHeight
+                        player: root.currentPlayer
+                        currentIndex: root.hubTabIndex
+                        onCurrentIndexChanged: root.hubTabIndex = currentIndex
+                        onCloseRequested: root.showHub = false
+                        opacity: root.isHubMode ? 1 : 0
+                        visible: opacity > 0.01
 
-                                Behavior on opacity {
-                                    NumberAnimation {
-                                        duration: 200
-                                    }
-
-                                }
-
+                        Behavior on opacity {
+                            NumberAnimation {
+                                duration: 200
                             }
+
                         }
+
                     }
 
-                    // 懒加载：首次进入工具模式时才实例化（加载后常驻）
-                    Loader {
-                        id: toolsLoader
+                    ToolsContent {
+                        id: toolsWidget
+
                         anchors.top: parent.top
                         anchors.horizontalCenter: parent.horizontalCenter
                         width: root.toolsW
                         height: root.toolsH
-                        active: root.isToolsMode || status === Loader.Ready
-                        asynchronous: true
-                        sourceComponent: Component {
-                            ToolsContent {
-                                opacity: root.isToolsMode ? 1 : 0
-                                visible: opacity > 0.01
-                                onRequestHideIsland: {
-                                    root.showTools = false;
-                                }
-                                onRequestSetRecording: (state) => {
-                                    root.isRecording = state;
-                                }
-                                onRequestShowAudio: (mode) => {
-                                    root.currentAudioMode = mode;
-                                    root.showTools = false;
-                                    root.showAudio = true;
-                                }
-
-                                Behavior on opacity {
-                                    NumberAnimation {
-                                        duration: 200
-                                    }
-
-                                }
-
-                            }
+                        opacity: root.isToolsMode ? 1 : 0
+                        visible: opacity > 0.01
+                        onRequestHideIsland: {
+                            root.showTools = false;
                         }
+                        onRequestSetRecording: (state) => {
+                            root.isRecording = state;
+                        }
+                        onRequestShowAudio: (mode) => {
+                            root.currentAudioMode = mode;
+                            root.showTools = false;
+                            root.showAudio = true;
+                        }
+
+                        Behavior on opacity {
+                            NumberAnimation {
+                                duration: 200
+                            }
+
+                        }
+
                     }
 
-                    // 懒加载：首次进入音频模式时才实例化（加载后常驻）
-                    Loader {
-                        id: audioLoader
+                    AudioContent {
+                        id: audioWidget
+
                         anchors.top: parent.top
                         anchors.horizontalCenter: parent.horizontalCenter
                         width: root.audioW
                         height: root.audioH
-                        active: root.isAudioMode || status === Loader.Ready
-                        asynchronous: true
-                        sourceComponent: Component {
-                            AudioContent {
-                                active: root.isAudioMode
-                                audioMode: root.currentAudioMode
-                                opacity: root.isAudioMode ? 1 : 0
-                                visible: opacity > 0.01
-                                onRequestStop: {
-                                    root.showAudio = false;
-                                    if (toolsLoader.item)
-                                        toolsLoader.item.stopAudio();
-                                }
-
-                                Behavior on opacity {
-                                    NumberAnimation {
-                                        duration: 200
-                                    }
-
-                                }
-
-                            }
+                        active: root.isAudioMode
+                        audioMode: root.currentAudioMode
+                        opacity: root.isAudioMode ? 1 : 0
+                        visible: opacity > 0.01
+                        onRequestStop: {
+                            root.showAudio = false;
+                            toolsWidget.stopAudio();
                         }
+
+                        Behavior on opacity {
+                            NumberAnimation {
+                                duration: 200
+                            }
+
+                        }
+
                     }
 
                 }
@@ -1058,8 +1019,7 @@ Variants {
                     cursorShape: Qt.PointingHandCursor
                     onClicked: {
                         root.isRecording = false;
-                        if (toolsLoader.item)
-                            toolsLoader.item.stopRecording();
+                        toolsWidget.stopRecording();
                     }
                 }
 

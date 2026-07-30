@@ -11,7 +11,7 @@ import qs.Modules.DynamicIsland.WeatherContent
 Item {
     id: root
     signal closeRequested()
-
+    
     property var player: null
     property int currentIndex: 0
     
@@ -107,85 +107,48 @@ Item {
         TabBtn { icon: ""; title: "Weather"; index: 3 }
     }
 
-    // 懒加载 tab：首次切到该 tab 才实例化（加载后保持常驻以保状态）
-    // active 条件：当前 tab 或已加载完成（status Ready）→ 切走后不销毁
     Item {
         anchors.top: tabBar.bottom
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: parent.bottom
-        anchors.topMargin: 10
+        anchors.topMargin: 10 
 
-        // 隐式尺寸 tab：Loader 尺寸绑定 item 隐式尺寸，防止拉伸错位
-        Loader {
-            id: overviewLoader
+        OverviewContent {
             anchors.top: parent.top
             anchors.horizontalCenter: parent.horizontalCenter
-            width: item ? item.implicitWidth : 0
-            height: item ? item.implicitHeight : 0
-            active: root.currentIndex === 0 || status === Loader.Ready
-            asynchronous: true
-            sourceComponent: Component {
-                OverviewContent {
-                    visible: root.currentIndex === 0
-                    opacity: visible ? 1 : 0
-                    Behavior on opacity { NumberAnimation { duration: 300 } }
-                    onCloseRequested: root.closeRequested()
-                }
-            }
+            visible: root.currentIndex === 0
+            opacity: visible ? 1 : 0
+            Behavior on opacity { NumberAnimation { duration: 300 } }
+            onCloseRequested: root.closeRequested()
         }
 
-        Loader {
-            id: mediaLoader
+        Media {
+            player: root.player
             anchors.top: parent.top
             anchors.horizontalCenter: parent.horizontalCenter
-            width: item ? item.implicitWidth : 0
-            height: item ? item.implicitHeight : 0
-            active: root.currentIndex === 1 || status === Loader.Ready
-            asynchronous: true
-            sourceComponent: Component {
-                Media {
-                    player: root.player
-                    visible: root.currentIndex === 1
-                    opacity: visible ? 1 : 0
-                    Behavior on opacity { NumberAnimation { duration: 300 } }
-                }
-            }
+            visible: root.currentIndex === 1
+            opacity: visible ? 1 : 0
+            Behavior on opacity { NumberAnimation { duration: 300 } }
         }
 
-        Loader {
-            id: wallpaperTabLoader
+        WallpaperContent {
             anchors.top: parent.top
             anchors.horizontalCenter: parent.horizontalCenter
-            width: parent.width * 0.95
+            width: parent.width * 0.95 
             height: 300
-            active: root.currentIndex === 2 || status === Loader.Ready
-            asynchronous: true
-            sourceComponent: Component {
-                WallpaperContent {
-                    visible: root.currentIndex === 2
-                    opacity: visible ? 1 : 0
-                    Behavior on opacity { NumberAnimation { duration: 300 } }
-                    onWallpaperChanged: root.closeRequested()
-                }
-            }
+            visible: root.currentIndex === 2
+            opacity: visible ? 1 : 0
+            Behavior on opacity { NumberAnimation { duration: 300 } }
+            onWallpaperChanged: root.closeRequested()
         }
 
-        Loader {
-            id: weatherLoader
+        WeatherContent {
             anchors.top: parent.top
             anchors.horizontalCenter: parent.horizontalCenter
-            width: 720
-            height: 540
-            active: root.currentIndex === 3 || status === Loader.Ready
-            asynchronous: true
-            sourceComponent: Component {
-                WeatherContent {
-                    visible: root.currentIndex === 3
-                    opacity: visible ? 1 : 0
-                    Behavior on opacity { NumberAnimation { duration: 300 } }
-                }
-            }
+            visible: root.currentIndex === 3
+            opacity: visible ? 1 : 0
+            Behavior on opacity { NumberAnimation { duration: 300 } }
         }
     }
 }

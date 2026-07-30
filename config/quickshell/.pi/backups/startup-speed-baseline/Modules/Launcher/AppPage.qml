@@ -248,7 +248,7 @@ Item {
                         smooth: true
 
                         property bool fallbackApplied: false
-                        readonly property string requestedSource: root.iconSource((model.app && model.app.icon) ? model.app.icon : "")
+                        readonly property string requestedSource: root.iconSource(model.app.icon)
                         readonly property string fallbackSource: root.fallbackIconSource()
 
                         source: fallbackApplied ? fallbackSource : requestedSource
@@ -263,7 +263,7 @@ Item {
                 }
 
                 Text {
-                    text: root.highlightText((model.app && model.app.name) ? model.app.name : "", root.query)
+                    text: root.highlightText(model.app.name, root.query)
                     textFormat: Text.StyledText
                     color: delegateItem.ListView.isCurrentItem ? Appearance.colors.colOnPrimary : Appearance.colors.colOnLayer0
                     font.family: Sizes.fontFamilyMono

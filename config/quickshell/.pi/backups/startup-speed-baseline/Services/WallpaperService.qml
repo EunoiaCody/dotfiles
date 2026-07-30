@@ -305,15 +305,7 @@ Singleton {
 
     Component.onCompleted: {
         root.refreshFromConfig();
-        // 扫描推迟到启动空闲后（cycle 的 pendingCycleAction 已有按需扫描兜底）
-        idleScanTimer.restart();
-    }
-
-    // 启动空闲预扫描：避免 find 进程占用启动关键路径
-    property Timer idleScanTimer: Timer {
-        interval: 4000
-        repeat: false
-        onTriggered: root.scan()
+        root.scan();
     }
 
     Connections {

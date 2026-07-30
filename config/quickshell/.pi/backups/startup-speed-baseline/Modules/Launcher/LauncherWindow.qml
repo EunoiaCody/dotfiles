@@ -33,43 +33,12 @@ PanelWindow {
     property string query: ""
     readonly property var modeLabels: ["Applications", "Windows", "Wallpapers"]
 
-    // 懒加载：首次打开才创建三个页面（推迟 DesktopEntries 扫描 / 图标解析 / 初始搜索建模）
-    property bool pagesRequested: false
-
-    property string previewImage: (currentMode === 2 && wallpaperLoader.item && wallpaperLoader.item.currentSelectedPreview !== "")
-                                  ? wallpaperLoader.item.currentSelectedPreview
+    property string previewImage: (currentMode === 2 && wallpaperPage.currentSelectedPreview !== "")
+                                  ? wallpaperPage.currentSelectedPreview
                                   : (Appearance.currentWallpaperPreview !== "" ? Appearance.currentWallpaperPreview : (WallpaperService.currentWallpaper !== "" ? Paths.fileUrl(WallpaperService.currentWallpaper) : ""))
 
     RofiStyle {
         id: rofiStyle
-    }
-
-    // 懒加载页面组件：首次打开 Launcher 时才实例化
-    Component {
-        id: appPageComponent
-
-        AppPage {
-            query: root.query
-            onRequestCloseLauncher: root.requestClose()
-        }
-    }
-
-    Component {
-        id: windowPageComponent
-
-        WindowPage {
-            query: root.query
-            onRequestCloseLauncher: root.requestClose()
-        }
-    }
-
-    Component {
-        id: wallpaperPageComponent
-
-        WallpaperPage {
-            query: root.query
-            onRequestCloseLauncher: root.requestClose()
-        }
     }
 
     function syncGlobalWallpaperPreview() {
@@ -90,21 +59,21 @@ PanelWindow {
     }
 
     function decrementCurrentIndex() {
-        const loader = root.currentMode === 0 ? appLoader : root.currentMode === 1 ? windowLoader : wallpaperLoader
-        if (loader.item) loader.item.decrementCurrentIndex()
+        if (root.currentMode === 0) appPage.decrementCurrentIndex()
+        else if (root.currentMode === 1) windowPage.decrementCurrentIndex()
+        else wallpaperPage.decrementCurrentIndex()
     }
 
     function incrementCurrentIndex() {
-        const loader = root.currentMode === 0 ? appLoader : root.currentMode === 1 ? windowLoader : wallpaperLoader
-        if (loader.item) loader.item.incrementCurrentIndex()
+        if (root.currentMode === 0) appPage.incrementCurrentIndex()
+        else if (root.currentMode === 1) windowPage.incrementCurrentIndex()
+        else wallpaperPage.incrementCurrentIndex()
     }
 
     function activateSelected() {
-        const loader = root.currentMode === 0 ? appLoader : root.currentMode === 1 ? windowLoader : wallpaperLoader
-        if (!loader.item) return
-        if (root.currentMode === 0) loader.item.runSelectedApp()
-        else if (root.currentMode === 1) loader.item.focusSelectedWindow()
-        else loader.item.applyWallpaper()
+        if (root.currentMode === 0) appPage.runSelectedApp()
+        else if (root.currentMode === 1) windowPage.focusSelectedWindow()
+        else wallpaperPage.applyWallpaper()
     }
 
     function setMode(mode) {
@@ -141,9 +110,6 @@ PanelWindow {
     function openWindow() {
         if (launcherFadeIn.running || (root.visible && !root.isClosing))
             return
-
-        // 首次打开时触发页面懒加载（异步孵化，不阻塞打开动画）
-        root.pagesRequested = true
 
         if (root.visible) {
             prepareOpen(false, false)
@@ -489,25 +455,22 @@ PanelWindow {
                         anchors.margins: rofiStyle.panelPadding
                         currentIndex: root.currentMode
 
-                        Loader {
-                            id: appLoader
-                            active: root.pagesRequested
-                            asynchronous: true
-                            sourceComponent: appPageComponent
+                        AppPage {
+                            id: appPage
+                            query: root.query
+                            onRequestCloseLauncher: root.requestClose()
                         }
 
-                        Loader {
-                            id: windowLoader
-                            active: root.pagesRequested
-                            asynchronous: true
-                            sourceComponent: windowPageComponent
+                        WindowPage {
+                            id: windowPage
+                            query: root.query
+                            onRequestCloseLauncher: root.requestClose()
                         }
 
-                        Loader {
-                            id: wallpaperLoader
-                            active: root.pagesRequested
-                            asynchronous: true
-                            sourceComponent: wallpaperPageComponent
+                        WallpaperPage {
+                            id: wallpaperPage
+                            query: root.query
+                            onRequestCloseLauncher: root.requestClose()
                         }
                     }
                 }
