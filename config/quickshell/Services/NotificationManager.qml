@@ -58,7 +58,7 @@ Singleton {
     readonly property string notificationsDir: Quickshell.env("HOME") + "/.cache/quickshell/notifications"
     readonly property string filePath: notificationsDir + "/notifications.json"
     readonly property bool silent: UiPreferences.dndEnabled
-    readonly property bool popupInhibited: silent || (WidgetState.leftSidebarOpen && WidgetState.leftSidebarView === "info")
+    readonly property bool popupInhibited: silent || WidgetState.qsOpen || (WidgetState.leftSidebarOpen && WidgetState.leftSidebarView === "info")
     readonly property bool hasNotifs: popupList.length > 0
 
     property int unread: 0

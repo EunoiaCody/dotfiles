@@ -23,6 +23,8 @@ Singleton {
     property QtObject rounding: ColorMap.rounding
     property QtObject spacing: ColorMap.spacing
     property QtObject scrollBar: ColorMap.scrollBar
+    property QtObject font: ColorMap.font
+    property QtObject sizes: ColorMap.sizes
 
     // Re-export Animations (M3 motion tokens)
     property QtObject curves: Animations.curves

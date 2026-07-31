@@ -122,6 +122,11 @@ Singleton {
             readonly property int type: Easing.BezierSpline
             readonly property var bezierCurve: root.curves.expressiveFastSpatial
         }
+        readonly property QtObject elementMove: QtObject {
+            readonly property int duration: 500
+            readonly property int type: Easing.BezierSpline
+            readonly property var bezierCurve: root.curves.expressiveDefaultSpatial
+        }
         readonly property QtObject elementResize: QtObject {
             readonly property int duration: 300
             readonly property int type: Easing.BezierSpline

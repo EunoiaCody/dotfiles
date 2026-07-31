@@ -27,6 +27,12 @@ Item {
     // Dynamic Island (top center) — includes ClockContent (time), Hub (calendar), Media, Lyrics, Wallpaper
     DynamicIsland {}
 
+    // Notification Popup — overlay notification toasts on right side
+    Loader {
+        id: notificationPopupLoader
+        source: "./Modules/notificationPopup/NotificationPopup.qml"
+    }
+
     // Right Sidebar — QuickSettings / Audio / Network / Sliders / Settings
     RightSidebar {
         id: rightSidebar

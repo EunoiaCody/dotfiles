@@ -11,3 +11,4 @@ singleton ColorMap Common/ColorMap.qml
 singleton Appearance Common/Appearance.qml
 singleton LyricsSyncEngine Common/LyricsSyncEngine.qml
 singleton LyricsDaemon Common/LyricsDaemon.qml
+singleton NotificationUtils Common/functions/NotificationUtils.qml

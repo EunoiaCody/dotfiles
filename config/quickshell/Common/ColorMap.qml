@@ -222,4 +222,22 @@ Singleton {
         property real inactiveOpacity: 0
         property color thumbColor: root.colors.colOnSurfaceVariant
     }
+
+    // 字体尺寸 token（供通知组件使用）
+    property QtObject font: QtObject {
+        readonly property QtObject pixelSize: QtObject {
+            readonly property int smallest: 10
+            readonly property int smaller: 12
+            readonly property int small: 14
+            readonly property int normal: 16
+            readonly property int larger: 20
+            readonly property int huge: 24
+        }
+    }
+
+    // 通用尺寸 token
+    property QtObject sizes: QtObject {
+        readonly property int notificationPopupWidth: 380
+        readonly property int elevationMargin: 12
+    }
 }
