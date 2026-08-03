@@ -134,18 +134,11 @@ Item {
         setCurrentIndex(0)
     }
 
-    // 检测应用安装/卸载 → 下次搜索时自动重建
-    property int _lastAppCount: 0
-    Timer {
-        interval: 2000
-        repeat: true
-        running: root.visible
-        onTriggered: {
-            var cur = DesktopEntries.applications.values.length
-            if (cur !== root._lastAppCount) {
-                root._lastAppCount = cur
-                root.search(root.query)
-            }
+    // 应用安装/卸载 → 自动重新搜索（无需轮询）
+    Connections {
+        target: DesktopEntries
+        function onApplicationsChanged() {
+            root.search(root.query)
         }
     }
 

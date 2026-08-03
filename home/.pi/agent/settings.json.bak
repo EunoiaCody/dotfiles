@@ -1,0 +1,8 @@
+{
+  "lastChangelogVersion": "0.83.0",
+  "theme": "catppuccin-mocha-lavender",
+  "defaultProvider": "deepseek",
+  "defaultModel": "deepseek-v4-flash",
+  "defaultThinkingLevel": "high",
+  "hideThinkingBlock": true
+}
