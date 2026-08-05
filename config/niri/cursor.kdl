@@ -1,6 +1,6 @@
 cursor {
     xcursor-theme "Bibata-Material-Violet"
     xcursor-size 32
-    hide-when-typing
+    // hide-when-typing
     hide-after-inactive-ms 3000 // Hide the cursor after one second of inactivity.
 }
