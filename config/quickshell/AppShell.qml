@@ -72,11 +72,12 @@ Item {
     IpcHandler {
         target: "wallpaper"
 
-        function set(path, screenName) {
+        // IPC 参数必须显式标注类型（QVariant 无法跨 IPC 传输）
+        function set(path: string, screenName: string) {
             return WallpaperService.setWallpaper(path || "", screenName || "", true) ? "OK" : "PENDING";
         }
 
-        function clear(screenName) {
+        function clear(screenName: string) {
             return WallpaperService.clearWallpaper(screenName || "", true) ? "OK" : "PENDING";
         }
 
@@ -92,7 +93,7 @@ Item {
             return WallpaperService.cycleRandom(true) ? "OK" : "PENDING";
         }
 
-        function setFolder(path) {
+        function setFolder(path: string) {
             return WallpaperService.setWallpaperFolder(path || "", true) ? "OK" : "PENDING";
         }
     }

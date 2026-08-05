@@ -29,8 +29,14 @@ WidgetPanel {
     function iconSourceFor(notif) {
         if (!notif)
             return "";
-        if (notif.image && notif.image !== "")
+        if (notif.image && notif.image !== "") {
+            // image:// 开头的 URL（quickshell 内置 qsimage/qspixmap/icon 图像提供器）
+            // 可以直接作为 Image.source，不能再包一层 Paths.fileUrl，否则会被解析成
+            // file://image//... 这种无效路径（见启动日志 Cannot open 警告）
+            if (notif.image.startsWith("image://") || notif.image.startsWith("file://"))
+                return notif.image;
             return Paths.fileUrl(notif.image);
+        }
         if (notif.appIcon && notif.appIcon !== "") {
             if (notif.appIcon.startsWith("/") || notif.appIcon.startsWith("file://"))
                 return Paths.fileUrl(notif.appIcon);

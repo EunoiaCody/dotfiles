@@ -11,7 +11,7 @@ spawn-at-startup "wl-paste" "--type" "image" "--watch" "cliphist" "store"
 // 自动启动 emby 本地播放脚本
 spawn-at-startup "sh" "-c" "/home/eunoia/Apps/embyToLocalPlayer/etlp_run.command"
 
-spawn-at-startup "sh" "-c" "/home/eunoia/.config/quickshell/start-quickshell.sh"
+spawn-at-startup "systemctl" "start" "quickshell-init.service" "--user"
 
 // 自动启动的应用（Telegram 与 cc-switch 以后台无窗口方式启动，仅在托盘可见，需要时从托盘点开）
 spawn-at-startup "Telegram" "-startintray"
@@ -239,3 +239,4 @@ include "color.kdl"
 include "animation.kdl"
 include "windows-rule.kdl"
 include "blur.kdl"
+include "cursor.kdl"

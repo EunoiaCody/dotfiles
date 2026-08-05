@@ -29,8 +29,20 @@ Item {
             height: 60
             color: "transparent"
 
-            readonly property string imageSource: modelData && modelData.image ? modelData.image : ""
-            readonly property string appIconSource: modelData && modelData.appIcon ? Quickshell.iconPath(modelData.appIcon, "image-missing") : ""
+            // 统一资源解析：image://（内置提供器）与 file:// 直接使用，
+            // 裸绝对路径补 file:// 前缀，图标名走主题查找
+            function sourceFor(value) {
+                if (!value || value === "")
+                    return "";
+                if (value.startsWith("image://") || value.startsWith("file://"))
+                    return value;
+                if (value.startsWith("/"))
+                    return "file://" + value;
+                return Quickshell.iconPath(value, "image-missing");
+            }
+
+            readonly property string imageSource: sourceFor(modelData && modelData.image ? modelData.image : "")
+            readonly property string appIconSource: sourceFor(modelData && modelData.appIcon ? modelData.appIcon : "")
             readonly property string iconSource: imageSource !== "" ? imageSource : appIconSource
             readonly property bool hasImage: imageSource !== ""
             readonly property bool hasIcon: iconSource !== ""
