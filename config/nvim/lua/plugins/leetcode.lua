@@ -13,7 +13,7 @@ return {
 		---@type lc.lang
 		lang = "cpp",
 		cn = {
-			enabled = true, ---@type boolean
+			enabled = flase, ---@type boolean
 			translater = true, ---@type boolean
 			translate_problem = true, ---@type boolean
 		},

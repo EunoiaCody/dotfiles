@@ -213,6 +213,8 @@ environment {
   QT_IM_MODULES "wayland;fcitx"
   QT_IM_MODULE "fcitx"
   XDG_DATA_DIRS "/var/lib/flatpak/exports/share:/usr/local/share:/usr/share"
+  XCORSOR_THEME "Material Bibata Cursor Violet"
+  XCORSOR_SIZE "16"
 }
 hotkey-overlay {
     skip-at-startup
