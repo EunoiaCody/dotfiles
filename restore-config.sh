@@ -16,7 +16,7 @@ echo "开始还原配置文件 ..."
 cd "$(dirname "$0")"
 
 # ~/.config/ 下的配置目录
-CONFIG_DIRS=("kitty" "mpv" "neovide" "nvim" "fish" "aerospace" "sketchybar" "yazi" "figlet" "bat" "niri" "quickshell" "vscode" "cava" "imv")
+CONFIG_DIRS=("kitty" "mpv" "neovide" "nvim" "fish" "aerospace" "sketchybar" "yazi" "figlet" "bat" "niri" "quickshell" "vscode" "cava" "imv" "zellij")
 
 # ~/ 下的配置（以 . 开头的文件/目录）
 HOME_DIRS=(".pi")
