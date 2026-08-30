@@ -441,7 +441,10 @@ const MUTATION_PATTERNS = [
   /\bchmod\b/,
   /\bchown\b/,
   /\bsudo\b/,
-  />\s*\//,
+  // Redirect output to a file path (e.g. `> /tmp/out`).
+  // Negative lookahead excludes /dev/ targets (`>/dev/null`, `2>/dev/null`,
+  // `>/dev/stdout`...) which discard output rather than modify files.
+  />\s*\/(?!dev\/)/,
   /\|\s*tee\b/,
   /\bdd\b/,
 ];

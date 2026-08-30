@@ -14,7 +14,7 @@
  *   task_report   — (sub-agent only) Send intermediate progress update
  *
  * Shortcut:
- *   Ctrl+Shift+G  — View sub-agent dashboard (list + details)
+ *   Ctrl+Shift+H  — View sub-agent dashboard (list + details)
  *
  * User cannot directly prompt sub-agents. Only the main agent delegates.
  *
@@ -116,7 +116,7 @@ You have access to a sub-agent system via the **task** tool. Use it to delegate 
 ### How to delegate:
 1. Call task(name="descriptive-name", prompt="specific instructions...")
 2. Sub-agents run independently in dedicated turns
-3. Check progress with task_status() or press Ctrl+Shift+G for the dashboard
+3. Check progress with task_status() or press Ctrl+Shift+H for the dashboard
 4. Collect results with task_result(id="...") when complete
 
 ### Tips:
@@ -238,7 +238,7 @@ export default function (pi: ExtensionAPI) {
             text:
               `🚀 Sub-agent **${params.name}** spawned (id: \`${id}\`).\n` +
               `Status: pending → will run as a follow-up turn.\n` +
-              `Check progress with task_status() or Ctrl+Shift+G. Collect results with task_result("${id}") when done.\n` +
+              `Check progress with task_status() or Ctrl+Shift+H. Collect results with task_result("${id}") when done.\n` +
               `${(params.contextFiles ?? []).length > 0 ? `Focus files: ${(params.contextFiles ?? []).join(", ")}` : ""}`,
           },
         ],
@@ -260,7 +260,7 @@ export default function (pi: ExtensionAPI) {
     promptGuidelines: [
       "Use task_status periodically to check on sub-agents you've spawned. " +
         "Call it without arguments for a quick dashboard, or with an id for details. " +
-        "Press Ctrl+Shift+G in the TUI for an interactive dashboard.",
+        "Press Ctrl+Shift+H in the TUI for an interactive dashboard.",
     ],
     parameters: Type.Object({
       id: Type.Optional(
@@ -692,10 +692,10 @@ export default function (pi: ExtensionAPI) {
     }
   });
 
-  // -- Ctrl+Shift+G shortcut: sub-agent dashboard --------------------------
+  // -- Ctrl+Shift+H shortcut: sub-agent dashboard --------------------------
 
   pi.registerCommand("tasks", {
-    description: "View sub-agent dashboard (also available via Ctrl+Shift+G)",
+    description: "View sub-agent dashboard (also available via Ctrl+Shift+H)",
     handler: async (_args, ctx) => {
       await ctx.waitForIdle();
 
@@ -776,7 +776,7 @@ export default function (pi: ExtensionAPI) {
   });
 
   // Also register as keyboard shortcut
-  pi.registerShortcut("ctrl+shift+g", {
+  pi.registerShortcut("ctrl+shift+h", {
     description: "View sub-agent dashboard",
     handler: async (_event, ctx) => {
       // The shortcut handler receives the key event; queue the command
@@ -813,7 +813,7 @@ export default function (pi: ExtensionAPI) {
   pi.on("session_start", async (_event, ctx) => {
     if (ctx.mode === "tui") {
       ctx.ui.notify(
-        "Sub-agent system loaded: task, task_status, task_result — Ctrl+Shift+G for dashboard",
+        "Sub-agent system loaded: task, task_status, task_result — Ctrl+Shift+H for dashboard",
         "info",
       );
     }
