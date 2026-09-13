@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "providers": {
+    "freellmapi-local": {
+      "baseUrl": "http://100.90.99.35:3001/v1",
+      "apiKey": "freellmapi-988c1d80fd2982710860b312c72d4089fb38400929cb9e0f",
+      "api": "openai-responses",
+      "compatPreset": "openai",
+      "models": [
+        {
+          "id": "auto"
+        },
+        {
+          "id": "auto:fast"
+        },
+        {
+          "id": "auto:smart"
+        }
+      ]
+    }
+  }
+}
