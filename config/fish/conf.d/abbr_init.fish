@@ -53,3 +53,9 @@ abbr --add apti "sudo apt install"
 abbr --add aptu "sudo apt update && sudo apt upgrade"
 abbr --add aptr "sudo apt remove"
 abbr --add apts "sudo apt search"
+
+# nix(nixpkg, profile command line)
+abbr --add nixpi "nix profile add nixpkgs#"
+abbr --add nixpr "nix profile remove"
+abbr --add nixpu "nix profile upgrade"
+abbr --add nixpua "nix profile upgrade --all"
