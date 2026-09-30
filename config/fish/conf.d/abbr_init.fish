@@ -44,6 +44,12 @@ abbr --add apks "apk search"
 
 # paru(aur helper) abbr
 abbr --add parui "paru -S"
-abbr --add parur "paru -R"
+abbr --add parur "paru -Rns"
 abbr --add paruu "paru -Syu"
 abbr --add parus "paru -Ss"
+
+# apt(debian & armbian & ubuntu)
+abbr --add apti "sudo apt install"
+abbr --add aptu "sudo apt update && sudo apt upgrade"
+abbr --add aptr "sudo apt remove"
+abbr --add apts "sudo apt search"
