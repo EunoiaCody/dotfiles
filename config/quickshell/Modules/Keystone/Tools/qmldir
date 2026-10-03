@@ -1,0 +1,3 @@
+module qs.Modules.Keystone.Tools
+ToolsBackend 1.0 ToolsBackend.qml
+ToolsContent 1.0 ToolsContent.qml

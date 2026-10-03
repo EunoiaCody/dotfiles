@@ -1,0 +1,5 @@
+module qs.Components
+FileThemeIcon 1.0 FileThemeIcon.qml
+MaterialSymbol 1.0 MaterialSymbol.qml
+singleton SvgIcon 1.0 SvgIcon.qml
+ThemeIcon 1.0 ThemeIcon.qml

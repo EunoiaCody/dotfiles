@@ -13,7 +13,7 @@
   "systemMonitorDiskDevice": "",
   "systemMonitorNetworkInterface": "",
   "storageCapacityDiskDevice": "follow-io",
-  "systemMonitorIntervalMs": 2000,
+  "systemMonitorIntervalMs": 3000,
   "useTwelveHourClock": true,
   "sidebarClockStyle": "digital",
   "sidebarCookieSides": 14,

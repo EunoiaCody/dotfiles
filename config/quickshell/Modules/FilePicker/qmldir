@@ -1,0 +1,2 @@
+module qs.Modules.FilePicker
+FilePickerWindow 1.0 FilePickerWindow.qml

@@ -1,0 +1,4 @@
+module qs.Modules.Keystone.FullDisplay
+FullIslandFrame 1.0 FullIslandFrame.qml
+FullStatusBar 1.0 FullStatusBar.qml
+FullStatusItem 1.0 FullStatusItem.qml

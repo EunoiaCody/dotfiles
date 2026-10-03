@@ -1,2 +1,10 @@
 module qs.Modules.Bar
 Bar 1.0 Bar.qml
+BarAxis 1.0 BarAxis.qml
+BarComponentLoader 1.0 BarComponentLoader.qml
+BarContent 1.0 BarContent.qml
+BarSection 1.0 BarSection.qml
+HorizontalBarContent 1.0 HorizontalBarContent.qml
+HorizontalBarWindow 1.0 HorizontalBarWindow.qml
+VerticalBarContent 1.0 VerticalBarContent.qml
+VerticalBarWindow 1.0 VerticalBarWindow.qml

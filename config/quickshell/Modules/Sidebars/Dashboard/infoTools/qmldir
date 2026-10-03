@@ -1,0 +1,10 @@
+module qs.Modules.Sidebars.Dashboard.infoTools
+CalendarWidget 1.0 CalendarWidget.qml
+InfoToolDrawer 1.0 InfoToolDrawer.qml
+PomodoroTimer 1.0 PomodoroTimer.qml
+Stopwatch 1.0 Stopwatch.qml
+TaskList 1.0 TaskList.qml
+TimerWidget 1.0 TimerWidget.qml
+TodoWidget 1.0 TodoWidget.qml
+ToolSecondaryTabBar 1.0 ToolSecondaryTabBar.qml
+ToolSecondaryTabButton 1.0 ToolSecondaryTabButton.qml

@@ -1,0 +1,3 @@
+module qs.Modules.QuickSettings
+QuickSettingsSurface 1.0 QuickSettingsSurface.qml
+QuickSliders 1.0 QuickSliders.qml

@@ -1,0 +1,10 @@
+module qs.Modules.Sidebars.QuickSettings
+AudioContent 1.0 AudioContent.qml
+BluetoothContent 1.0 BluetoothContent.qml
+IdleContent 1.0 IdleContent.qml
+MicrophoneContent 1.0 MicrophoneContent.qml
+NetworkContent 1.0 NetworkContent.qml
+NightModeContent 1.0 NightModeContent.qml
+QuickSettings 1.0 QuickSettings.qml
+QuickSettingsSidebar 1.0 QuickSettingsSidebar.qml
+SettingsContent 1.0 SettingsContent.qml

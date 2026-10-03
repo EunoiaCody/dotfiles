@@ -1,35 +1,39 @@
 import QtQuick
 import QtQuick.Layouts
-import Clavis.Weather 1.0
+import qs.Services
 import qs.Common
 
 Rectangle {
     id: root
 
-    property real rootHeight: height
-
+    property real availableHeight: height
     readonly property string temp: fmtTemp(WeatherPlugin.currentTemperatureC, "--")
-    readonly property string cond: WeatherPlugin.loading ? "Loading..." : (WeatherPlugin.currentWeatherText || "Unknown")
-    readonly property string loc: WeatherPlugin.locationName || "Location"
+    readonly property string cond: WeatherPlugin.loading ? qsTr("Loading…") : (
+                                                               WeatherPlugin.currentWeatherText || qsTr(
+                                                                   "Unknown"))
+    readonly property string loc: WeatherPlugin.locationName || qsTr("Location")
     readonly property string iconName: WeatherPlugin.currentIconName || "cloud"
-    readonly property string feelsLike: "Feels like: " + fmtTemp(WeatherPlugin.currentFeelsLikeC, "--")
-    readonly property string humidity: "Humidity: " + fmtPercent(WeatherPlugin.currentRelativeHumidity)
+    readonly property string feelsLike: qsTr("Feels like: %1").arg(fmtTemp(WeatherPlugin.currentFeelsLikeC,
+                                                                           "--"))
+    readonly property string humidity: qsTr("Humidity: %1").arg(fmtPercent(
+                                                                    WeatherPlugin.currentRelativeHumidity))
     readonly property bool loadingState: WeatherPlugin.loading || !WeatherPlugin.hasValidData
-    readonly property bool showTitle: root.rootHeight > 610 && root.height > 150
-    readonly property bool showSkeletonForecast: root.loadingState && root.rootHeight > 610
-    readonly property bool showForecast: WeatherPlugin.hasValidData && root.rootHeight > 610 && WeatherPlugin.hourlyForecast.count() > 0
-    readonly property int forecastCount: root.width < 320 ? 3 : root.width < 360 ? 4 : 5
-    readonly property int forecastSpacing: root.width < 400 ? 12 : 22
+    readonly property bool veryCompact: root.availableHeight < Metrics.lockVeryCompactBreakpoint
+    readonly property bool showTitle: root.availableHeight >= Metrics.lockCompactBreakpoint
+    readonly property bool allowForecast: root.availableHeight >= Metrics.lockForecastBreakpoint
+    readonly property bool showSkeletonForecast: root.loadingState && root.allowForecast
+    readonly property bool showForecast: WeatherPlugin.hasValidData && root.allowForecast
+                                         && WeatherPlugin.hourlyForecast.count() > 0
+    readonly property int forecastCount: root.availableHeight < Metrics.lockFetchExpandedBreakpoint ? 3 :
+                                                                                                      root.width
+                                                                                                      < 360 ? 4 :
+                                                                                                              5
+    readonly property int forecastSpacing: root.width < 400 ? Metrics.spacingM : Metrics.spacingXL
     readonly property int forecastFontSize: root.width < 400 ? 18 : 20
     readonly property int forecastIconSize: root.width < 400 ? 50 : 56
-    readonly property int contentMargin: Sizes.lockOuterPadding * 2
+    readonly property int contentMargin: root.veryCompact ? Metrics.lockOuterPadding :
+                                                            Metrics.lockOuterPadding * 2
     property real skeletonPulse: 0
-
-    Layout.fillWidth: true
-    implicitHeight: showForecast || showSkeletonForecast ? Sizes.lockWeatherForecastHeight : Sizes.lockWeatherCompactHeight
-    color: Appearance.colors.colLayer2
-    radius: Sizes.lockCardRadius
-    clip: true
 
     function validNumber(value) {
         return typeof value === "number" && isFinite(value);
@@ -38,25 +42,33 @@ Rectangle {
     function fmtTemp(value, fallback) {
         if (!WeatherPlugin.hasValidData || !validNumber(value))
             return fallback;
-        return Math.round(value) + "°";
+
+        return Math.round(UiPreferences.weatherTemperature(value)) + "°";
     }
 
     function fmtPercent(value) {
         if (!WeatherPlugin.hasValidData || !validNumber(value))
             return "--";
+
         return Math.round(value) + "%";
     }
 
     function hourLabel(value) {
         const epoch = Number(value || 0);
-        const date = new Date(epoch > 100000000000 ? epoch : epoch * 1000);
+        const date = new Date(epoch > 1e+11 ? epoch : epoch * 1000);
         if (isNaN(date.getTime()))
             return "--";
+
         const hour = date.getHours();
+        if (!UiPreferences.useTwelveHourClock)
+            return String(hour).padStart(2, "0") + ":00";
+
         if (hour === 0)
             return "12 AM";
+
         if (hour === 12)
             return "12 PM";
+
         return (hour > 12 ? hour - 12 : hour).toString().padStart(2, "0") + (hour > 12 ? " PM" : " AM");
     }
 
@@ -68,6 +80,13 @@ Rectangle {
         return items;
     }
 
+    Layout.fillWidth: true
+    implicitHeight: Math.max(contentLayout.implicitHeight + contentLayout.anchors.topMargin
+                             + contentLayout.anchors.bottomMargin, skeletonLayout.implicitHeight
+                             + skeletonLayout.anchors.topMargin + skeletonLayout.anchors.bottomMargin)
+    color: Appearance.colors.colLayer2
+    radius: Metrics.lockCardRadius
+    clip: true
     Component.onCompleted: {
         if (!WeatherPlugin.hasValidData)
             WeatherPlugin.refresh();
@@ -79,37 +98,21 @@ Rectangle {
         anchors.fill: parent
         anchors.leftMargin: root.contentMargin
         anchors.rightMargin: root.contentMargin
-        anchors.topMargin: root.showTitle ? Sizes.lockOuterPadding * 2 : Sizes.lockOuterPadding
-        anchors.bottomMargin: root.showForecast ? Sizes.lockOuterPadding * 2 : Sizes.lockOuterPadding
+        anchors.topMargin: root.showTitle ? Metrics.lockOuterPadding * 2 : Metrics.lockOuterPadding
+        anchors.bottomMargin: root.showForecast ? Metrics.lockOuterPadding * 2 : Metrics.lockOuterPadding
         opacity: root.loadingState ? 0 : 1
         scale: root.loadingState ? 0.98 : 1
         spacing: 7
 
-        Behavior on opacity {
-            NumberAnimation {
-                duration: Appearance.animation.expressiveEffects.duration
-                easing.type: Appearance.animation.expressiveEffects.type
-                easing.bezierCurve: Appearance.animation.expressiveEffects.bezierCurve
-            }
-        }
-
-        Behavior on scale {
-            NumberAnimation {
-                duration: Appearance.animation.expressiveDefaultSpatial.duration
-                easing.type: Appearance.animation.expressiveDefaultSpatial.type
-                easing.bezierCurve: Appearance.animation.expressiveDefaultSpatial.bezierCurve
-            }
-        }
-
         Text {
             visible: root.showTitle
-            text: "Weather"
+            text: qsTr("Weather")
             color: Appearance.colors.colPrimary
-            font.family: Sizes.fontFamily
+            font.family: Fonts.ui
             font.pixelSize: 36
             font.weight: 500
             Layout.alignment: Qt.AlignHCenter
-            Layout.bottomMargin: -Sizes.lockOuterPadding
+            Layout.bottomMargin: -Metrics.lockOuterPadding
         }
 
         RowLayout {
@@ -119,7 +122,7 @@ Rectangle {
             Text {
                 text: root.iconName
                 color: Appearance.colors.colSecondary
-                font.family: "Material Symbols Outlined"
+                font.family: Fonts.materialSymbolsOutlined
                 font.pixelSize: root.width < 320 ? 72 : 92
                 Layout.alignment: Qt.AlignVCenter
             }
@@ -133,7 +136,7 @@ Rectangle {
                     Layout.fillWidth: true
                     text: root.width <= 320 ? root.temp + "  " + root.cond : root.cond
                     color: Appearance.colors.colSecondary
-                    font.family: Sizes.fontFamily
+                    font.family: Fonts.ui
                     font.pixelSize: 24
                     font.weight: 500
                     elide: Text.ElideRight
@@ -143,7 +146,7 @@ Rectangle {
                     Layout.fillWidth: true
                     text: root.humidity
                     color: Appearance.colors.colOnSurfaceVariant
-                    font.family: Sizes.fontFamily
+                    font.family: Fonts.ui
                     font.pixelSize: 17
                     elide: Text.ElideRight
                 }
@@ -159,7 +162,7 @@ Rectangle {
                     Layout.fillWidth: true
                     text: root.temp
                     color: Appearance.colors.colPrimary
-                    font.family: Sizes.fontFamily
+                    font.family: Fonts.ui
                     font.pixelSize: 38
                     font.weight: 500
                     horizontalAlignment: Text.AlignRight
@@ -169,8 +172,9 @@ Rectangle {
                 Text {
                     Layout.fillWidth: true
                     text: root.feelsLike
+                    visible: !root.veryCompact
                     color: Appearance.colors.colOutline
-                    font.family: Sizes.fontFamily
+                    font.family: Fonts.ui
                     font.pixelSize: 16
                     horizontalAlignment: Text.AlignRight
                     elide: Text.ElideLeft
@@ -197,7 +201,7 @@ Rectangle {
                         Layout.fillWidth: true
                         text: root.hourLabel(parent.modelData.time)
                         color: Appearance.colors.colOutline
-                        font.family: Sizes.fontFamily
+                        font.family: Fonts.ui
                         font.pixelSize: root.forecastFontSize
                         horizontalAlignment: Text.AlignHCenter
                         elide: Text.ElideRight
@@ -208,7 +212,7 @@ Rectangle {
                         Layout.preferredHeight: root.forecastIconSize + 8
                         text: parent.modelData.iconName || "cloud_alert"
                         color: Appearance.colors.colOnSurface
-                        font.family: "Material Symbols Outlined"
+                        font.family: Fonts.materialSymbolsOutlined
                         font.pixelSize: root.forecastIconSize
                         font.weight: 500
                         verticalAlignment: Text.AlignVCenter
@@ -218,22 +222,12 @@ Rectangle {
                         Layout.alignment: Qt.AlignHCenter
                         text: root.fmtTemp(parent.modelData.temperatureC, "--")
                         color: Appearance.colors.colSecondary
-                        font.family: Sizes.fontFamily
+                        font.family: Fonts.ui
                         font.pixelSize: root.forecastFontSize
                     }
                 }
             }
         }
-    }
-
-    Item {
-        id: skeleton
-
-        anchors.fill: parent
-        z: 2
-        opacity: root.loadingState ? 1 : 0
-        scale: root.loadingState ? 1 : 0.98
-        visible: opacity > 0
 
         Behavior on opacity {
             NumberAnimation {
@@ -250,20 +244,33 @@ Rectangle {
                 easing.bezierCurve: Appearance.animation.expressiveDefaultSpatial.bezierCurve
             }
         }
+    }
+
+    Item {
+        id: skeleton
+
+        anchors.fill: parent
+        z: 2
+        opacity: root.loadingState ? 1 : 0
+        scale: root.loadingState ? 1 : 0.98
+        visible: opacity > 0
 
         ColumnLayout {
+            id: skeletonLayout
+
             anchors.fill: parent
             anchors.leftMargin: root.contentMargin
             anchors.rightMargin: root.contentMargin
-            anchors.topMargin: root.showTitle ? Sizes.lockOuterPadding * 2 : Sizes.lockOuterPadding
-            anchors.bottomMargin: root.showSkeletonForecast ? Sizes.lockOuterPadding * 2 : Sizes.lockOuterPadding
+            anchors.topMargin: root.showTitle ? Metrics.lockOuterPadding * 2 : Metrics.lockOuterPadding
+            anchors.bottomMargin: root.showSkeletonForecast ? Metrics.lockOuterPadding * 2 :
+                                                              Metrics.lockOuterPadding
             spacing: 7
 
             SkeletonBlock {
                 Layout.preferredWidth: 128
                 Layout.preferredHeight: 28
                 Layout.alignment: Qt.AlignHCenter
-                Layout.bottomMargin: -Sizes.lockOuterPadding
+                Layout.bottomMargin: -Metrics.lockOuterPadding
                 visible: root.showTitle
                 pulse: root.skeletonPulse
             }
@@ -276,7 +283,7 @@ Rectangle {
                     Layout.preferredWidth: root.width < 320 ? 72 : 92
                     Layout.preferredHeight: root.width < 320 ? 72 : 92
                     Layout.alignment: Qt.AlignVCenter
-                    radius: Sizes.lockCardRadiusSmall
+                    radius: Metrics.lockCardRadiusSmall
                     pulse: root.skeletonPulse
                 }
 
@@ -341,7 +348,7 @@ Rectangle {
                             Layout.preferredWidth: root.forecastIconSize
                             Layout.preferredHeight: root.forecastIconSize
                             Layout.alignment: Qt.AlignHCenter
-                            radius: Sizes.lockCardRadiusSmall
+                            radius: Metrics.lockCardRadiusSmall
                             pulse: root.skeletonPulse
                         }
 
@@ -355,6 +362,29 @@ Rectangle {
                 }
             }
         }
+
+        Behavior on opacity {
+            NumberAnimation {
+                duration: Appearance.animation.expressiveEffects.duration
+                easing.type: Appearance.animation.expressiveEffects.type
+                easing.bezierCurve: Appearance.animation.expressiveEffects.bezierCurve
+            }
+        }
+
+        Behavior on scale {
+            NumberAnimation {
+                duration: Appearance.animation.expressiveDefaultSpatial.duration
+                easing.type: Appearance.animation.expressiveDefaultSpatial.type
+                easing.bezierCurve: Appearance.animation.expressiveDefaultSpatial.bezierCurve
+            }
+        }
+    }
+
+    Timer {
+        running: true
+        repeat: true
+        interval: 900000
+        onTriggered: WeatherPlugin.refresh()
     }
 
     SequentialAnimation on skeletonPulse {
@@ -374,13 +404,6 @@ Rectangle {
             easing.type: Appearance.animation.standard.type
             easing.bezierCurve: Appearance.animation.standard.bezierCurve
         }
-    }
-
-    Timer {
-        running: true
-        repeat: true
-        interval: 900000
-        onTriggered: WeatherPlugin.refresh()
     }
 
     component SkeletonBlock: Rectangle {

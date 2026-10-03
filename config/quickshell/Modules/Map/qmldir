@@ -1,0 +1,8 @@
+module qs.Modules.Map
+MapAttribution 1.0 MapAttribution.qml
+MapCoordinateMarker 1.0 MapCoordinateMarker.qml
+MapFallback 1.0 MapFallback.qml
+MapLibreMap 1.0 MapLibreMap.qml
+MapLibreView 1.0 MapLibreView.qml
+MapLibreWeatherMap 1.0 MapLibreWeatherMap.qml
+singleton WeatherMapProviders 1.0 WeatherMapProviders.qml

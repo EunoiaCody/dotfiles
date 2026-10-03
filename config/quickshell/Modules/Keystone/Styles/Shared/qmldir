@@ -1,0 +1,7 @@
+module qs.Modules.Keystone.Styles.Shared
+AttachedEdgeCurve 1.0 AttachedEdgeCurve.qml
+HorizontalKeystoneLayout 1.0 HorizontalKeystoneLayout.qml
+KeyboardLockIndicator 1.0 KeyboardLockIndicator.qml
+KeystoneHoverController 1.0 KeystoneHoverController.qml
+KeystoneSurface 1.0 KeystoneSurface.qml
+VerticalKeystoneLayout 1.0 VerticalKeystoneLayout.qml

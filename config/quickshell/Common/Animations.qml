@@ -44,6 +44,8 @@ Singleton {
         readonly property int expressiveEffects: 200
         readonly property int emphasizedAccel: 200
         readonly property int standardDecel: 200
+        readonly property int sidebarEnter: expressiveFastSpatial
+        readonly property int sidebarExit: small
     }
 
     readonly property QtObject animation: QtObject {
@@ -91,6 +93,12 @@ Singleton {
             readonly property int duration: 500
             readonly property int type: Easing.BezierSpline
             readonly property var bezierCurve: root.curves.expressiveDefaultSpatial
+        }
+        readonly property QtObject desktopCardReflow: expressiveDefaultSpatial
+        readonly property QtObject wallpaperParallax: QtObject {
+            readonly property int duration: root.durations.large
+            readonly property int type: Easing.OutCubic
+            readonly property var bezierCurve: []
         }
         readonly property QtObject expressiveSlowSpatial: QtObject {
             readonly property int duration: 650

@@ -3,24 +3,64 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Clavis.Runtime
 import qs.Common
 import qs.Services
 
 Singleton {
     id: root
 
+    property string generationError: ""
+    property string externalGenerationError: ""
+    property string generationTemplateId: ""
+    property string pendingGenerationTemplateId: ""
+    property var pendingGeneration: null
+    property bool coreReloaded: false
     property bool generating: false
     property string lastSource: ""
-    property var availableIconThemes: [({ "label": "系统默认", "value": "" })]
-    property var availableCursorThemes: [({ "label": "系统默认", "value": "" })]
-    property string systemDefaultIconTheme: ""
+    readonly property bool cursorIntegrationReady: NiriConfigService.ready("cursor")
+    readonly property string cursorLastError: NiriConfigService.error
+    readonly property bool cursorSyncBusy: NiriConfigService.busy && NiriConfigService.activeFeature
+                                           === "cursor"
+    property var availableIconThemes: [({
+                                            "label": qsTr("System default"),
+                                            "value": ""
+                                        })]
+    property var availableCursorThemes: [({
+                                              "label": qsTr("System default"),
+                                              "value": ""
+                                          })]
+    readonly property string systemDefaultIconTheme: IconThemeController.systemThemeName
+    readonly property int iconThemeRevision: IconThemeController.revision
     property string systemDefaultCursorTheme: ""
 
-    readonly property string sessionDesktop: (Quickshell.env("XDG_CURRENT_DESKTOP") || Quickshell.env("XDG_SESSION_DESKTOP") || "").toLowerCase()
-    readonly property bool isNiriSession: sessionDesktop.indexOf("niri") !== -1 || (Quickshell.env("NIRI_SOCKET") || "") !== ""
+    readonly property bool isNiriSession: NiriConfigService.supported
 
     function applyConfigToAppearance() {
-        // matugen disabled — user uses fixed Catppuccin Mocha palette
+        Appearance.matugenScheme = PersonalizationConfig.matugenScheme;
+        Appearance.matugenMode = PersonalizationConfig.themeMode;
+    }
+
+    function setMatugenScheme(value) {
+        PersonalizationConfig.setMatugenScheme(value);
+        root.applyConfigToAppearance();
+        root.regenerateFromCurrentWallpaper();
+    }
+
+    function enabledMatugenTemplates() {
+        const enabled = [];
+        for (const template of MatugenTemplateService.templates) {
+            if (template.valid && PersonalizationConfig.isMatugenTemplateEnabled(template.id)
+                    && enabled.indexOf(template.id) === -1)
+                enabled.push(template.id);
+        }
+        return enabled;
+    }
+
+    function setMatugenTemplateEnabled(id, enabled) {
+        let changed = PersonalizationConfig.setMatugenTemplateEnabled(id, enabled);
+        if (changed && enabled)
+            root.regenerateFromCurrentWallpaper(id);
     }
 
     function setThemeMode(value) {
@@ -32,46 +72,32 @@ Singleton {
 
     function setCursorTheme(value) {
         PersonalizationConfig.setCursorTheme(value);
-        root.applyCursorSettings();
     }
 
     function setCursorSize(value) {
         PersonalizationConfig.setCursorSize(value);
-        root.applyCursorSettings();
     }
 
     function setCursorHideWhenTyping(value) {
         PersonalizationConfig.setCursorHideWhenTyping(value);
-        root.applyCursorSettings();
     }
 
     function setCursorHideAfterInactiveMs(value) {
         PersonalizationConfig.setCursorHideAfterInactiveMs(value);
-        root.applyCursorSettings();
     }
 
     function setIconTheme(value) {
         PersonalizationConfig.setIconTheme(value);
-
-        const themeName = root.effectiveIconTheme();
-        if (themeName !== "")
-            Quickshell.execDetached(["gsettings", "set", "org.gnome.desktop.interface", "icon-theme", themeName]);
     }
 
-    function effectiveIconTheme() {
-        return PersonalizationConfig.iconTheme !== "" ? PersonalizationConfig.iconTheme : root.systemDefaultIconTheme;
+    function applyIconTheme() {
+        if (PersonalizationConfig.ready)
+            IconThemeController.setThemeName(PersonalizationConfig.iconTheme);
     }
 
     function effectiveCursorTheme() {
-        return PersonalizationConfig.cursorTheme !== "" ? PersonalizationConfig.cursorTheme : root.systemDefaultCursorTheme;
-    }
-
-    function shellQuote(value) {
-        return "'" + String(value).replace(/'/g, "'\\''") + "'";
-    }
-
-    function escapeKdlString(value) {
-        return String(value).replace(/\\/g, "\\\\").replace(/"/g, "\\\"");
+        return PersonalizationConfig.cursorTheme !== "" ? PersonalizationConfig.cursorTheme :
+                                                          root.systemDefaultCursorTheme;
     }
 
     function unique(values) {
@@ -90,7 +116,7 @@ Singleton {
     function dataDirs() {
         const raw = Quickshell.env("XDG_DATA_DIRS") || "";
         const base = raw.trim() !== "" ? raw.split(":") : ["/usr/local/share", "/usr/share"];
-        return root.unique(base.concat([Paths.homeDir + "/.local/share", "/usr/local/share", "/usr/share"]));
+        return root.unique(base.concat([Paths.xdgDataHome, "/usr/local/share", "/usr/share"]));
     }
 
     function hasOption(options, value) {
@@ -109,7 +135,7 @@ Singleton {
     }
 
     function parseDetectedThemes(output, defaultLabel, currentValue, cursorThemes) {
-        let systemDefault = "";
+        let systemDefault = cursorThemes ? "" : root.systemDefaultIconTheme;
         const names = [];
         const lines = String(output || "").split("\n");
         for (let i = 0; i < lines.length; i += 1) {
@@ -117,7 +143,8 @@ Singleton {
             if (line === "")
                 continue;
             if (line.indexOf("SYSDEFAULT:") === 0) {
-                systemDefault = line.substring(11).trim();
+                if (cursorThemes)
+                    systemDefault = line.substring(11).trim();
                 continue;
             }
             names.push(line);
@@ -125,54 +152,29 @@ Singleton {
 
         if (cursorThemes)
             root.systemDefaultCursorTheme = systemDefault;
-        else
-            root.systemDefaultIconTheme = systemDefault;
 
         const options = [root.defaultOption(defaultLabel, systemDefault)];
         const sorted = root.unique(names).sort((a, b) => a.localeCompare(b));
         for (let j = 0; j < sorted.length; j += 1)
-            options.push({ "label": sorted[j], "value": sorted[j] });
+            options.push({
+                             "label": sorted[j],
+                             "value": sorted[j]
+                         });
 
         if (currentValue !== "" && !root.hasOption(options, currentValue))
-            options.splice(1, 0, { "label": currentValue, "value": currentValue });
+            options.splice(1, 0, {
+                               "label": currentValue,
+                               "value": currentValue
+                           });
 
         return options;
     }
 
-    function iconThemeDetectionScript() {
-        const paths = root.dataDirs().map(dir => dir + "/icons").concat([Paths.homeDir + "/.icons"]);
-        const pathsArg = paths.map(path => root.shellQuote(path)).join(" ");
-        return `
-            printf 'SYSDEFAULT:%s\\n' "$(gsettings get org.gnome.desktop.interface icon-theme 2>/dev/null | sed "s/'//g" || true)"
-            for dir in ${pathsArg}; do
-                [ -d "$dir" ] || continue
-                for theme in "$dir"/*/; do
-                    [ -d "$theme" ] || continue
-                    basename "$theme"
-                done
-            done | grep -v '^icons$' | grep -v '^default$' | grep -v '^hicolor$' | grep -v '^locolor$' | sort -u
-        `;
-    }
-
-    function cursorThemeDetectionScript() {
-        const paths = root.dataDirs().map(dir => dir + "/icons").concat([Paths.homeDir + "/.icons"]);
-        const pathsArg = root.unique(paths).map(path => root.shellQuote(path)).join(" ");
-        return `
-            printf 'SYSDEFAULT:%s\\n' "$(gsettings get org.gnome.desktop.interface cursor-theme 2>/dev/null | sed "s/'//g" || true)"
-            for dir in ${pathsArg}; do
-                [ -d "$dir" ] || continue
-                for theme in "$dir"/*/; do
-                    [ -d "$theme" ] || continue
-                    [ -d "$theme/cursors" ] || continue
-                    basename "$theme"
-                done
-            done | grep -v '^icons$' | grep -v '^default$' | sort -u
-        `;
-    }
-
     function detectAvailableThemes() {
-        detectIconThemesProcess.command = ["bash", "-c", root.iconThemeDetectionScript()];
-        detectCursorThemesProcess.command = ["bash", "-c", root.cursorThemeDetectionScript()];
+        const paths = root.dataDirs().map(dir => dir + "/icons").concat([Paths.homeDir + "/.icons"]);
+        const script = Paths.scriptPath("theme", "list_cursor_icon_themes.sh");
+        detectIconThemesProcess.command = ["bash", script, "icon", ...paths];
+        detectCursorThemesProcess.command = ["bash", script, "cursor", ...paths];
         detectIconThemesProcess.running = false;
         detectCursorThemesProcess.running = false;
         detectIconThemesProcess.running = true;
@@ -180,107 +182,60 @@ Singleton {
     }
 
     function applyCursorSettings() {
-        const themeName = root.effectiveCursorTheme();
-        if (themeName !== "")
-            Quickshell.execDetached(["gsettings", "set", "org.gnome.desktop.interface", "cursor-theme", themeName]);
-        Quickshell.execDetached(["gsettings", "set", "org.gnome.desktop.interface", "cursor-size", String(PersonalizationConfig.cursorSize)]);
-        root.updateXResources();
+        if (!root.isNiriSession || !PersonalizationConfig.ready)
+            return;
         root.generateNiriCursorConfig();
     }
 
-    function updateXResources() {
-        const themeName = root.effectiveCursorTheme();
-        if (themeName === "")
-            return;
-
-        const xresourcesPath = Paths.homeDir + "/.Xresources";
-        const script = `
-            xresources_file=${root.shellQuote(xresourcesPath)}
-            theme_name=${root.shellQuote(themeName)}
-            cursor_size=${PersonalizationConfig.cursorSize}
-
-            [ -f "$xresources_file" ] && [ ! -w "$xresources_file" ] && exit 0
-
-            current_theme=""
-            current_size=""
-            if [ -f "$xresources_file" ]; then
-                current_theme=$(grep -E '^[[:space:]]*Xcursor\\.theme:' "$xresources_file" 2>/dev/null | sed 's/.*:[[:space:]]*//' | head -1)
-                current_size=$(grep -E '^[[:space:]]*Xcursor\\.size:' "$xresources_file" 2>/dev/null | sed 's/.*:[[:space:]]*//' | head -1)
-            fi
-
-            [ "$current_theme" = "$theme_name" ] && [ "$current_size" = "$cursor_size" ] && exit 0
-
-            if [ -f "$xresources_file" ]; then
-                cp "$xresources_file" "$xresources_file.backup$(date +%s)" 2>/dev/null || true
-            fi
-
-            temp_file="$xresources_file.tmp.$$"
-            if [ -f "$xresources_file" ]; then
-                grep -v '^[[:space:]]*Xcursor\\.theme:' "$xresources_file" | grep -v '^[[:space:]]*Xcursor\\.size:' > "$temp_file" 2>/dev/null || true
-            else
-                touch "$temp_file"
-            fi
-
-            printf 'Xcursor.theme: %s\\n' "$theme_name" >> "$temp_file"
-            printf 'Xcursor.size: %s\\n' "$cursor_size" >> "$temp_file"
-            mv "$temp_file" "$xresources_file"
-            xrdb -merge "$xresources_file" 2>/dev/null || true
-        `;
-        Quickshell.execDetached(["bash", "-c", script]);
-    }
-
     function generateNiriCursorConfig() {
-        if (!root.isNiriSession)
-            return;
-
-        const niriDmsDir = Paths.homeDir + "/.config/niri/dms";
-        const cursorPath = niriDmsDir + "/cursor.kdl";
-        const themeName = root.effectiveCursorTheme();
-        const size = PersonalizationConfig.cursorSize;
-        const hideWhenTyping = PersonalizationConfig.cursorHideWhenTyping;
-        const hideAfterMs = PersonalizationConfig.cursorHideAfterInactiveMs;
-        const hasCursorConfig = themeName !== "" || size !== 24 || hideWhenTyping || hideAfterMs > 0;
-        let content = "";
-
-        if (hasCursorConfig) {
-            content = `// ! DO NOT EDIT !
-// ! AUTO-GENERATED BY CLAVIS !
-// ! CHANGES WILL BE OVERWRITTEN !
-// ! PLACE YOUR CUSTOM CONFIGURATION ELSEWHERE !
-
-cursor {
-`;
-            if (themeName !== "")
-                content += `    xcursor-theme "${root.escapeKdlString(themeName)}"\n`;
-            content += `    xcursor-size ${size}\n`;
-            if (hideWhenTyping)
-                content += "    hide-when-typing\n";
-            if (hideAfterMs > 0)
-                content += `    hide-after-inactive-ms ${hideAfterMs}\n`;
-            content += "}\n";
-        }
-
-        writeNiriCursorProcess.command = [
-            "bash", "-c",
-            "mkdir -p " + root.shellQuote(niriDmsDir) + " && printf '%s' " + root.shellQuote(content) + " > " + root.shellQuote(cursorPath)
-        ];
-        writeNiriCursorProcess.running = false;
-        writeNiriCursorProcess.running = true;
+        if (PersonalizationConfig.ready)
+            NiriConfigService.update("cursor");
     }
 
-    function generateFromWallpaper(path) {
+    function generateFromWallpaper(path, templateId) {
         if (!path || path === "")
             return;
 
         root.applyConfigToAppearance();
         root.lastSource = path;
-        generateColorsProcess.command = [
-            "bash", Paths.scriptPath("theme", "generate_quickshell_colors.sh"),
-            "--image", path,
-            "--mode", PersonalizationConfig.themeMode
-        ];
-        generateColorsProcess.running = false;
+        const command = ["bash", Paths.scriptPath("theme", "generate_matugen_colors.sh"), "--image", path, "--scheme",
+                         PersonalizationConfig.matugenScheme, "--mode", PersonalizationConfig.themeMode,
+                         "--templates", root.enabledMatugenTemplates().join(",")];
+        root.startGeneration(command, templateId);
+    }
+
+    function startGeneration(command, templateId) {
+        if (generateColorsProcess.running || !MatugenTemplateService.ready || !PersonalizationConfig.ready) {
+            root.pendingGenerationTemplateId = templateId || "";
+            root.pendingGeneration = command;
+            return;
+        }
+        root.generationTemplateId = templateId || "";
+        root.pendingGenerationTemplateId = "";
+        root.pendingGeneration = null;
+        root.generationError = "";
+        root.externalGenerationError = "";
+        root.coreReloaded = false;
+        generateColorsProcess.command = command;
         generateColorsProcess.running = true;
+    }
+
+    function resumeGeneration() {
+        if (!root.pendingGeneration)
+            return;
+        const command = root.pendingGeneration.slice();
+        command[command.indexOf("--templates") + 1] = root.enabledMatugenTemplates().join(",");
+        command[command.indexOf("--scheme") + 1] = PersonalizationConfig.matugenScheme;
+        command[command.indexOf("--mode") + 1] = PersonalizationConfig.themeMode;
+        root.startGeneration(command, root.pendingGenerationTemplateId);
+    }
+
+    Connections {
+        target: MatugenTemplateService
+        function onReadyChanged() {
+            if (MatugenTemplateService.ready && root.pendingGeneration)
+                root.resumeGeneration();
+        }
     }
 
     function opaqueHexFromColor(value) {
@@ -291,50 +246,84 @@ cursor {
         return "#" + r + g + b;
     }
 
-    function generateFromColor(value) {
+    function generateFromColor(value, templateId) {
         if (!value || value === "")
             return;
 
         const sourceColor = root.opaqueHexFromColor(value);
         root.applyConfigToAppearance();
         root.lastSource = value;
-        generateColorsProcess.command = [
-            "bash", Paths.scriptPath("theme", "generate_quickshell_colors.sh"),
-            "--color", sourceColor,
-            "--mode", PersonalizationConfig.themeMode
-        ];
-        generateColorsProcess.running = false;
-        generateColorsProcess.running = true;
+        const command = ["bash", Paths.scriptPath("theme", "generate_matugen_colors.sh"), "--color",
+                         sourceColor, "--scheme", PersonalizationConfig.matugenScheme, "--mode",
+                         PersonalizationConfig.themeMode, "--templates", root.enabledMatugenTemplates().join(
+                             ",")];
+        root.startGeneration(command, templateId);
     }
 
-    function regenerateFromCurrentWallpaper() {
+    function regenerateFromCurrentWallpaper(templateId) {
         const path = WallpaperService.currentWallpaper || PersonalizationConfig.wallpaperPath;
         if (path && path !== "" && WallpaperService.isImagePath(path))
-            root.generateFromWallpaper(path);
-        else if (path && path !== "" && WallpaperService.isColorSource(path))
-            root.generateFromColor(path);
+            root.generateFromWallpaper(path, templateId);
+        else if (WallpaperService.primaryColor(path))
+            root.generateFromColor(WallpaperService.primaryColor(path), templateId);
     }
 
     Component.onCompleted: {
+        root.applyIconTheme();
         root.applyConfigToAppearance();
         root.detectAvailableThemes();
-        if (PersonalizationConfig.themeMode === "dark" && !UiPreferences.darkMode)
-            UiPreferences.setDarkMode(true);
+        root.applyCursorSettings();
+        // UiPreferences reads the system scheme on startup. The Matugen mode
+        // is generation configuration, not a request to change the system theme.
     }
 
     Connections {
         target: PersonalizationConfig
 
+        function onMatugenSchemeChanged() {
+            root.applyConfigToAppearance();
+        }
+
         function onThemeModeChanged() {
             root.applyConfigToAppearance();
         }
+
+        function onSettingsLoaded() {
+            root.applyIconTheme();
+            if (root.pendingGeneration)
+                root.resumeGeneration();
+            root.applyCursorSettings();
+        }
+
+        function onIconThemeChanged() {
+            root.applyIconTheme();
+        }
+
+        function onCursorThemeChanged() {
+            root.applyCursorSettings();
+        }
+
+        function onCursorSizeChanged() {
+            root.applyCursorSettings();
+        }
+
+        function onCursorHideWhenTypingChanged() {
+            root.applyCursorSettings();
+        }
+
+        function onCursorHideAfterInactiveMsChanged() {
+            root.applyCursorSettings();
+        }
     }
+
+    onSystemDefaultCursorThemeChanged: root.applyCursorSettings()
 
     Process {
         id: detectIconThemesProcess
         stdout: StdioCollector {
             onStreamFinished: {
-                root.availableIconThemes = root.parseDetectedThemes(this.text, "系统默认", PersonalizationConfig.iconTheme, false);
+                root.availableIconThemes = root.parseDetectedThemes(this.text, qsTr("System default"),
+                                                                    PersonalizationConfig.iconTheme, false);
             }
         }
     }
@@ -343,21 +332,57 @@ cursor {
         id: detectCursorThemesProcess
         stdout: StdioCollector {
             onStreamFinished: {
-                root.availableCursorThemes = root.parseDetectedThemes(this.text, "系统默认", PersonalizationConfig.cursorTheme, true);
+                root.availableCursorThemes = root.parseDetectedThemes(this.text, qsTr("System default"),
+                                                                      PersonalizationConfig.cursorTheme,
+                                                                      true);
             }
         }
     }
 
-    Process {
-        id: writeNiriCursorProcess
+    function refreshCursorIntegrationState() {
+        NiriConfigService.refresh();
     }
 
     Process {
         id: generateColorsProcess
-        onRunningChanged: if (running) root.generating = true
-        onExited: {
+        onRunningChanged: if (running)
+                              root.generating = true
+        stderr: StdioCollector {
+            id: generationStderr
+        }
+        stdout: SplitParser {
+            onRead: data => {
+                try {
+                    const status = JSON.parse(data);
+                    if (status.schemaVersion !== 1)
+                        return;
+                    if (status.event === "core-ready") {
+                        root.coreReloaded = true;
+                        Appearance.reloadColors();
+                    } else if (status.event === "external-error") {
+                        root.externalGenerationError += (root.externalGenerationError ? "\n" : "")
+                                + status.id + ": " + status.error;
+                    } else if (status.event === "core-error") {
+                        root.generationError = status.error;
+                    }
+                } catch (e) {
+                    console.warn("Invalid Matugen generation status:", data);
+                }
+            }
+        }
+        onExited: exitCode => {
             root.generating = false;
-            Appearance.reloadColors();
+            root.generationTemplateId = "";
+            if ((exitCode === 0 || exitCode === 3) && !root.coreReloaded)
+                Appearance.reloadColors();
+            if (exitCode !== 0 && exitCode !== 3)
+                root.generationError = root.generationError || generationStderr.text.trim() || qsTr(
+                            "Failed to generate Matugen colors");
+            if (exitCode === 3 && !root.externalGenerationError)
+                root.externalGenerationError = generationStderr.text.trim() || qsTr(
+                            "Some Matugen templates failed to generate");
+            if (root.pendingGeneration)
+                Qt.callLater(root.resumeGeneration);
         }
     }
 }

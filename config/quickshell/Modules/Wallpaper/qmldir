@@ -1,2 +1,7 @@
 module qs.Modules.Wallpaper
+DesktopWallpaper 1.0 DesktopWallpaper.qml
+OverviewWallpaper 1.0 OverviewWallpaper.qml
 WallpaperBackground 1.0 WallpaperBackground.qml
+WallpaperImageViewport 1.0 WallpaperImageViewport.qml
+WallpaperTransitionSurface 1.0 WallpaperTransitionSurface.qml
+ZenPaletteRenderer 1.0 ZenPaletteRenderer.qml

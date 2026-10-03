@@ -1,0 +1,10 @@
+module qs.Modules.Bar.QuickSettings
+Battery 1.0 Battery.qml
+BluetoothButton 1.0 BluetoothButton.qml
+Brightness 1.0 Brightness.qml
+Microphone 1.0 Microphone.qml
+Network 1.0 Network.qml
+PowerButton 1.0 PowerButton.qml
+QuickSettings 1.0 QuickSettings.qml
+SettingsButton 1.0 SettingsButton.qml
+Volume 1.0 Volume.qml

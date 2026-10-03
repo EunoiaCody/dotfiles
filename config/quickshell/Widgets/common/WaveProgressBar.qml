@@ -14,10 +14,8 @@ Item {
     property real waveFrequency: 0.12     // 波浪频率
     property real trackHeight: 6          // 轨道高度
     property real trackRadius: trackHeight / 2
-    property real thumbSize: 0            // 滑块大小（0=无滑块）
-    property color thumbColor: waveColor
+    property real progressGap: 10         // 已播放与未播放轨道间的缺口
     property real seekMargin: 10          // seek 区域外扩边距
-    property real minWaveWidth: trackHeight
     property real fadeLength: 30
     property real secondaryWaveFrequencyMultiplier: 1.5
     property real secondaryWaveAmplitude: 0.3
@@ -39,10 +37,13 @@ Item {
 
     // --- 内部状态 ---
     property real _targetX: root.progress * root.width
-    property real _activeX: seekMa.pressed
-        ? Math.max(0, Math.min(seekMa.mouseX, root.width))
-        : _targetX
+    property real _activeX: seekMa.pressed ? Math.max(0, Math.min(seekMa.mouseX, root.width)) : _targetX
     property real _visualX: _activeX
+    readonly property bool _hasProgressSplit: _visualX > 0 && _visualX < width
+    readonly property real _playedEndX: _hasProgressSplit ? Math.max(0, _visualX - progressGap / 2) : Math.max(
+                                                                0, Math.min(_visualX, width))
+    readonly property real _remainingStartX: _hasProgressSplit ? Math.min(width, _visualX + progressGap / 2) :
+                                                                 Math.max(0, Math.min(_visualX, width))
 
     Behavior on _visualX {
         enabled: root.visible && !seekMa.pressed
@@ -52,14 +53,15 @@ Item {
         }
     }
 
-    // --- 未播放轨道 ---
+    // --- 未播放轨道：从缺口右侧开始，左端保持半圆形 ---
     Rectangle {
-        anchors.left: parent.left
-        anchors.right: parent.right
+        x: root._remainingStartX
+        width: Math.max(0, parent.width - x)
         anchors.verticalCenter: parent.verticalCenter
         height: root.trackHeight
         radius: root.trackRadius
         color: root.trackColor
+        visible: width > 0
     }
 
     // --- 波浪 Canvas ---
@@ -68,7 +70,8 @@ Item {
         anchors.left: parent.left
         anchors.top: parent.top
         anchors.bottom: parent.bottom
-        width: Math.max(root.minWaveWidth, root._visualX)
+        width: root._playedEndX
+        visible: width > 0
 
         property real phase: 0
 
@@ -82,10 +85,24 @@ Item {
         }
 
         onPhaseChanged: requestPaint()
+        onAvailableChanged: {
+            if (available)
+                requestPaint();
+        }
+        onVisibleChanged: {
+            if (visible)
+                requestPaint();
+        }
 
         Connections {
             target: root
-            function on_VisualXChanged() { waveCanvas.requestPaint() }
+            function on_VisualXChanged() {
+                waveCanvas.requestPaint();
+            }
+            // Theme colors may arrive after the first paint, even while paused.
+            function onWaveColorChanged() {
+                waveCanvas.requestPaint();
+            }
         }
 
         onPaint: {
@@ -97,21 +114,31 @@ Item {
             let centerY = height / 2;
             let w = width;
 
-            if (w < radius * 2) return;
+            if (w <= 0)
+                return;
+
+            if (w < radius * 2) {
+                ctx.beginPath();
+                ctx.arc(w / 2, centerY, w / 2, 0, Math.PI * 2);
+                ctx.fillStyle = root.waveColor;
+                ctx.fill();
+                return;
+            }
+
+            const endCenterX = w - radius;
 
             ctx.beginPath();
-            ctx.moveTo(w, centerY + trackH / 2);
+            ctx.moveTo(endCenterX, centerY + trackH / 2);
             ctx.lineTo(radius, centerY + trackH / 2);
-            ctx.arcTo(0, centerY + trackH / 2, 0, centerY, radius);
-            ctx.arcTo(0, centerY - trackH / 2, radius, centerY - trackH / 2, radius);
+            ctx.arc(radius, centerY, radius, Math.PI / 2, Math.PI * 1.5);
 
             let freq = root.waveFrequency;
             let maxAmp = root.waveAmplitude;
             let fadeLen = root.fadeLength;
 
-            for (let x = radius; x <= w; x++) {
+            for (let x = radius; x <= endCenterX; x++) {
                 let leftDist = x - radius;
-                let rightDist = w - x;
+                let rightDist = endCenterX - x;
                 let envelope = 1.0;
 
                 if (leftDist < fadeLen) {
@@ -125,33 +152,26 @@ Item {
                 }
 
                 let wave1 = Math.sin(x * freq - phase);
-                let wave2 = Math.sin(x * freq * root.secondaryWaveFrequencyMultiplier - phase * 2.0) * root.secondaryWaveAmplitude;
+                let wave2 = Math.sin(x * freq * root.secondaryWaveFrequencyMultiplier - phase * 2.0)
+                    * root.secondaryWaveAmplitude;
                 let combined = (wave1 + wave2 + root.waveBias) / (2 * root.waveBias);
 
-                if (combined < 0) combined = 0;
-                if (combined > 1) combined = 1;
+                if (combined < 0)
+                    combined = 0;
+                if (combined > 1)
+                    combined = 1;
 
                 let y = (centerY - trackH / 2) - (combined * maxAmp * envelope);
                 ctx.lineTo(x, y);
             }
 
-            ctx.lineTo(w, centerY - trackH / 2);
-            ctx.lineTo(w, centerY + trackH / 2);
+            ctx.arc(endCenterX, centerY, radius, -Math.PI / 2, Math.PI / 2);
             ctx.closePath();
-            ctx.fillStyle = String(root.waveColor);
+            // Passing a color value resends the brush even if a previous paint
+            // was skipped while the canvas rounded down to zero pixels.
+            ctx.fillStyle = root.waveColor;
             ctx.fill();
         }
-    }
-
-    // --- 可选滑块 ---
-    Rectangle {
-        visible: root.thumbSize > 0
-        width: root.thumbSize
-        height: root.thumbSize
-        radius: root.thumbSize / 2
-        color: root.thumbColor
-        anchors.verticalCenter: parent.verticalCenter
-        x: root._visualX - width / 2
     }
 
     // --- Seek 交互区 ---
@@ -161,7 +181,7 @@ Item {
         anchors.margins: -root.seekMargin
         cursorShape: Qt.PointingHandCursor
 
-        onReleased: (mouse) => {
+        onReleased: mouse => {
             let clampedX = Math.max(0, Math.min(mouse.x, root.width));
             root.seekRequested(clampedX / root.width);
         }

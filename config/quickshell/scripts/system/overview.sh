@@ -1,44 +1,39 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-if [ -n "$1" ]; then
-  WALLPAPER="$1"
-else
-  WALLPAPER="$HOME/.cache/wallpaper_rofi/current"
+script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+scripts_dir=$(cd -- "$script_dir/.." && pwd)
+# shellcheck source=scripts/lib/clavis-paths.sh
+source "$scripts_dir/lib/clavis-paths.sh"
+clavis_paths_init
+
+wallpaper=${1:-$CLAVIS_STATE_HOME/wallpaper/current}
+if [[ -z "$wallpaper" || ! -e "$wallpaper" ]]; then
+    mkdir -p "$CLAVIS_STATE_HOME/logs"
+    printf '%s - ERROR: no wallpaper path found\n' "$(date -Is)" \
+        >> "$CLAVIS_STATE_HOME/logs/wallpaper-overview.log"
+    exit 1
+fi
+if ! command -v magick >/dev/null 2>&1; then
+    printf 'ImageMagick (magick) is required for overview wallpaper caches\n' >&2
+    exit 127
 fi
 
-if [ -z "$WALLPAPER" ] || [ ! -e "$WALLPAPER" ]; then
-  echo "$(date) - ERROR: No wallpaper path found!" >>/tmp/wp_debug.log
-  exit 1
+blur_dir=$CLAVIS_CACHE_HOME/wallpaper/blur
+overview_dir=$CLAVIS_CACHE_HOME/wallpaper/overview
+state_dir=$CLAVIS_STATE_HOME/wallpaper
+mkdir -p "$blur_dir" "$overview_dir" "$state_dir" "$CLAVIS_STATE_HOME/logs"
+
+filename=$(basename -- "$wallpaper")
+blurred=$blur_dir/blurred_$filename
+overview=$overview_dir/overview_$filename
+if [[ ! -f "$blurred" || ! -f "$overview" ]]; then
+    magick "$wallpaper" -blur 0x15 -fill black -colorize 40% "$overview"
+    magick "$wallpaper" -blur 0x30 "$blurred"
 fi
 
-CACHE_DIR="$HOME/.cache/wallpaper_blur"
-CACHE_DIR_OVERVIEW="$HOME/.cache/wallpaper_overview/"
-mkdir -p "$CACHE_DIR" "$CACHE_DIR_OVERVIEW"
-
-# 获取文件名并定义输出路径
-FILENAME=$(basename "$WALLPAPER")
-BLURRED_WALLPAPER_OVERVIEW="$CACHE_DIR_OVERVIEW/overview_$FILENAME"
-BLURRED_WALLPAPER="$CACHE_DIR/blurred_$FILENAME"
-
-# 如果没有模糊壁纸缓存则生成
-# 使用 convert 或 magick 生成模糊图
-if [ ! -f "$BLURRED_WALLPAPER" ] || [ ! -f "$BLURRED_WALLPAPER_OVERVIEW" ]; then
-  magick "$WALLPAPER" -blur 0x15 -fill black -colorize 40% "$BLURRED_WALLPAPER_OVERVIEW"
-  magick "$WALLPAPER" -blur 0x30 "$BLURRED_WALLPAPER"
-fi
-
-# ============================================================
-# 核心保存逻辑 (已修复软链接穿透覆盖的致命 Bug)
-# ============================================================
-CACHE_ROFI="$HOME/.cache/wallpaper_rofi"
-mkdir -p "$CACHE_ROFI"
-
-rm -f "$CACHE_ROFI/current"
-rm -f "$CACHE_ROFI/blurred"
-rm -f "$CACHE_DIR_OVERVIEW/current"
-
-ln -sf "$WALLPAPER" "$CACHE_ROFI/current"
-ln -sf "$BLURRED_WALLPAPER" "$CACHE_ROFI/blurred"
-ln -sf "$BLURRED_WALLPAPER_OVERVIEW" "$CACHE_DIR_OVERVIEW/current"
-
-echo "$(date) - Done: Safely linked $FILENAME" >>/tmp/wp_debug.log
+ln -sfn -- "$wallpaper" "$state_dir/current"
+ln -sfn -- "$blurred" "$state_dir/blurred"
+ln -sfn -- "$overview" "$state_dir/overview"
+printf '%s - linked %s\n' "$(date -Is)" "$filename" \
+    >> "$CLAVIS_STATE_HOME/logs/wallpaper-overview.log"

@@ -1,0 +1,3 @@
+module qs.Modules.Bar.SysMonitor
+ResourcePie 1.0 ResourcePie.qml
+SysMonitor 1.0 SysMonitor.qml

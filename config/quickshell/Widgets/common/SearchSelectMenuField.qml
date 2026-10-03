@@ -12,18 +12,22 @@ FocusScope {
     property string value: ""
     property string placeholder: ""
     property bool expanded: false
-    property int maxVisibleItems: 6
-    property string noResultText: "无匹配结果"
+    property int maxVisibleItems: 10
     property string textRole: "label"
     property string valueRole: "value"
+    property bool forbiddenDisabledCursor: false
+    property string enabledRole: "enabled"
+    property string tooltipRole: "tooltip"
     property bool closeOnAccept: false
     property bool showCheckmark: true
     property bool showActiveIndicator: true
+    property Component leadingDelegate
+    property real leadingWidth: Metrics.iconM
     property real fieldHeight: 40
     property real itemHeight: 40
+    property Item popupBoundsItem: null
 
     property int highlightedIndex: -1
-    readonly property var filteredOptions: options
     readonly property string visualSelectedValue: hasPendingAccepted ? pendingAcceptedValue : value
     readonly property string currentText: labelFor(visualSelectedValue)
     readonly property string displayText: currentText !== "" ? currentText : placeholder
@@ -32,7 +36,8 @@ FocusScope {
     readonly property color menuHoverColor: Appearance.m3colors.m3surfaceContainerHighest
     readonly property real menuGap: 6
     readonly property real menuPadding: 6
-    readonly property real listTargetHeight: Math.min(Math.max(1, maxVisibleItems) * itemHeight, Math.max(itemHeight, filteredOptions.length * itemHeight))
+    readonly property real listTargetHeight: Math.min(Math.max(1, maxVisibleItems) * itemHeight, Math.max(
+                                                          itemHeight, options.length * itemHeight))
     readonly property Item popupParentItem: root.Window.window ? root.Window.window.contentItem : null
 
     property bool hasPendingAccepted: false
@@ -82,6 +87,16 @@ FocusScope {
         return option === undefined || option === null ? "" : String(option);
     }
 
+    function optionEnabled(option) {
+        if (!hasRole(option, enabledRole))
+            return true;
+        return option[enabledRole] !== false;
+    }
+
+    function optionTooltip(option) {
+        return roleText(option, tooltipRole);
+    }
+
     function labelFor(currentValue) {
         for (let i = 0; i < options.length; i += 1) {
             if (optionValue(options[i]) === currentValue)
@@ -90,23 +105,60 @@ FocusScope {
         return currentValue;
     }
 
-    function selectedIndexInFiltered() {
-        for (let i = 0; i < filteredOptions.length; i += 1) {
-            if (optionValue(filteredOptions[i]) === visualSelectedValue)
+    function optionForValue(currentValue) {
+        for (let i = 0; i < options.length; i += 1) {
+            if (optionValue(options[i]) === currentValue)
+                return options[i];
+        }
+        return null;
+    }
+
+    function selectedIndexInOptions() {
+        for (let i = 0; i < options.length; i += 1) {
+            if (optionValue(options[i]) === visualSelectedValue)
                 return i;
         }
-        return filteredOptions.length > 0 ? 0 : -1;
+        return options.length > 0 ? 0 : -1;
+    }
+
+    function ensureHighlightedVisible() {
+        if (highlightedIndex < 0 || highlightedIndex >= options.length)
+            return;
+        menuList.positionViewAtIndex(highlightedIndex, ListView.Contain);
     }
 
     function updatePopupGeometry() {
         if (!popupParentItem)
             return false;
 
-        const origin = fieldFrame.mapToItem(popupParentItem, 0, height + menuGap);
-        optionsPopup.width = Math.min(width, popupParentItem.width - 24);
-        optionsPopup.height = menuPadding * 2 + listTargetHeight;
-        optionsPopup.x = Math.max(12, Math.min(origin.x, popupParentItem.width - optionsPopup.width - 12));
-        optionsPopup.y = Math.max(12, Math.min(origin.y, popupParentItem.height - optionsPopup.height - 12));
+        const boundsItem = popupBoundsItem || popupParentItem;
+        const boundsOrigin = boundsItem.mapToItem(popupParentItem, 0, 0);
+        const edgeMargin = 12;
+        const boundsLeft = boundsOrigin.x + edgeMargin;
+        const boundsTop = boundsOrigin.y + edgeMargin;
+        const boundsRight = boundsOrigin.x + boundsItem.width - edgeMargin;
+        const boundsBottom = boundsOrigin.y + boundsItem.height - edgeMargin;
+        const availableWidth = Math.max(0, boundsRight - boundsLeft);
+        const availableHeight = Math.max(0, boundsBottom - boundsTop);
+        if (availableWidth <= 0 || availableHeight <= menuPadding * 2)
+            return false;
+
+        const naturalHeight = menuPadding * 2 + listTargetHeight;
+        optionsPopup.width = Math.min(width, availableWidth);
+        optionsPopup.height = Math.min(naturalHeight, availableHeight);
+        optionsPopup.effectiveListHeight = Math.max(0, optionsPopup.height - menuPadding * 2);
+
+        const belowOrigin = fieldFrame.mapToItem(popupParentItem, 0, height + menuGap);
+        const aboveOrigin = fieldFrame.mapToItem(popupParentItem, 0, -optionsPopup.height - menuGap);
+        const maxX = boundsRight - optionsPopup.width;
+        optionsPopup.x = Math.max(boundsLeft, Math.min(belowOrigin.x, maxX));
+
+        if (belowOrigin.y + optionsPopup.height <= boundsBottom)
+            optionsPopup.y = belowOrigin.y;
+        else if (aboveOrigin.y >= boundsTop)
+            optionsPopup.y = aboveOrigin.y;
+        else
+            optionsPopup.y = Math.max(boundsTop, Math.min(belowOrigin.y, boundsBottom - optionsPopup.height));
         return true;
     }
 
@@ -115,7 +167,7 @@ FocusScope {
             return;
 
         hasPendingAccepted = false;
-        highlightedIndex = selectedIndexInFiltered();
+        highlightedIndex = selectedIndexInOptions();
         if (updatePopupGeometry())
             expanded = true;
     }
@@ -132,27 +184,82 @@ FocusScope {
     }
 
     function moveHighlight(delta) {
-        if (filteredOptions.length === 0) {
+        if (options.length === 0) {
             highlightedIndex = -1;
             return;
         }
 
-        const nextIndex = highlightedIndex < 0 ? 0 : (highlightedIndex + delta + filteredOptions.length) % filteredOptions.length;
-        highlightedIndex = nextIndex;
-        menuList.positionViewAtIndex(highlightedIndex, ListView.Contain);
+        let nextIndex = highlightedIndex < 0 ? (delta >= 0 ? 0 : options.length - 1) : (highlightedIndex
+                                                                                        + delta + options.length)
+                                               % options.length;
+
+        for (let attempts = 0; attempts < options.length; attempts += 1) {
+            if (optionEnabled(options[nextIndex])) {
+                highlightedIndex = nextIndex;
+                ensureHighlightedVisible();
+                return;
+            }
+            nextIndex = (nextIndex + (delta >= 0 ? 1 : -1) + options.length) % options.length;
+        }
+
+        highlightedIndex = -1;
+    }
+
+    function moveHighlightToBoundary(first) {
+        if (options.length === 0) {
+            highlightedIndex = -1;
+            return;
+        }
+
+        let nextIndex = first ? 0 : options.length - 1;
+        for (let attempts = 0; attempts < options.length; attempts += 1) {
+            if (optionEnabled(options[nextIndex])) {
+                highlightedIndex = nextIndex;
+                ensureHighlightedVisible();
+                return;
+            }
+            nextIndex = (nextIndex + (first ? 1 : -1) + options.length) % options.length;
+        }
+        highlightedIndex = -1;
+    }
+
+    function handleMenuKey(event) {
+        if (!root.expanded)
+            return false;
+
+        if (event.key === Qt.Key_Escape) {
+            root.closeMenu();
+        } else if (event.key === Qt.Key_Down) {
+            root.moveHighlight(1);
+        } else if (event.key === Qt.Key_Up) {
+            root.moveHighlight(-1);
+        } else if (event.key === Qt.Key_Home) {
+            root.moveHighlightToBoundary(true);
+        } else if (event.key === Qt.Key_End) {
+            root.moveHighlightToBoundary(false);
+        } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
+            root.acceptHighlighted();
+        } else {
+            return false;
+        }
+
+        event.accepted = true;
+        return true;
     }
 
     function acceptHighlighted() {
-        if (highlightedIndex < 0 || highlightedIndex >= filteredOptions.length)
+        if (highlightedIndex < 0 || highlightedIndex >= options.length)
             return;
-        acceptOption(filteredOptions[highlightedIndex]);
+        acceptOption(options[highlightedIndex]);
     }
 
     function acceptOption(option) {
+        if (!optionEnabled(option))
+            return;
         const acceptedValue = optionValue(option);
         hasPendingAccepted = true;
         pendingAcceptedValue = acceptedValue;
-        highlightedIndex = selectedIndexInFiltered();
+        highlightedIndex = selectedIndexInOptions();
         accepted(acceptedValue);
         if (closeOnAccept)
             closeDelay.restart();
@@ -165,6 +272,7 @@ FocusScope {
             Qt.callLater(() => {
                 updatePopupGeometry();
                 root.forceActiveFocus();
+                ensureHighlightedVisible();
             });
         } else {
             closeDelay.stop();
@@ -175,11 +283,19 @@ FocusScope {
         }
     }
 
+    onOptionsChanged: {
+        if (!expanded)
+            return;
+        highlightedIndex = selectedIndexInOptions();
+        updatePopupGeometry();
+        ensureHighlightedVisible();
+    }
+
     Keys.onPressed: event => {
-        if (event.key === Qt.Key_Escape && root.expanded) {
-            root.closeMenu();
-            event.accepted = true;
-        } else if ((event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space || event.key === Qt.Key_Down) && !root.expanded) {
+        if (root.expanded) {
+            root.handleMenuKey(event);
+        } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space
+                   || event.key === Qt.Key_Down) {
             root.openMenu();
             event.accepted = true;
         }
@@ -190,13 +306,9 @@ FocusScope {
 
         anchors.fill: parent
         radius: 0
-        color: root.expanded
-               ? Appearance.colors.colLayer2Active
-               : fieldMouse.pressed
-                 ? Appearance.colors.colLayer2Active
-                 : fieldMouse.containsMouse
-                   ? Appearance.colors.colLayer2Hover
-                   : Appearance.colors.colLayer2
+        color: root.expanded ? Appearance.colors.colLayer2Active : fieldMouse.pressed
+                               ? Appearance.colors.colLayer2Active : fieldMouse.containsMouse
+                                 ? Appearance.colors.colLayer2Hover : Appearance.colors.colLayer2
         clip: true
 
         Behavior on color {
@@ -210,18 +322,44 @@ FocusScope {
         Text {
             id: displayLabel
 
-            anchors.left: parent.left
+            anchors.left: currentLeadingLoader.active ? currentLeadingLoader.right : parent.left
             anchors.right: arrowIcon.left
-            anchors.leftMargin: 14
+            anchors.leftMargin: currentLeadingLoader.active ? 10 : 14
             anchors.rightMargin: 10
             anchors.verticalCenter: parent.verticalCenter
             visible: true
             text: root.displayText
             color: root.showingPlaceholder ? Appearance.colors.colSubtext : Appearance.colors.colOnLayer2
-            font.family: Sizes.fontFamily
+            font.family: Fonts.ui
             font.pixelSize: 14
             elide: Text.ElideRight
             verticalAlignment: Text.AlignVCenter
+        }
+
+        Loader {
+            id: currentLeadingLoader
+
+            anchors.left: parent.left
+            anchors.leftMargin: 14
+            anchors.verticalCenter: parent.verticalCenter
+            width: active ? root.leadingWidth : 0
+            height: active ? root.leadingWidth : 0
+            active: root.leadingDelegate !== null && root.optionForValue(root.visualSelectedValue) !== null
+            sourceComponent: root.leadingDelegate
+            onLoaded: {
+                if (item && "optionData" in item)
+                    item.optionData = root.optionForValue(root.visualSelectedValue);
+            }
+        }
+
+        Connections {
+            target: root
+
+            function onVisualSelectedValueChanged() {
+                if (currentLeadingLoader.item && "optionData" in currentLeadingLoader.item) {
+                    currentLeadingLoader.item.optionData = root.optionForValue(root.visualSelectedValue);
+                }
+            }
         }
 
         MaterialSymbol {
@@ -293,6 +431,7 @@ FocusScope {
         id: optionsPopup
 
         property real revealProgress: 0
+        property real effectiveListHeight: root.listTargetHeight
 
         parent: root.popupParentItem
         padding: 0
@@ -306,7 +445,10 @@ FocusScope {
             root.updatePopupGeometry();
             Qt.callLater(() => revealProgress = 1);
         }
-        onOpened: Qt.callLater(root.updatePopupGeometry)
+        onOpened: Qt.callLater(() => {
+            root.updatePopupGeometry();
+            popupContent.forceActiveFocus();
+        })
         onAboutToHide: revealProgress = 0
         onClosed: {
             if (root.expanded)
@@ -326,9 +468,9 @@ FocusScope {
             NumberAnimation {
                 property: "y"
                 from: optionsPopup.y - 4
-                duration: Appearance.animation.expressiveFastSpatial.duration
-                easing.type: Appearance.animation.expressiveFastSpatial.type
-                easing.bezierCurve: Appearance.animation.expressiveFastSpatial.bezierCurve
+                duration: Appearance.animation.standardDecel.duration
+                easing.type: Appearance.animation.standardDecel.type
+                easing.bezierCurve: Appearance.animation.standardDecel.bezierCurve
             }
         }
 
@@ -351,24 +493,30 @@ FocusScope {
 
         Behavior on revealProgress {
             NumberAnimation {
-                duration: Appearance.animation.expressiveFastSpatial.duration
-                easing.type: Appearance.animation.expressiveFastSpatial.type
-                easing.bezierCurve: Appearance.animation.expressiveFastSpatial.bezierCurve
+                duration: Appearance.animation.standardDecel.duration
+                easing.type: Appearance.animation.standardDecel.type
+                easing.bezierCurve: Appearance.animation.standardDecel.bezierCurve
             }
         }
 
-        background: Item {
-        }
+        background: Item {}
 
-        contentItem: Item {
+        contentItem: FocusScope {
+            id: popupContent
+
+            focus: optionsPopup.visible
             implicitWidth: optionsPopup.width
             implicitHeight: optionsPopup.height
+
+            Keys.onPressed: event => {
+                root.handleMenuKey(event);
+            }
 
             Item {
                 id: maskedSurface
 
                 width: parent.width
-                height: root.menuPadding * 2 + root.listTargetHeight * optionsPopup.revealProgress
+                height: root.menuPadding * 2 + optionsPopup.effectiveListHeight * optionsPopup.revealProgress
                 visible: height > 0
                 layer.enabled: true
                 layer.effect: OpacityMask {
@@ -391,17 +539,17 @@ FocusScope {
                     x: root.menuPadding
                     y: root.menuPadding
                     width: parent.width - root.menuPadding * 2
-                    height: root.listTargetHeight * optionsPopup.revealProgress
+                    height: optionsPopup.effectiveListHeight * optionsPopup.revealProgress
                     clip: true
 
                     StyledListView {
                         id: menuList
 
                         width: parent.width
-                        height: root.listTargetHeight
+                        height: optionsPopup.effectiveListHeight
                         clip: true
                         boundsBehavior: Flickable.StopAtBounds
-                        model: root.filteredOptions
+                        model: root.options
                         interactive: contentHeight > height
                         currentIndex: root.highlightedIndex
                         animateAppearance: false
@@ -415,8 +563,10 @@ FocusScope {
 
                             readonly property string itemText: root.optionText(modelData)
                             readonly property string itemValue: root.optionValue(modelData)
+                            readonly property bool itemEnabled: root.optionEnabled(modelData)
                             readonly property bool selected: itemValue === root.visualSelectedValue
                             readonly property bool highlighted: index === root.highlightedIndex
+                            readonly property string tooltipText: root.optionTooltip(modelData)
 
                             width: ListView.view.width
                             height: root.itemHeight
@@ -424,17 +574,17 @@ FocusScope {
                             Rectangle {
                                 anchors.fill: parent
                                 radius: Appearance.rounding.small
-                                color: optionItem.selected
-                                       ? Appearance.colors.colPrimaryContainer
-                                       : optionItem.highlighted
-                                         ? root.menuHoverColor
-                                         : root.menuSurfaceColor
+                                color: optionItem.selected && optionItem.itemEnabled
+                                       ? Appearance.colors.colPrimaryContainer : optionItem.highlighted
+                                         ? root.menuHoverColor : root.menuSurfaceColor
+                                opacity: optionItem.itemEnabled ? 1 : 0.5
 
                                 Behavior on color {
                                     ColorAnimation {
                                         duration: Appearance.animation.expressiveFastEffects.duration
                                         easing.type: Appearance.animation.expressiveFastEffects.type
-                                        easing.bezierCurve: Appearance.animation.expressiveFastEffects.bezierCurve
+                                        easing.bezierCurve:
+                                            Appearance.animation.expressiveFastEffects.bezierCurve
                                     }
                                 }
                             }
@@ -442,14 +592,16 @@ FocusScope {
                             Item {
                                 anchors.fill: parent
                                 anchors.leftMargin: 12
-                                anchors.rightMargin: 12 + Appearance.scrollBar.width + Appearance.scrollBar.margin
+                                anchors.rightMargin: 12 + Appearance.scrollBar.width
+                                                     + Appearance.scrollBar.margin
 
                                 Item {
                                     id: checkSlot
 
                                     width: 22
                                     height: parent.height
-                                    scale: optionItem.selected && root.showCheckmark ? 1 : 0
+                                    scale: optionItem.selected && optionItem.itemEnabled
+                                           && root.showCheckmark ? 1 : 0
                                     transformOrigin: Item.Left
 
                                     Behavior on scale {
@@ -467,14 +619,15 @@ FocusScope {
                                         fill: 1
                                         color: Appearance.colors.colOnPrimaryContainer
                                         visible: root.showCheckmark
-                                        opacity: optionItem.selected ? 1 : 0
-                                        scale: optionItem.selected ? 1 : 0.6
+                                        opacity: optionItem.selected && optionItem.itemEnabled ? 1 : 0
+                                        scale: optionItem.selected && optionItem.itemEnabled ? 1 : 0.6
 
                                         Behavior on opacity {
                                             NumberAnimation {
                                                 duration: Appearance.animation.expressiveFastEffects.duration
                                                 easing.type: Appearance.animation.expressiveFastEffects.type
-                                                easing.bezierCurve: Appearance.animation.expressiveFastEffects.bezierCurve
+                                                easing.bezierCurve:
+                                                    Appearance.animation.expressiveFastEffects.bezierCurve
                                             }
                                         }
 
@@ -482,19 +635,46 @@ FocusScope {
                                             NumberAnimation {
                                                 duration: Appearance.animation.clickBounce.duration
                                                 easing.type: Appearance.animation.clickBounce.type
-                                                easing.bezierCurve: Appearance.animation.clickBounce.bezierCurve
+                                                easing.bezierCurve:
+                                                    Appearance.animation.clickBounce.bezierCurve
                                             }
                                         }
                                     }
                                 }
 
+                                Loader {
+                                    id: optionLeadingLoader
+
+                                    x: optionItem.selected && root.showCheckmark ? 30 : 0
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    width: active ? root.leadingWidth : 0
+                                    height: active ? root.leadingWidth : 0
+                                    active: root.leadingDelegate !== null
+                                    sourceComponent: root.leadingDelegate
+                                    Behavior on x {
+                                        NumberAnimation {
+                                            duration: Appearance.animation.expressiveFastSpatial.duration
+                                            easing.type: Appearance.animation.expressiveFastSpatial.type
+                                            easing.bezierCurve:
+                                                Appearance.animation.expressiveFastSpatial.bezierCurve
+                                        }
+                                    }
+                                    onLoaded: {
+                                        if (item && "optionData" in item)
+                                            item.optionData = optionItem.modelData;
+                                    }
+                                }
+
                                 Text {
-                                    x: optionItem.selected && root.showCheckmark ? 32 : 0
+                                    x: (optionItem.selected && root.showCheckmark ? 32 : 0) + (
+                                           optionLeadingLoader.active ? root.leadingWidth + 10 : 0)
                                     width: parent.width - x
                                     height: parent.height
                                     text: optionItem.itemText
-                                    color: optionItem.selected ? Appearance.colors.colOnPrimaryContainer : Appearance.colors.colOnLayer3
-                                    font.family: Sizes.fontFamily
+                                    color: optionItem.selected && optionItem.itemEnabled
+                                           ? Appearance.colors.colOnPrimaryContainer :
+                                             Appearance.colors.colOnLayer3
+                                    font.family: Fonts.ui
                                     font.pixelSize: 14
                                     font.weight: optionItem.selected ? Font.Medium : Font.Normal
                                     elide: Text.ElideRight
@@ -504,7 +684,8 @@ FocusScope {
                                         NumberAnimation {
                                             duration: Appearance.animation.expressiveFastSpatial.duration
                                             easing.type: Appearance.animation.expressiveFastSpatial.type
-                                            easing.bezierCurve: Appearance.animation.expressiveFastSpatial.bezierCurve
+                                            easing.bezierCurve:
+                                                Appearance.animation.expressiveFastSpatial.bezierCurve
                                         }
                                     }
 
@@ -512,7 +693,8 @@ FocusScope {
                                         ColorAnimation {
                                             duration: Appearance.animation.expressiveFastEffects.duration
                                             easing.type: Appearance.animation.expressiveFastEffects.type
-                                            easing.bezierCurve: Appearance.animation.expressiveFastEffects.bezierCurve
+                                            easing.bezierCurve:
+                                                Appearance.animation.expressiveFastEffects.bezierCurve
                                         }
                                     }
                                 }
@@ -521,9 +703,23 @@ FocusScope {
                             MouseArea {
                                 anchors.fill: parent
                                 hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
+                                enabled: optionItem.itemEnabled
+                                cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
                                 onEntered: root.highlightedIndex = optionItem.index
                                 onClicked: root.acceptOption(optionItem.modelData)
+                            }
+
+                            HoverHandler {
+                                id: optionHover
+                                cursorShape: root.forbiddenDisabledCursor && !optionItem.itemEnabled
+                                             ? Qt.ForbiddenCursor : (optionItem.itemEnabled
+                                                                     ? Qt.PointingHandCursor : Qt.ArrowCursor)
+                                enabled: optionItem.tooltipText !== ""
+                            }
+
+                            StyledToolTip {
+                                extraVisibleCondition: optionHover.hovered && optionItem.tooltipText !== ""
+                                text: optionItem.tooltipText
                             }
                         }
                     }
@@ -535,10 +731,10 @@ FocusScope {
                         anchors.right: parent.right
                         anchors.leftMargin: 12
                         anchors.rightMargin: 12
-                        visible: root.filteredOptions.length === 0
-                        text: root.noResultText
+                        visible: root.options.length === 0
+                        text: qsTr("No options available")
                         color: Appearance.colors.colSubtext
-                        font.family: Sizes.fontFamily
+                        font.family: Fonts.ui
                         font.pixelSize: 14
                         verticalAlignment: Text.AlignVCenter
                         horizontalAlignment: Text.AlignLeft
@@ -546,7 +742,6 @@ FocusScope {
                     }
                 }
             }
-
         }
     }
 }

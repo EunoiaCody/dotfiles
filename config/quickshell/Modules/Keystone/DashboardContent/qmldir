@@ -1,0 +1,8 @@
+module qs.Modules.Keystone.DashboardContent
+CalendarCard 1.0 CalendarCard.qml
+DashboardClock 1.0 DashboardClock.qml
+DashboardContent 1.0 DashboardContent.qml
+DashboardPomodoroCard 1.0 DashboardPomodoroCard.qml
+DashboardWeatherCard 1.0 DashboardWeatherCard.qml
+KeyholeCard 1.0 KeyholeCard.qml
+UserCard 1.0 UserCard.qml

@@ -1,0 +1,17 @@
+module qs.Modules.Dock
+DockBubbleSurface 1.0 DockBubbleSurface.qml
+DockDragVisual 1.0 DockDragVisual.qml
+DockFanBlur 1.0 DockFanBlur.qml
+DockFileArtwork 1.0 DockFileArtwork.qml
+DockFileDrag 1.0 DockFileDrag.qml
+DockFileIcon 1.0 DockFileIcon.qml
+DockFilePopup 1.0 DockFilePopup.qml
+DockFileTile 1.0 DockFileTile.qml
+DockFolderFan 1.0 DockFolderFan.qml
+DockFolderMenu 1.0 DockFolderMenu.qml
+DockFolderModel 1.0 DockFolderModel.qml
+DockHost 1.0 DockHost.qml
+DockItem 1.0 DockItem.qml
+DockPreviewPopup 1.0 DockPreviewPopup.qml
+DockSurface 1.0 DockSurface.qml
+DockWindowCard 1.0 DockWindowCard.qml

@@ -1,0 +1,2 @@
+module qs.Modules.Sidebars
+SidebarHostWindow 1.0 SidebarHostWindow.qml

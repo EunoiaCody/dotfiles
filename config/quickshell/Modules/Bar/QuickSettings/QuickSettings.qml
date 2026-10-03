@@ -1,66 +1,131 @@
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Effects
 import qs.Common
+import qs.Services as Services
+import qs.Widgets.common
 
-Item {
- id: root
+TopBarPill {
+    id: root
 
- property var screen: null
+    property var screen: null
+    property bool vertical: false
 
- //维持36 的高度
- implicitHeight:36
- implicitWidth: layout.width +16
+    function componentFor(componentId) {
+        switch (componentId) {
+        case "network":
+            return networkComponent;
+        case "bluetooth":
+            return bluetoothComponent;
+        case "brightness":
+            return brightnessComponent;
+        case "volume":
+            return volumeComponent;
+        case "microphone":
+            return microphoneComponent;
+        case "battery":
+            return batteryComponent;
+        case "settings":
+            return settingsComponent;
+        case "power":
+            return powerComponent;
+        default:
+            return null;
+        }
+    }
 
- Rectangle {
- id: bgRect
- anchors.fill: parent
- color: Appearance.colors.colLayer0
- radius: height /2
- visible: false
- }
+    implicitHeight: vertical ? layout.implicitHeight + 2 * Sizes.barPillHorizontalPadding :
+                               Sizes.barPillThickness
+    implicitWidth: vertical ? Sizes.barPillThickness : layout.implicitWidth + 2
+                              * Sizes.barPillHorizontalPadding
 
- MultiEffect {
- source: bgRect
- anchors.fill: bgRect
- shadowEnabled: true
- shadowColor: Qt.alpha(Appearance.colors.colShadow,0.4)
- shadowBlur:0.8
- shadowVerticalOffset:3
- }
+    GridLayout {
+        id: layout
 
- RowLayout {
- id: layout
- anchors.centerIn: parent
- spacing:8
+        anchors.centerIn: parent
+        rowSpacing: Sizes.barItemSpacing
+        columnSpacing: Sizes.barItemSpacing
+        columns: root.vertical ? 1 : 8
 
- // 直接调用同目录下的组件，无需 import
- Network {
- screen: root.screen
- }
- Brightness {
- screen: root.screen
- }
- Volume {
- screen: root.screen
- }
- Microphone {
- screen: root.screen
- }
- Bluetooth {
- screen: root.screen
- }
- NotificationButton {}
- ClipboardButton {
- screen: root.screen
- }
- PowerButton {
- screen: root.screen
- }
- }
+        Repeater {
+            id: componentRepeater
+            model: Services.PersonalizationConfig.quickSettingsComponents
 
- // QuickSettingsPanel removed — replaced by RightSidebar (qs.Modules.Sidebars.Right).
- // The old full-screen overlay was intercepting clicks on the RightSidebar
- // and closing everything. All views (network/audio/settings/notifications)
- // are now in the unified RightSidebar.
+            Loader {
+                id: componentLoader
+
+                required property string modelData
+
+                sourceComponent: root.componentFor(componentLoader.modelData)
+            }
+        }
+    }
+
+    Component {
+        id: networkComponent
+
+        Network {
+            screen: root.screen
+            vertical: root.vertical
+        }
+    }
+
+    Component {
+        id: bluetoothComponent
+
+        BluetoothButton {
+            vertical: root.vertical
+            screen: root.screen
+        }
+    }
+
+    Component {
+        id: brightnessComponent
+
+        Brightness {
+            vertical: root.vertical
+            screen: root.screen
+        }
+    }
+
+    Component {
+        id: volumeComponent
+
+        Volume {
+            vertical: root.vertical
+            screen: root.screen
+        }
+    }
+
+    Component {
+        id: microphoneComponent
+
+        Microphone {
+            vertical: root.vertical
+            screen: root.screen
+        }
+    }
+
+    Component {
+        id: batteryComponent
+
+        Battery {
+            vertical: root.vertical
+        }
+    }
+
+    Component {
+        id: settingsComponent
+
+        SettingsButton {
+            screen: root.screen
+        }
+    }
+
+    Component {
+        id: powerComponent
+
+        PowerButton {
+            screen: root.screen
+        }
+    }
 }

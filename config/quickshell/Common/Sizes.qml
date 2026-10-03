@@ -9,6 +9,20 @@ Singleton {
     readonly property string fontFamilyLyric: "LXGW WenKai"
     readonly property real cornerRadius: 10
     readonly property real barHeight: 44
+    // Bar 令牌（迁移自 StatIndet HEAD）
+    readonly property real barVisualThickness: 44
+    readonly property real barPillThickness: 36
+    readonly property real barPillHorizontalPadding: 8
+    readonly property real barItemSpacing: 4
+    readonly property real barLabelSpacing: 6
+    readonly property real barIconSize: 20
+    readonly property real barControlCircleSize: 28
+    readonly property real barOuterEdgeMargin: 8
+    readonly property real barShadowBuffer: 36
+    readonly property real barPopupGap: 8
+    readonly property real barPopupScreenMargin: 10
+    readonly property real verticalBarWidth: barVisualThickness
+    readonly property real sidebarScrollableListMaxHeight: 224
 
     readonly property real lockReferenceScale: 4 / 3
     readonly property real lockCardRadius: 33

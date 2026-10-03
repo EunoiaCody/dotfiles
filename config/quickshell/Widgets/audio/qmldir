@@ -1,2 +1,3 @@
 module qs.Widgets.audio
+ApplicationVolumeRow 1.0 ApplicationVolumeRow.qml
 VolumeSlider 1.0 VolumeSlider.qml

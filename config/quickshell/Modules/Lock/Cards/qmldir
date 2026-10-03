@@ -1,0 +1,8 @@
+module qs.Modules.Lock.Cards
+AuthCard 1.0 AuthCard.qml
+LockFetchCard 1.0 LockFetchCard.qml
+MediaCard 1.0 MediaCard.qml
+MottoCard 1.0 MottoCard.qml
+NotificationCard 1.0 NotificationCard.qml
+SystemGrid 1.0 SystemGrid.qml
+WeatherCard 1.0 WeatherCard.qml

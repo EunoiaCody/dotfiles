@@ -18,7 +18,7 @@ Item {
     // === 尺寸属性 ===
     property real buttonSize: 54
     property real iconSize: 34
-    property string iconFontFamily: "Material Symbols Outlined"
+    property string iconFontFamily: Fonts.materialSymbolsOutlined
     property string playIconName: "play_arrow"
     property string pauseIconName: "pause"
 

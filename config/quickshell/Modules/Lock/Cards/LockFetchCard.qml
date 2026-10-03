@@ -1,17 +1,18 @@
 import QtQuick
 import QtQuick.Layouts
-import Clavis.Sysmon 1.0
 import qs.Common
+import qs.Services
 
 Rectangle {
     id: root
 
-    readonly property string systemUser: SysmonPlugin.systemUser || "user"
-    readonly property string hostName: SysmonPlugin.hostName || "host"
-    readonly property string distroId: SysmonPlugin.distroId || "linux"
-    readonly property int sidePadding: Sizes.lockOuterPadding * 2
-    readonly property int topPadding: Sizes.lockOuterPadding
-    readonly property int bottomPadding: Sizes.lockOuterPadding * 2
+    property int detailLevel: 3
+    readonly property string systemUser: SystemIdentityService.accountName
+    readonly property string hostName: SystemIdentityService.hostName
+    readonly property string distroId: SystemIdentityService.distroId
+    readonly property int sidePadding: detailLevel <= 1 ? Metrics.lockOuterPadding : Metrics.lockOuterPadding * 2
+    readonly property int topPadding: Metrics.lockOuterPadding
+    readonly property int bottomPadding: detailLevel <= 1 ? Metrics.lockOuterPadding : Metrics.lockOuterPadding * 2
     readonly property int promptSize: 45
     readonly property int fetchFontSize: width >= 533 ? 20 : 17
     readonly property int headerFontSize: width >= 533 ? 20 : 17
@@ -41,25 +42,19 @@ Rectangle {
     }
 
     function paletteModel() {
-        const colors = [
-            Appearance.colors.colPrimary,
-            Appearance.colors.colSecondary,
-            Appearance.colors.colTertiary,
-            Appearance.colors.colPrimaryContainer,
-            Appearance.colors.colSecondaryContainer,
-            Appearance.colors.colTertiaryContainer,
-            Appearance.colors.colPrimary,
-            Appearance.colors.colSecondary
-        ];
+        const colors = [Appearance.colors.colPrimary, Appearance.colors.colSecondary, Appearance.colors.colTertiary, Appearance.colors.colPrimaryContainer, Appearance.colors.colSecondaryContainer, Appearance.colors.colTertiaryContainer, Appearance.colors.colPrimary, Appearance.colors.colSecondary];
         const count = Math.max(0, Math.min(8, Math.floor(root.infoColumnWidth / 34)));
         return colors.slice(0, count);
     }
 
+    implicitHeight: contentLayout.implicitHeight + topPadding + bottomPadding
     color: Appearance.colors.colLayer2
-    radius: Sizes.lockCardRadius
+    radius: Metrics.lockCardRadius
     clip: true
 
     ColumnLayout {
+        id: contentLayout
+
         anchors.fill: parent
         anchors.leftMargin: root.sidePadding
         anchors.rightMargin: root.sidePadding
@@ -70,34 +65,37 @@ Rectangle {
         RowLayout {
             Layout.fillWidth: true
             Layout.fillHeight: false
+            visible: root.detailLevel > 0
             spacing: 12
 
             Rectangle {
                 Layout.preferredWidth: root.promptSize
                 Layout.preferredHeight: root.promptSize
                 color: Appearance.colors.colPrimary
-                radius: Sizes.lockCardRadiusSmall
+                radius: Metrics.lockCardRadiusSmall
 
                 Text {
                     anchors.centerIn: parent
                     text: ">"
                     color: Appearance.colors.colOnPrimary
-                    font.family: Sizes.fontFamilyMono
+                    font.family: Fonts.numeric
                     font.pixelSize: root.headerFontSize
                     font.bold: true
                 }
+
             }
 
             Text {
                 Layout.fillWidth: true
                 text: "fastfetch"
                 color: Appearance.colors.colOnSurface
-                font.family: Sizes.fontFamilyMono
+                font.family: Fonts.numeric
                 font.pixelSize: root.headerFontSize
                 font.bold: true
                 elide: Text.ElideRight
                 verticalAlignment: Text.AlignVCenter
             }
+
         }
 
         RowLayout {
@@ -111,16 +109,17 @@ Rectangle {
                 Layout.preferredWidth: root.logoColumnWidth
                 Layout.fillHeight: true
                 Layout.alignment: Qt.AlignVCenter
-                visible: root.width >= 300
+                visible: root.detailLevel >= 2 && root.width >= 300
 
                 Text {
                     anchors.centerIn: parent
                     text: root.distroLogo()
                     color: Appearance.colors.colPrimary
-                    font.family: Sizes.fontFamilyMono
+                    font.family: Fonts.numeric
                     font.pixelSize: Math.floor(Math.min(parent.width, parent.height) * 0.94)
                     font.bold: true
                 }
+
             }
 
             ColumnLayout {
@@ -135,7 +134,7 @@ Rectangle {
                     Layout.fillWidth: true
                     text: root.systemUser + "@" + root.hostName
                     color: Appearance.colors.colPrimary
-                    font.family: Sizes.fontFamilyMono
+                    font.family: Fonts.numeric
                     font.pixelSize: root.fetchFontSize
                     font.bold: true
                     elide: Text.ElideRight
@@ -154,15 +153,17 @@ Rectangle {
                 FetchLine {
                     icon: "desktop_windows"
                     label: "OS"
-                    value: SysmonPlugin.distroName
+                    value: SystemIdentityService.distroName
                     accent: Appearance.colors.colPrimary
+                    visible: root.detailLevel >= 1
                 }
 
                 FetchLine {
                     icon: "window"
                     label: "WM"
-                    value: SysmonPlugin.wmName
+                    value: SystemIdentityService.wmName
                     accent: Appearance.colors.colSecondary
+                    visible: root.detailLevel >= 1
                 }
 
                 FetchLine {
@@ -175,28 +176,30 @@ Rectangle {
                 FetchLine {
                     icon: "schedule"
                     label: "UP"
-                    value: SysmonPlugin.uptime
+                    value: SystemIdentityService.uptimeText
                     accent: Appearance.colors.colSecondary
                 }
 
                 FetchLine {
                     icon: "memory"
                     label: "KERN"
-                    value: SysmonPlugin.kernelRelease
+                    value: SystemIdentityService.kernelRelease
                     accent: Appearance.colors.colPrimary
+                    visible: root.detailLevel >= 2
                 }
 
                 FetchLine {
                     icon: "terminal"
                     label: "SH"
-                    value: SysmonPlugin.shellName
+                    value: SystemIdentityService.shellName
                     accent: Appearance.colors.colTertiary
+                    visible: root.detailLevel >= 2
                 }
 
                 RowLayout {
                     Layout.alignment: Qt.AlignHCenter
                     Layout.topMargin: 6
-                    visible: root.height > 180
+                    visible: root.detailLevel >= 3
                     spacing: 8
 
                     Repeater {
@@ -204,15 +207,21 @@ Rectangle {
 
                         Rectangle {
                             required property var modelData
+
                             Layout.preferredWidth: 28
                             Layout.preferredHeight: 18
                             radius: 7
                             color: modelData
                         }
+
                     }
+
                 }
+
             }
+
         }
+
     }
 
     component FetchLine: RowLayout {
@@ -230,7 +239,7 @@ Rectangle {
             Layout.preferredWidth: 22
             text: line.icon
             color: line.accent
-            font.family: "Material Symbols Outlined"
+            font.family: Fonts.materialSymbolsOutlined
             font.pixelSize: 24
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
@@ -240,7 +249,7 @@ Rectangle {
             Layout.preferredWidth: root.lineLabelWidth
             text: line.label + ":"
             color: line.accent
-            font.family: Sizes.fontFamilyMono
+            font.family: Fonts.numeric
             font.pixelSize: root.fetchFontSize
             font.bold: true
             elide: Text.ElideRight
@@ -250,9 +259,11 @@ Rectangle {
             Layout.fillWidth: true
             text: line.value || "--"
             color: Appearance.colors.colOnSurface
-            font.family: Sizes.fontFamilyMono
+            font.family: Fonts.numeric
             font.pixelSize: root.fetchFontSize
             elide: Text.ElideRight
         }
+
     }
+
 }

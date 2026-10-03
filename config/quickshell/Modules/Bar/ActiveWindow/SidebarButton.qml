@@ -1,53 +1,39 @@
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Effects
 import qs.Common
+import qs.Services
+import qs.Widgets.common
 
-Item {
+TopBarPill {
     id: root
 
-    implicitHeight: 36
-    implicitWidth: buttonRow.implicitWidth + 16
+    property bool vertical: false
 
-    Behavior on implicitWidth { NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
+    implicitHeight: vertical ? buttonRow.implicitHeight + 2 * Sizes.barPillHorizontalPadding :
+                               Sizes.barPillThickness
+    implicitWidth: vertical ? Sizes.barPillThickness : buttonRow.implicitWidth + 2
+                              * Sizes.barPillHorizontalPadding
 
-    Rectangle {
-        id: bgRect
-        anchors.fill: parent
-        color: Appearance.colors.colLayer0
-        radius: height / 2
-        visible: false
-    }
-
-    MultiEffect {
-        source: bgRect
-        anchors.fill: bgRect
-        shadowEnabled: true
-        shadowColor: Qt.alpha(Appearance.colors.colShadow, 0.4)
-        shadowBlur: 0.8
-        shadowVerticalOffset: 3
-        shadowHorizontalOffset: 0
-    }
-
-    RowLayout {
+    GridLayout {
         id: buttonRow
+
         anchors.centerIn: parent
-        spacing: 8
+        rowSpacing: Sizes.barItemSpacing
+        columnSpacing: Sizes.barItemSpacing
+        columns: root.vertical ? 1 : 3
 
         SidebarPillButton {
             viewName: "info"
-            iconName: "notifications"
-            activeColor: Appearance.colors.colSecondary
-            activeContentColor: Appearance.colors.colOnSecondary
+            sidebarIconName: "notifications"
         }
 
         SidebarPillButton {
-            viewName: "sys"
-            iconName: "memory"
-            activeColor: Appearance.colors.colTertiary
-            activeContentColor: Appearance.colors.colOnTertiary
+            viewName: "drawer"
+            sidebarIconName: "widgets"
         }
 
-        SidebarWeatherButton {}
+        SidebarWeatherButton {
+            vertical: root.vertical
+        }
     }
 }

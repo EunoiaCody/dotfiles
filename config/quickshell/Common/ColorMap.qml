@@ -205,11 +205,16 @@ Singleton {
         property int small: 12
         property int normal: 17
         property int large: 23
+        property int extraLarge: 28
         property int veryLarge: 30
         property int full: 9999
     }
 
     property QtObject spacing: QtObject {
+        property int xSmall: 4
+        property int small: 8
+        property int medium: 16
+        property int large: 24
         property int panelPadding: 20
     }
 

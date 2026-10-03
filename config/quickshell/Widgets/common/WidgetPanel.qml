@@ -1,21 +1,18 @@
 import QtQuick
 import QtQuick.Layouts
 import qs.Common
+import qs.Components
 
 Rectangle {
     id: root
     property string title: ""
     property string icon: ""
-    property alias headerTools: headerToolsLayout.data 
+    property alias headerTools: headerToolsLayout.data
     default property alias content: contentLayout.data
     property var closeAction: () => {}
-    // Preferred content height for views that should not fill the
-    // entire sidebar (e.g. the power menu). Views that want the full
-    // 640px panel leave this at its default. RightSidebar reads this
-    // to size the gooey shadow + hit region.
-    property real contentImplicitHeight: 640
+    property bool showBackButton: false
+    property var backAction: closeAction
 
-    
     // 剥离背景色与边框，让底部固定的液态遮罩透出来！
     color: "transparent"
     border.color: "transparent"
@@ -27,25 +24,48 @@ Rectangle {
 
         RowLayout {
             Layout.fillWidth: true
-            Text { text: root.icon; font.family: "Material Symbols Outlined"; font.pixelSize: 22; color: Appearance.colors.colPrimary }
-            Text { text: root.title; font.bold: true; font.pixelSize: 18; color: Appearance.colors.colOnLayer2; Layout.fillWidth: true; Layout.leftMargin: 10 }
-            
-            RowLayout { id: headerToolsLayout; spacing: 12 }
-            
-            Item { width: 12 }
-            
+
+            IconButton {
+                visible: root.showBackButton
+                iconName: "arrow_back"
+                iconSize: 22
+                iconColor: Appearance.colors.colOnLayer2
+                accessibleName: qsTr("Back to Quick Settings")
+                hoverStateLayerColor: Appearance.colors.colLayer2Hover
+                pressedStateLayerColor: Appearance.colors.colLayer2Active
+                onClicked: root.backAction()
+            }
+
+            MaterialSymbol {
+                visible: !root.showBackButton
+                text: root.icon
+                iconSize: 22
+                color: Appearance.colors.colPrimary
+                Layout.preferredWidth: 22
+                Layout.preferredHeight: 40
+            }
+
             Text {
-                text: "close"
-                font.family: "Material Symbols Outlined"; font.pixelSize: 20; color: Appearance.colors.colOnLayer1
-                MouseArea { 
-                    anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: root.closeAction()
-                }
+                text: root.title
+                font.family: Fonts.ui
+                font.bold: true
+                font.pixelSize: 18
+                color: Appearance.colors.colOnLayer2
+                Layout.fillWidth: true
+                Layout.leftMargin: root.showBackButton ? 0 : 10
+                elide: Text.ElideRight
+            }
+
+            RowLayout {
+                id: headerToolsLayout
+                spacing: 12
             }
         }
 
         ColumnLayout {
             id: contentLayout
-            Layout.fillWidth: true; Layout.fillHeight: true
+            Layout.fillWidth: true
+            Layout.fillHeight: true
         }
     }
 }

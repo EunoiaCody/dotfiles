@@ -1,162 +1,595 @@
 pragma Singleton
-
 import QtQuick
 import Quickshell
 import Quickshell.Bluetooth
 
-// BluetoothService — central facade over Quickshell's native Bluetooth
-// module (which talks to BlueZ over D-Bus).
-//
-// Backwards-compatible API surface used by the existing Quick Toggles
-// panel (Modules/Sidebars/Right/SettingsContent.qml) and QuickToggleConfig:
-// - property bool available
-// - property bool enabled
-// - property bool connected
-// - property string connectedName
-// - function toggle()
-//
-// New API used by the Bluetooth panel/button:
-// - property bool discovering
-// - property var devices (raw adapter.devices ObjectModel)
-// - property var pairedDevices (subset of paired/trusted devices)
-// - property var unpairedDevices (subset of discovered-but-unpaired)
-// - function startScan()
-// - function stopScan()
-// - function connectDevice(device)
-// - function disconnectDevice(device)
-// - function pairDevice(device)
-// - function forgetDevice(device)
-//
-// Device objects are the native BluetoothDevice instances — they expose
-// address, name, connected, paired, trusted, pairing, battery (0.0-1.0),
-// batteryAvailable, signalStrength, state, icon.
-//
-// The legacy "toggle()" kept its semantics: toggling adapter power.
-// startScan()/stopScan() deliberately just flips the adapter's
-// `discovering` flag — BlueZ will report any new device as part of
-// `adapter.devices` automatically.
 Singleton {
- id: root
+    id: root
 
- readonly property var adapter: Bluetooth.defaultAdapter ?? null
+    readonly property var _nativeAdapters: Bluetooth.adapters ? Bluetooth.adapters.values : []
+    readonly property var _nativeDevices: Bluetooth.devices ? Bluetooth.devices.values : []
+    readonly property var adapter: Bluetooth.defaultAdapter
+    readonly property bool available: adapter !== null
+    readonly property bool enabled: available && adapter.enabled
+    readonly property bool blocked: available && adapter.state === BluetoothAdapterState.Blocked
+    readonly property bool discovering: _nativeAdapters.some(candidate => {
+        return candidate && candidate.discovering;
+    })
+    readonly property bool scanning: discovering
+    readonly property bool discoverable: available && adapter.discoverable
+    readonly property bool pairable: available && adapter.pairable
+    readonly property bool connected: connectedDevices.length > 0
+    readonly property string connectedName: connected ? connectedDevices[0].name : ""
+    readonly property bool busy: _pendingOperation.length > 0 || _nativeAdapters.some(candidate => {
+        return candidate && (candidate.state === BluetoothAdapterState.Enabling || candidate.state
+                             === BluetoothAdapterState.Disabling);
+    }) || _nativeDevices.some(device => {
+        return device && (device.pairing || device.state === BluetoothDeviceState.Connecting || device.state
+                          === BluetoothDeviceState.Disconnecting);
+    })
+    readonly property var adapters: _nativeAdapters.map(candidate => {
+        return root._describeAdapter(candidate);
+    })
+    readonly property var devices: root._deduplicatedDeviceDescriptors()
+    readonly property var connectedDevices: devices.filter(device => {
+        return device.connected;
+    })
+    readonly property var pairedDevices: devices.filter(device => {
+        return !device.connected && (device.paired || device.bonded || device.trusted);
+    })
+    readonly property var availableDevices: devices.filter(device => {
+        return !device.connected && !device.paired && !device.bonded && !device.trusted;
+    })
+    property string lastError: ""
+    property var _discoveryOwners: ({})
+    property bool _manualDiscoveryActive: false
+    property string _pendingOperation: ""
+    property string _pendingAddress: ""
+    property string _pendingAdapterId: ""
+    property bool _pendingTargetState: false
+    property bool _pendingStateWasChanging: false
+    property bool _pendingPairingStarted: false
+    property var _pendingAdapter: null
+    property var _pendingDevice: null
 
- readonly property bool available: adapter !== null
- readonly property bool enabled: (adapter && adapter.enabled) ?? false
- readonly property bool discovering: (adapter && adapter.discovering) ?? false
+    signal operationStarted(string operation)
+    signal operationSucceeded(string operation)
+    signal operationFailed(string operation, string message)
 
- // Friendly: are *any* devices currently connected?
- readonly property bool connected: {
- if (!adapter || !adapter.devices)
- return false;
- for (const d of adapter.devices.values)
- if (d && d.connected)
- return true;
- return false;
- }
+    function clearError() {
+        root.lastError = "";
+    }
 
- // Name of the first connected device (matches the legacy
- // `connectedName` contract — picks head of the list).
- readonly property string connectedName: {
- if (!adapter || !adapter.devices)
- return "";
- for (const d of adapter.devices.values)
- if (d && d.connected && d.name && d.name.length >0)
- return d.name;
- return "";
- }
+    function _describeAdapter(candidate) {
+        if (!candidate)
+            return {};
 
- // Full device list — exposed for the panel; the panel sorts and
- // filters these into paired / discovered buckets as needed.
- readonly property var devices: {
- if (!adapter || !adapter.devices)
- return [];
- return Array.from(adapter.devices.values).filter(d => d !== null);
- }
+        return {
+            "id": String(candidate.adapterId || ""),
+            "name": String(candidate.name || candidate.adapterId || ""),
+            "dbusPath": String(candidate.dbusPath || ""),
+            "available": true,
+            "enabled": !!candidate.enabled,
+            "state": BluetoothAdapterState.toString(candidate.state),
+            "blocked": candidate.state === BluetoothAdapterState.Blocked,
+            "discovering": !!candidate.discovering,
+            "discoverable": !!candidate.discoverable,
+            "discoverableTimeout": Number(candidate.discoverableTimeout || 0),
+            "pairable": !!candidate.pairable,
+            "pairableTimeout": Number(candidate.pairableTimeout || 0)
+        };
+    }
 
- // Convenience buckets used by BluetoothContent to render two
- // sections without re-filtering on every binding.
- readonly property var pairedDevices: {
- const list = [];
- for (const d of root.devices) {
- if (d.paired || d.trusted)
- list.push(d);
- }
- return list;
- }
- readonly property var unpairedDevices: {
- const list = [];
- for (const d of root.devices) {
- if (!(d.paired || d.trusted))
- list.push(d);
- }
- return list;
- }
+    function _describeDevice(device) {
+        if (!device)
+            return {};
 
- // -------- legacy API --------
+        const deviceAdapter = device.adapter;
+        return {
+            "name": String(device.name || device.deviceName || device.address || qsTr("Unknown device")),
+            "deviceName": String(device.deviceName || ""),
+            "address": String(device.address || ""),
+            "icon": String(device.icon || ""),
+            "adapterId": deviceAdapter ? String(deviceAdapter.adapterId || "") : "",
+            "state": BluetoothDeviceState.toString(device.state),
+            "connected": !!device.connected,
+            "paired": !!device.paired,
+            "bonded": !!device.bonded,
+            "pairing": !!device.pairing,
+            "connecting": device.state === BluetoothDeviceState.Connecting,
+            "disconnecting": device.state === BluetoothDeviceState.Disconnecting,
+            "trusted": !!device.trusted,
+            "blocked": !!device.blocked,
+            "wakeAllowed": !!device.wakeAllowed,
+            "batteryAvailable": !!device.batteryAvailable,
+            "battery": device.batteryAvailable ? Number(device.battery || 0) : -1,
+            "batteryLevel": device.batteryAvailable ? Math.round(Number(device.battery || 0) * 100) : -1
+        };
+    }
 
- function toggle() {
- if (!root.available)
- return;
- if (root.adapter)
- root.adapter.enabled = !root.adapter.enabled;
- }
+    function _deduplicatedDeviceDescriptors() {
+        const byAddress = {};
+        for (const device of root._nativeDevices) {
+            if (!device)
+                continue;
 
- // Backwards-compat alias for callers that already use `refresh()`
- // (none currently do, but kept for forward compat).
- function refresh() {
- // Native adapter updates itself through D-Bus signals; nothing
- // to do here. The function exists only so existing call sites
- // (if any are added later) don't break.
- }
+            const descriptor = root._describeDevice(device);
+            const key = descriptor.address.length > 0 ? descriptor.address : descriptor.adapterId + "|"
+                                                        + descriptor.name;
+            const current = byAddress[key];
+            if (!current || (descriptor.connected && !current.connected) || (descriptor.paired &&
+                                                                             !current.paired))
+                byAddress[key] = descriptor;
+        }
+        return Object.keys(byAddress).map(key => {
+            return byAddress[key];
+        }).sort((a, b) => {
+            if (a.connected !== b.connected)
+                return a.connected ? -1 : 1;
 
- // -------- new API --------
+            if ((a.paired || a.bonded) !== (b.paired || b.bonded))
+                return (a.paired || a.bonded) ? -1 : 1;
 
- function startScan() {
- if (!root.available || !root.adapter)
- return;
- root.adapter.discovering = true;
- }
+            return a.name.localeCompare(b.name);
+        });
+    }
 
- function stopScan() {
- if (!root.available || !root.adapter)
- return;
- root.adapter.discovering = false;
- }
+    function _resolveAdapter(adapterLike) {
+        const adapterId = typeof adapterLike === "string" ? adapterLike : adapterLike ? String(adapterLike.id
+                                                                                               || adapterLike.adapterId
+                                                                                               || "") : "";
+        if (adapterId.length === 0)
+            return root.adapter;
 
- function pairDevice(device) {
- if (!device)
- return;
- // Trusting first ensures the device auto-reconnects in future
- // sessions, which is the behaviour users expect from a typical
- // Bluetooth stack (macOS, Windows, GNOME, …).
- if (device.trusted !== undefined)
- device.trusted = true;
- if (typeof device.pair === "function")
- device.pair();
- else if (typeof device.connect === "function")
- device.connect();
- }
+        return root._nativeAdapters.find(candidate => {
+            return candidate && candidate.adapterId === adapterId;
+        }) || null;
+    }
 
- function connectDevice(device) {
- if (!device)
- return;
- if (device.trusted !== undefined)
- device.trusted = true;
- if (typeof device.connect === "function")
- device.connect();
- }
+    function _resolveDevice(deviceLike) {
+        if (!deviceLike)
+            return null;
 
- function disconnectDevice(device) {
- if (!device)
- return;
- if (typeof device.disconnect === "function")
- device.disconnect();
- }
+        const address = typeof deviceLike === "string" ? deviceLike : String(deviceLike.address || "");
+        const adapterId = typeof deviceLike === "string" ? "" : String(deviceLike.adapterId || "");
+        return root._nativeDevices.find(device => {
+            return device && device.address === address && (adapterId.length === 0 || (device.adapter
+                                                                                       && device.adapter.adapterId
+                                                                                       === adapterId));
+        }) || null;
+    }
 
- function forgetDevice(device) {
- if (!device)
- return;
- if (typeof device.forget === "function")
- device.forget();
- }
+    function _beginOperation(operation) {
+        if (root._pendingOperation.length > 0) {
+            root.operationFailed(operation, qsTr("Another Bluetooth operation is already in progress"));
+            return false;
+        }
+        root.lastError = "";
+        root._pendingOperation = operation;
+        root._pendingStateWasChanging = false;
+        root._pendingPairingStarted = false;
+        operationTimeout.restart();
+        root.operationStarted(operation);
+        return true;
+    }
+
+    function _finishOperationSucceeded() {
+        if (root._pendingOperation.length === 0)
+            return;
+
+        const operation = root._pendingOperation;
+        operationTimeout.stop();
+        root._clearPendingOperation();
+        root.operationSucceeded(operation);
+    }
+
+    function _finishOperationFailed(message) {
+        if (root._pendingOperation.length === 0)
+            return;
+
+        const operation = root._pendingOperation;
+        root.lastError = String(message || qsTr("Bluetooth operation failed"));
+        operationTimeout.stop();
+        root._clearPendingOperation();
+        root.operationFailed(operation, root.lastError);
+    }
+
+    function _clearPendingOperation() {
+        root._pendingOperation = "";
+        root._pendingAddress = "";
+        root._pendingAdapterId = "";
+        root._pendingTargetState = false;
+        root._pendingStateWasChanging = false;
+        root._pendingPairingStarted = false;
+        root._pendingAdapter = null;
+        root._pendingDevice = null;
+    }
+
+    function setAdapterEnabled(adapterLike, value) {
+        const nativeAdapter = root._resolveAdapter(adapterLike);
+        const requested = !!value;
+        if (!nativeAdapter) {
+            root.lastError = qsTr("No Bluetooth adapter detected");
+            root.operationFailed("set-adapter-enabled", root.lastError);
+            return;
+        }
+        if (requested && nativeAdapter.state === BluetoothAdapterState.Blocked) {
+            root.lastError = qsTr("The Bluetooth adapter is blocked by rfkill");
+            root.operationFailed("set-adapter-enabled", root.lastError);
+            return;
+        }
+        if (nativeAdapter.enabled === requested)
+            return;
+
+        if (!root._beginOperation("set-adapter-enabled"))
+            return;
+
+        root._pendingAdapter = nativeAdapter;
+        root._pendingAdapterId = String(nativeAdapter.adapterId || "");
+        root._pendingTargetState = requested;
+        nativeAdapter.enabled = requested;
+    }
+
+    function setBluetoothEnabled(value) {
+        root.setAdapterEnabled(root.adapter, value);
+    }
+
+    function toggle() {
+        root.setBluetoothEnabled(!root.enabled);
+    }
+
+    function setDiscoverable(value, adapterLike) {
+        const nativeAdapter = root._resolveAdapter(adapterLike);
+        const requested = !!value;
+        if (!nativeAdapter || !nativeAdapter.enabled) {
+            root.lastError = nativeAdapter ? qsTr("The Bluetooth adapter is off") : qsTr(
+                                                 "No Bluetooth adapter detected");
+            root.operationFailed("set-discoverable", root.lastError);
+            return;
+        }
+        if (nativeAdapter.discoverable === requested)
+            return;
+
+        if (!root._beginOperation("set-discoverable"))
+            return;
+
+        root._pendingAdapter = nativeAdapter;
+        root._pendingTargetState = requested;
+        nativeAdapter.discoverable = requested;
+    }
+
+    function setPairable(value, adapterLike) {
+        const nativeAdapter = root._resolveAdapter(adapterLike);
+        const requested = !!value;
+        if (!nativeAdapter || !nativeAdapter.enabled) {
+            root.lastError = nativeAdapter ? qsTr("The Bluetooth adapter is off") : qsTr(
+                                                 "No Bluetooth adapter detected");
+            root.operationFailed("set-pairable", root.lastError);
+            return;
+        }
+        if (nativeAdapter.pairable === requested)
+            return;
+
+        if (!root._beginOperation("set-pairable"))
+            return;
+
+        root._pendingAdapter = nativeAdapter;
+        root._pendingTargetState = requested;
+        nativeAdapter.pairable = requested;
+    }
+
+    function _discoveryOwnerKey(owner) {
+        return String(owner || "anonymous");
+    }
+
+    function acquireDiscovery(owner) {
+        const key = root._discoveryOwnerKey(owner);
+        const next = Object.assign({}, root._discoveryOwners);
+        next[key] = Number(next[key] || 0) + 1;
+        root._discoveryOwners = next;
+        root._applyDiscovery();
+    }
+
+    function releaseDiscovery(owner) {
+        const key = root._discoveryOwnerKey(owner);
+        const next = Object.assign({}, root._discoveryOwners);
+        if (!next[key])
+            return;
+
+        if (next[key] <= 1)
+            delete next[key];
+        else
+            next[key] -= 1;
+        root._discoveryOwners = next;
+        root._applyDiscovery();
+    }
+
+    function requestDiscovery() {
+        if (!root.available) {
+            root.lastError = qsTr("No Bluetooth adapter detected or BlueZ is unavailable");
+            root.operationFailed("discovery", root.lastError);
+            return;
+        }
+        if (!root.enabled) {
+            root.lastError = qsTr("The Bluetooth adapter is off");
+            root.operationFailed("discovery", root.lastError);
+            return;
+        }
+        root.lastError = "";
+        root._manualDiscoveryActive = true;
+        manualDiscoveryReleaseTimer.restart();
+        root._applyDiscovery();
+        root.operationStarted("discovery");
+        root.operationSucceeded("discovery");
+    }
+
+    function stopDiscovery() {
+        root._manualDiscoveryActive = false;
+        manualDiscoveryReleaseTimer.stop();
+        root._applyDiscovery();
+    }
+
+    function _applyDiscovery() {
+        const requested = root._manualDiscoveryActive || Object.keys(root._discoveryOwners).length > 0;
+        for (const nativeAdapter of root._nativeAdapters) {
+            if (!nativeAdapter)
+                continue;
+
+            const shouldDiscover = requested && nativeAdapter.enabled;
+            if (nativeAdapter.discovering !== shouldDiscover)
+                nativeAdapter.discovering = shouldDiscover;
+        }
+    }
+
+    function _beginDeviceOperation(operation, deviceLike, targetState) {
+        const nativeDevice = root._resolveDevice(deviceLike);
+        if (!nativeDevice) {
+            root.lastError = qsTr("The target Bluetooth device is no longer available");
+            root.operationFailed(operation, root.lastError);
+            return null;
+        }
+        if (nativeDevice.blocked && (operation === "connect" || operation === "pair")) {
+            root.lastError = qsTr("The target Bluetooth device is blocked");
+            root.operationFailed(operation, root.lastError);
+            return null;
+        }
+        if (!root._beginOperation(operation))
+            return null;
+
+        root._pendingDevice = nativeDevice;
+        root._pendingAddress = String(nativeDevice.address || "");
+        root._pendingAdapterId = nativeDevice.adapter ? String(nativeDevice.adapter.adapterId || "") : "";
+        root._pendingTargetState = !!targetState;
+        return nativeDevice;
+    }
+
+    function connectDevice(device) {
+        const current = root._resolveDevice(device);
+        if (current && current.connected)
+            return;
+
+        const nativeDevice = root._beginDeviceOperation("connect", device, true);
+        if (nativeDevice)
+            nativeDevice.connect();
+    }
+
+    function disconnectDevice(device) {
+        const current = root._resolveDevice(device);
+        if (current && !current.connected)
+            return;
+
+        const nativeDevice = root._beginDeviceOperation("disconnect", device, false);
+        if (nativeDevice)
+            nativeDevice.disconnect();
+    }
+
+    function pairDevice(device) {
+        // TODO(Extras phase 2): custom PIN/passkey confirmation requires a
+        // project-owned BlueZ agent, which the installed Quickshell API does not expose.
+        const current = root._resolveDevice(device);
+        if (current && current.paired)
+            return;
+
+        const nativeDevice = root._beginDeviceOperation("pair", device, true);
+        if (nativeDevice)
+            nativeDevice.pair();
+    }
+
+    function cancelPairing(device) {
+        const current = root._resolveDevice(device);
+        if (current && !current.pairing)
+            return;
+
+        const nativeDevice = root._beginDeviceOperation("cancel-pair", device, false);
+        if (nativeDevice)
+            nativeDevice.cancelPair();
+    }
+
+    function forgetDevice(device) {
+        const nativeDevice = root._beginDeviceOperation("forget", device, false);
+        if (nativeDevice)
+            nativeDevice.forget();
+    }
+
+    function setDeviceTrusted(device, value) {
+        const current = root._resolveDevice(device);
+        if (current && current.trusted === !!value)
+            return;
+
+        const nativeDevice = root._beginDeviceOperation("set-trusted", device, value);
+        if (nativeDevice)
+            nativeDevice.trusted = !!value;
+    }
+
+    function setDeviceBlocked(device, value) {
+        const current = root._resolveDevice(device);
+        if (current && current.blocked === !!value)
+            return;
+
+        const nativeDevice = root._beginDeviceOperation(value ? "block" : "unblock", device, value);
+        if (nativeDevice)
+            nativeDevice.blocked = !!value;
+    }
+
+    function setDeviceWakeAllowed(device, value) {
+        const current = root._resolveDevice(device);
+        if (current && current.wakeAllowed === !!value)
+            return;
+
+        const nativeDevice = root._beginDeviceOperation("set-wake-allowed", device, value);
+        if (nativeDevice)
+            nativeDevice.wakeAllowed = !!value;
+    }
+
+    Component.onCompleted: root._applyDiscovery()
+    Component.onDestruction: {
+        for (const nativeAdapter of root._nativeAdapters) {
+            if (nativeAdapter && nativeAdapter.discovering)
+                nativeAdapter.discovering = false;
+        }
+    }
+
+    Connections {
+        function onDefaultAdapterChanged() {
+            Qt.callLater(root._applyDiscovery);
+        }
+
+        target: Bluetooth
+    }
+
+    Connections {
+        function onValuesChanged() {
+            Qt.callLater(root._applyDiscovery);
+        }
+
+        target: Bluetooth.adapters
+    }
+
+    Connections {
+        function onValuesChanged() {
+            if (root._pendingOperation === "forget" && root._pendingAddress.length > 0 && !root._resolveDevice(
+                        {
+                            "address": root._pendingAddress,
+                            "adapterId": root._pendingAdapterId
+                        }))
+                root._finishOperationSucceeded();
+        }
+
+        target: Bluetooth.devices
+    }
+
+    Connections {
+        function onEnabledChanged() {
+            root._applyDiscovery();
+            if (root._pendingOperation === "set-adapter-enabled" && root._pendingAdapter.enabled
+                    === root._pendingTargetState)
+                root._finishOperationSucceeded();
+        }
+
+        function onDiscoverableChanged() {
+            if (root._pendingOperation === "set-discoverable" && root._pendingAdapter.discoverable
+                    === root._pendingTargetState)
+                root._finishOperationSucceeded();
+        }
+
+        function onPairableChanged() {
+            if (root._pendingOperation === "set-pairable" && root._pendingAdapter.pairable
+                    === root._pendingTargetState)
+                root._finishOperationSucceeded();
+        }
+
+        target: root._pendingAdapter
+        enabled: root._pendingAdapter !== null
+    }
+
+    Connections {
+        function onConnectedChanged() {
+            if (root._pendingOperation === "connect" && root._pendingDevice.connected)
+                root._finishOperationSucceeded();
+            else if (root._pendingOperation === "disconnect" && !root._pendingDevice.connected)
+                root._finishOperationSucceeded();
+        }
+
+        function onStateChanged() {
+            if (!root._pendingDevice)
+                return;
+
+            if (root._pendingDevice.state === BluetoothDeviceState.Connecting || root._pendingDevice.state
+                    === BluetoothDeviceState.Disconnecting)
+                root._pendingStateWasChanging = true;
+
+            if (root._pendingOperation === "connect" && root._pendingStateWasChanging
+                    && root._pendingDevice.state === BluetoothDeviceState.Disconnected)
+                root._finishOperationFailed(qsTr("Could not connect to the device"));
+        }
+
+        function onPairingChanged() {
+            if (!root._pendingDevice)
+                return;
+
+            if (root._pendingDevice.pairing)
+                root._pendingPairingStarted = true;
+            else if (root._pendingOperation === "cancel-pair")
+                root._finishOperationSucceeded();
+            else if (root._pendingOperation === "pair" && root._pendingPairingStarted &&
+                     !root._pendingDevice.paired)
+                root._finishOperationFailed(qsTr("Pairing failed"));
+        }
+
+        function onPairedChanged() {
+            if (root._pendingOperation === "pair" && root._pendingDevice.paired)
+                root._finishOperationSucceeded();
+            else if (root._pendingOperation === "forget" && !root._pendingDevice.paired &&
+                     !root._pendingDevice.bonded)
+                root._finishOperationSucceeded();
+        }
+
+        function onBondedChanged() {
+            if (root._pendingOperation === "forget" && !root._pendingDevice.paired &&
+                    !root._pendingDevice.bonded)
+
+                root._finishOperationSucceeded();
+        }
+
+        function onTrustedChanged() {
+            if (root._pendingOperation === "set-trusted" && root._pendingDevice.trusted
+                    === root._pendingTargetState)
+                root._finishOperationSucceeded();
+        }
+
+        function onBlockedChanged() {
+            if ((root._pendingOperation === "block" || root._pendingOperation === "unblock")
+                    && root._pendingDevice.blocked === root._pendingTargetState)
+                root._finishOperationSucceeded();
+        }
+
+        function onWakeAllowedChanged() {
+            if (root._pendingOperation === "set-wake-allowed" && root._pendingDevice.wakeAllowed
+                    === root._pendingTargetState)
+                root._finishOperationSucceeded();
+        }
+
+        target: root._pendingDevice
+        enabled: root._pendingDevice !== null
+    }
+
+    Timer {
+        id: manualDiscoveryReleaseTimer
+
+        interval: 30000
+        repeat: false
+        onTriggered: {
+            root._manualDiscoveryActive = false;
+            root._applyDiscovery();
+        }
+    }
+
+    Timer {
+        id: operationTimeout
+
+        interval: 60000
+        repeat: false
+        onTriggered: root._finishOperationFailed(qsTr(
+                                                     "Bluetooth operation timed out; the current Quickshell API provides no more detailed BlueZ error"))
+    }
 }

@@ -1,0 +1,13 @@
+module qs.Modules.SystemCards
+ExpressiveMetricTile 1.0 ExpressiveMetricTile.qml
+SidebarCookieClock 1.0 SidebarCookieClock.qml
+SystemBatteryTank 1.0 SystemBatteryTank.qml
+SystemCalendarCard 1.0 SystemCalendarCard.qml
+SystemCardContent 1.0 SystemCardContent.qml
+SystemCardGridGuides 1.0 SystemCardGridGuides.qml
+SystemClockCard 1.0 SystemClockCard.qml
+SystemLiquidMetricCard 1.0 SystemLiquidMetricCard.qml
+SystemNetworkCard 1.0 SystemNetworkCard.qml
+SystemSparkline 1.0 SystemSparkline.qml
+SystemStorageCard 1.0 SystemStorageCard.qml
+SystemWeatherCard 1.0 SystemWeatherCard.qml

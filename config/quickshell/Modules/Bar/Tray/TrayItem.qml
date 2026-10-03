@@ -1,5 +1,4 @@
 import QtQuick
-import Qt5Compat.GraphicalEffects
 import Quickshell
 import Quickshell.Services.SystemTray
 import Quickshell.Widgets
@@ -12,12 +11,14 @@ MouseArea {
 
     required property var modelData
     property var screen: null
+    property string edge: "top"
+    property var barVisualItem: null
 
     signal menuOpened(var qsWindow)
-    signal menuClosed()
+    signal menuClosed
 
-    implicitWidth: 20
-    implicitHeight: 20
+    implicitWidth: Sizes.barControlCircleSize
+    implicitHeight: Sizes.barControlCircleSize
     hoverEnabled: true
     cursorShape: Qt.PointingHandCursor
     acceptedButtons: Qt.LeftButton | Qt.RightButton
@@ -74,6 +75,8 @@ MouseArea {
             trayItemId: root.modelData.id || ""
             anchorItem: root
             screen: root.screen
+            edge: root.edge
+            barVisualItem: root.barVisualItem
 
             onMenuOpened: window => root.menuOpened(window)
             onMenuClosed: {
@@ -86,53 +89,12 @@ MouseArea {
     IconImage {
         id: trayIcon
 
-        visible: !TrayService.monochromeIcons
         source: root.modelData.icon || ""
         anchors.centerIn: parent
-        width: parent.width
-        height: parent.height
+        width: Sizes.barIconSize
+        height: Sizes.barIconSize
         asynchronous: true
         mipmap: true
-    }
-
-    Loader {
-        active: TrayService.monochromeIcons
-        anchors.fill: trayIcon
-
-        sourceComponent: Item {
-            IconImage {
-                id: monoSource
-
-                visible: false
-                source: root.modelData.icon || ""
-                anchors.fill: parent
-                asynchronous: true
-                mipmap: true
-            }
-
-            Desaturate {
-                id: desaturatedIcon
-
-                visible: false
-                anchors.fill: parent
-                source: monoSource
-                desaturation: 0.3
-            }
-
-            ColorOverlay {
-                anchors.fill: desaturatedIcon
-                source: desaturatedIcon
-                color: Appearance.colors.colOnSurface
-
-                Behavior on color {
-                    ColorAnimation {
-                        duration: Appearance.animation.expressiveEffects.duration
-                        easing.type: Appearance.animation.expressiveEffects.type
-                        easing.bezierCurve: Appearance.animation.expressiveEffects.bezierCurve
-                    }
-                }
-            }
-        }
     }
 
     PopupToolTip {

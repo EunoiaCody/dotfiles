@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Layouts
 import Quickshell
 import qs.Services
 import qs.Common
@@ -8,60 +9,92 @@ Item {
     id: root
 
     property var screen: null
+    property bool vertical: false
+    readonly property bool showValue: PersonalizationConfig.barShowValues
 
-    implicitHeight: 28
-    implicitWidth: 28
+    implicitWidth: mouseArea.implicitWidth
+    implicitHeight: mouseArea.implicitHeight
 
-    ArcGauge {
-        anchors.fill: parent
-
-        value: Volume.sinkVolume
-        progressColor: (Volume.sinkMuted || Volume.sinkVolume <= 0) ? Appearance.colors.colError : Appearance.colors.colPrimary
-        trackColor: Appearance.colors.colLayer2Hover
-        handleColor: Appearance.colors.colOnSurface
-        iconColor: (Volume.sinkMuted || Volume.sinkVolume <= 0) ? Appearance.colors.colError : Appearance.colors.colOnSurface
-
-        icon: {
-            if (Volume.isHeadphone) return "headphones"
-            if (Volume.sinkMuted || Volume.sinkVolume <= 0) return "volume_off"
-            if (Volume.sinkVolume < 0.5) return "volume_down"
-            return "volume_up"
-        }
-    }
-
-    MouseArea {
+    BarActionButton {
         id: mouseArea
         anchors.fill: parent
-        hoverEnabled: true
-        cursorShape: Qt.PointingHandCursor
+        vertical: root.vertical
+        expandedContent: root.showValue
+        contentItem: Item {
+            implicitWidth: content.implicitWidth
+            implicitHeight: content.implicitHeight
+            GridLayout {
+                id: content
+                anchors.centerIn: parent
+                columns: root.vertical ? 1 : 2
+                rowSpacing: Sizes.barItemSpacing
+                columnSpacing: Sizes.barLabelSpacing
+                ArcGauge {
+                    id: gauge
+                    Layout.preferredWidth: Sizes.barControlCircleSize
+                    Layout.preferredHeight: Sizes.barControlCircleSize
+                    Layout.alignment: Qt.AlignCenter
 
-        onWheel: (wheel) => {
-            const step = 0.05
-            let newVol = Volume.sinkVolume
-            if (wheel.angleDelta.y > 0) newVol += step
-            else newVol -= step
-            Volume.setSinkVolume(newVol)
+                    value: Volume.sinkVolume
+                    progressColor: (Volume.sinkMuted || Volume.sinkVolume <= 0) ? Appearance.colors.colError :
+                                                                                  Appearance.colors.colPrimary
+                    trackColor: Appearance.colors.colLayer2Hover
+                    handleColor: Appearance.colors.colOnSurface
+                    iconColor: (Volume.sinkMuted || Volume.sinkVolume <= 0) ? Appearance.colors.colError :
+                                                                              Appearance.colors.colOnSurface
+
+                    icon: {
+                        if (Volume.isHeadphone)
+                            return "headphones";
+                        if (Volume.sinkMuted || Volume.sinkVolume <= 0)
+                            return "volume_off";
+                        if (Volume.sinkVolume < 0.5)
+                            return "volume_down";
+                        return "volume_up";
+                    }
+                }
+
+                Text {
+                    id: valueText
+                    visible: root.showValue
+                    text: Math.round(Volume.sinkVolume * 100) + "%"
+                    font.family: Fonts.numeric
+                    font.pixelSize: 12
+                    color: Appearance.colors.colOnSurface
+                    Layout.alignment: Qt.AlignCenter
+                }
+            }
+        }
+        Accessible.name: tooltip.text
+
+        WheelHandler {
+            onWheel: wheel => {
+                const step = 0.05;
+                let newVol = Volume.sinkVolume;
+                if (wheel.angleDelta.y > 0)
+                    newVol += step;
+                else
+                    newVol -= step;
+                Volume.setSinkVolume(newVol);
+            }
         }
         onClicked: {
-            const gpos = root.mapToGlobal(0, 0);
-            WidgetState.qsAnchorGlobalX = gpos.x;
-            WidgetState.qsAnchorGlobalY = gpos.y;
-            WidgetState.qsAnchorWidth = root.width;
-            WidgetState.qsAnchorHeight = root.height;
             if (root.screen && root.screen.name)
-                WidgetState.qsScreenName = root.screen.name;
-            if (WidgetState.qsOpen && WidgetState.qsView === "audio") {
-                WidgetState.qsOpen = false;
+                WidgetState.quickSettingsScreenName = root.screen.name;
+            if (WidgetState.quickSettingsOpen && WidgetState.quickSettingsView === "audio") {
+                WidgetState.quickSettingsOpen = false;
             } else {
-                WidgetState.qsView = "audio";
-                WidgetState.qsOpen = true;
+                WidgetState.quickSettingsView = "audio";
+                WidgetState.quickSettingsOpen = true;
             }
         }
     }
 
     PopupToolTip {
-        extraVisibleCondition: mouseArea.containsMouse
-        text: (Volume.sinkMuted ? "音量: 静音" : "音量: " + Math.round(Volume.sinkVolume * 100) + "%")
-              + "\n滚轮调节，点击打开音频"
+        id: tooltip
+        extraVisibleCondition: mouseArea.pointerHovered
+        text: (Volume.sinkMuted ? qsTr("Volume: muted") : qsTr("Volume: ") + Math.round(Volume.sinkVolume
+                                                                                        * 100) + "%") + qsTr(
+                  "\nScroll to adjust; click to open sound")
     }
 }

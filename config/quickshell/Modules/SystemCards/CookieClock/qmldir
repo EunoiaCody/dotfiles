@@ -1,0 +1,16 @@
+module qs.Modules.SystemCards.CookieClock
+BigHourNumbers 1.0 BigHourNumbers.qml
+BubbleDate 1.0 BubbleDate.qml
+CookieBody 1.0 CookieBody.qml
+CookieFace 1.0 CookieFace.qml
+DateIndicator 1.0 DateIndicator.qml
+Dots 1.0 Dots.qml
+HourHand 1.0 HourHand.qml
+HourMarks 1.0 HourMarks.qml
+Lines 1.0 Lines.qml
+MinuteHand 1.0 MinuteHand.qml
+MinuteMarks 1.0 MinuteMarks.qml
+RectangleDate 1.0 RectangleDate.qml
+RotatingDate 1.0 RotatingDate.qml
+SecondHand 1.0 SecondHand.qml
+TimeColumn 1.0 TimeColumn.qml

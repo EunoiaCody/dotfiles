@@ -1,0 +1,16 @@
+{
+    "active": "436fd84a-6350-46f1-a01b-7ecb83b0f86f",
+    "users": [
+        {
+            "id": "436fd84a-6350-46f1-a01b-7ecb83b0f86f",
+            "name": "(default)",
+            "device_id": "0c101f78-1b44-4e52-ae4c-447631eec38e",
+            "default": true,
+            "pin_hash": null,
+            "pin_salt": null,
+            "require_pin_startup": false,
+            "last_server": null,
+            "credentials": []
+        }
+    ]
+}

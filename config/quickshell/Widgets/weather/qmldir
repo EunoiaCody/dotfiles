@@ -1,0 +1,4 @@
+module qs.Widgets.weather
+LeafItem 1.0 LeafItem.qml
+MeteoIcon 1.0 MeteoIcon.qml
+WeatherBackground 1.0 WeatherBackground.qml

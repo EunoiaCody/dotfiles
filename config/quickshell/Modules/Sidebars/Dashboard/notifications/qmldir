@@ -1,0 +1,12 @@
+module qs.Modules.Sidebars.Dashboard.notifications
+DragManager 1.0 DragManager.qml
+NotificationActionButton 1.0 NotificationActionButton.qml
+NotificationAppIcon 1.0 NotificationAppIcon.qml
+NotificationCenterCard 1.0 NotificationCenterCard.qml
+NotificationGroup 1.0 NotificationGroup.qml
+NotificationGroupExpandButton 1.0 NotificationGroupExpandButton.qml
+NotificationItem 1.0 NotificationItem.qml
+NotificationList 1.0 NotificationList.qml
+NotificationListView 1.0 NotificationListView.qml
+NotificationStatusButton 1.0 NotificationStatusButton.qml
+NotificationUtils 1.0 NotificationUtils.qml

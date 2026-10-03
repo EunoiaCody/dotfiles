@@ -1,6 +1,10 @@
 module qs.Modules.Lock
+CaelestiaLock 1.0 CaelestiaLock.qml
+DefaultLock 1.0 DefaultLock.qml
+DefaultLockContent 1.0 DefaultLockContent.qml
+DefaultLockStatus 1.0 DefaultLockStatus.qml
 Lock 1.0 Lock.qml
 LockContent 1.0 LockContent.qml
 LockContext 1.0 LockContext.qml
 LockSurface 1.0 LockSurface.qml
-LockWarmup 1.0 LockWarmup.qml
+PreLockCapture 1.0 PreLockCapture.qml

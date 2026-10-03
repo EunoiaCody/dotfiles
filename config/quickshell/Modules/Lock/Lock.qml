@@ -4,68 +4,79 @@ import Quickshell.Services.Pam
 import Quickshell.Wayland
 import qs.Common
 import qs.Services
-import qs.Modules.Lock  // Self-import for LockSurface etc.
 
 Scope {
     id: root
-    signal unlocked()
 
-    property bool lockPending: false
-    property int lockGeneration: 0
+    readonly property bool active: sessionLock.locked || capturePending
+    readonly property bool secure: sessionLock.secure
+    property bool capturePending: false
+    property int activeCaptureRequestId: 0
+    property string sessionStyle: "default"
+
+    Binding {
+        target: WindowPreviewService
+        property: "suspended"
+        value: root.active
+    }
+
+    signal unlocked
+    signal secured
 
     function open() {
-        if (sessionLock.locked || lockPending)
+        if (sessionLock.locked || capturePending)
             return "ALREADY_LOCKED";
 
+        sessionStyle = PersonalizationConfig.lockScreenStyle;
+        internalContext.authRevealed = false;
         internalContext.currentText = "";
         internalContext.unlockInProgress = false;
         internalContext.showFailure = false;
-        lockPending = true;
-        lockGeneration = LockSnapshot.request(Quickshell.screens.length);
-        lockSnapshotTimeout.restart();
-
-        if (LockSnapshot.ready)
-            commitLock(lockGeneration);
-
+        capturePending = true;
+        activeCaptureRequestId = preLockCapture.capture();
         return "LOCKED";
     }
 
     function isLocked() {
-        return sessionLock.locked || lockPending;
+        return sessionLock.locked || capturePending;
     }
 
-    function commitLock(snapshotGeneration) {
-        if (!lockPending || snapshotGeneration !== lockGeneration)
+    function finishCapture(captureRequestId) {
+        if (!capturePending || captureRequestId !== activeCaptureRequestId)
             return;
 
-        lockPending = false;
-        lockSnapshotTimeout.stop();
         sessionLock.locked = true;
+        capturePending = false;
     }
 
-    Connections {
-        target: LockSnapshot
+    onActiveChanged: {
+        SystemIdentityService.setUptimeConsumer("lock-screen", root.active);
+        SystemMonitorService.setConsumerModules("lock-screen", root.active ? ["cpu", "memory", "disk"] : []);
+    }
+    Component.onDestruction: {
+        preLockCapture.cancel();
+        preLockCapture.clear();
+        SystemIdentityService.setUptimeConsumer("lock-screen", false);
+        SystemMonitorService.clearConsumer("lock-screen");
+    }
 
-        function onPrepared(snapshotGeneration) {
-            root.commitLock(snapshotGeneration);
+    PreLockCapture {
+        id: preLockCapture
+
+        onCompleted: captureRequestId => {
+            return root.finishCapture(captureRequestId);
         }
-    }
-
-    Timer {
-        id: lockSnapshotTimeout
-        interval: 180
-        repeat: false
-        onTriggered: root.commitLock(root.lockGeneration)
     }
 
     Scope {
         id: internalContext
 
+        property bool authRevealed: false
         property string currentText: ""
         property bool unlockInProgress: false
         property bool showFailure: false
 
-        signal unlockFailed()
+        signal unlockFailed
 
         function tryUnlock() {
             if (currentText === "" || unlockInProgress)
@@ -76,8 +87,11 @@ Scope {
         }
 
         function finishUnlock() {
+            if (!sessionLock.locked)
+                return;
             sessionLock.locked = false;
             root.unlocked();
+            Qt.callLater(preLockCapture.clear);
         }
 
         PamContext {
@@ -85,12 +99,10 @@ Scope {
 
             configDirectory: Paths.shellDir + "/Modules/Lock/pam"
             config: "password.conf"
-
             onPamMessage: {
                 if (this.responseRequired)
                     this.respond(internalContext.currentText);
             }
-
             onCompleted: result => {
                 if (result == PamResult.Success) {
                     internalContext.currentText = "";
@@ -109,11 +121,18 @@ Scope {
     WlSessionLock {
         id: sessionLock
 
-        signal unlock()
+        signal unlock
+
+        onSecureStateChanged: {
+            if (secure)
+                root.secured();
+        }
 
         LockSurface {
             lock: sessionLock
             context: internalContext
+            snapshotProvider: preLockCapture
+            style: root.sessionStyle
         }
     }
 }

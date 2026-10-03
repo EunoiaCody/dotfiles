@@ -1,0 +1,5 @@
+module qs.Modules.DesktopCards
+DesktopCard 1.0 DesktopCard.qml
+DesktopCardCanvas 1.0 DesktopCardCanvas.qml
+DesktopCardGridOverlay 1.0 DesktopCardGridOverlay.qml
+DesktopCardHost 1.0 DesktopCardHost.qml

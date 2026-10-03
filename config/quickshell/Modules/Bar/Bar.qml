@@ -1,94 +1,33 @@
-import Quickshell
-import Quickshell.Widgets
-import Quickshell.Wayland
 import QtQuick
-import QtQuick.Layouts
-import qs.Modules.Bar.Workspaces
-import qs.Modules.Bar.Tray
-import qs.Modules.Bar.PowerButton
-import qs.Modules.Bar.SysMonitor
-import qs.Modules.Bar.QuickSettings
-import qs.Common
+import Quickshell
+import qs.Services
 
-Variants {
-    model: Quickshell.screens
+Item {
+    id: root
 
-    PanelWindow {
-        id: barWindow
-        required property var modelData
-        screen: modelData
+    readonly property string edge: PersonalizationConfig.barPosition
+    readonly property bool horizontal: edge === "top" || edge === "bottom"
 
-        anchors { left: true; top: true; right: true }
-        color: "transparent"
-        
-        property real barHeight: Sizes.barHeight
-        
-        // 高度不再受灵动岛影响
-        implicitHeight: barWindow.barHeight
-        
-        exclusiveZone: barHeight
-        
-        WlrLayershell.layer: WlrLayer.Top
+    // Changing orientation changes the Variants model. Quickshell destroys
+    // the old topology before creating the new per-output surface, so a
+    // mapped horizontal layer surface is never mutated into a vertical one.
+    Variants {
+        model: PersonalizationConfig.barEnabled && root.horizontal ? Quickshell.screens : []
 
-        mask: Region {
-            Region { item: leftInputRegion }
-            Region { item: rightInputRegion }
+        HorizontalBarWindow {
+            required property var modelData
+            screen: modelData
+            edge: root.edge
         }
+    }
 
-        // --- 内容容器 ---
-        Item {
-            id: barContent
-            
-            anchors { top: parent.top; left: parent.left; right: parent.right }
-            height: barWindow.barHeight 
+    Variants {
+        model: PersonalizationConfig.barEnabled && !root.horizontal ? Quickshell.screens : []
 
-            // --- 左侧组件 ---
-            RowLayout {
-                id: leftSection
-                anchors { left: parent.left; leftMargin: 10; bottom: parent.bottom }
-                width: implicitWidth
-                height: implicitHeight
-                spacing: 8
-
-                Workspaces { screenName: barWindow.screen.name }
-                
-            }
-
-            // --- 右侧组件 ---
-            RowLayout {
-                id: rightSection
-                anchors { right: parent.right; rightMargin: 10; bottom: parent.bottom }
-                width: implicitWidth
-                height: implicitHeight
-                spacing: 8
-
-                Tray { screen: barWindow.screen }
-                SysMonitor { Layout.alignment: Qt.AlignVCenter }
-                
-
-                QuickSettings {
-                    screen: barWindow.screen
-                    Layout.alignment: Qt.AlignVCenter
-                }
-                
-                
-            }
-
-            Item {
-                id: leftInputRegion
-                anchors.left: leftSection.left
-                anchors.right: leftSection.right
-                anchors.top: leftSection.top
-                anchors.bottom: leftSection.bottom
-            }
-
-            Item {
-                id: rightInputRegion
-                anchors.left: rightSection.left
-                anchors.right: rightSection.right
-                anchors.top: rightSection.top
-                anchors.bottom: rightSection.bottom
-            }
+        VerticalBarWindow {
+            required property var modelData
+            screen: modelData
+            edge: root.edge
         }
     }
 }

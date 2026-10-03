@@ -1,88 +1,160 @@
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Effects
-import Clavis.Niri 1.0
+import Clavis.Niri
 import qs.Common
+import qs.Components
+import qs.Services
+import qs.Widgets.common
 
-Item {
+TopBarPill {
     id: root
 
-    implicitHeight: 36
-    implicitWidth: layout.width + 24
-
-    Behavior on implicitWidth {
-        NumberAnimation { duration: 300; easing.type: Easing.OutCubic }
-    }
-
+    property bool vertical: false
+    property real maximumTitleWidth: 250
+    readonly property string edge: PersonalizationConfig.barPosition
     readonly property var activeWindow: Niri.focusedWindow
-    readonly property string activeTitle: activeWindow.title || "Desktop"
+    readonly property string activeTitle: activeWindow.title || qsTr("Desktop")
     readonly property string activeIcon: activeWindow.iconPath || ""
     readonly property string activeAppName: activeWindow.appName || activeWindow.appId || ""
+    readonly property bool isDesktop: !activeWindow.id
+    readonly property string verticalAppName: activeAppName || qsTr("Desktop")
+    readonly property bool verticalAppNameIsCjk: root.containsCjk(verticalAppName)
+    readonly property string detailedTooltipText: activeAppName && activeAppName !== activeTitle
+                                                  ? activeAppName + "\n" + activeTitle : activeTitle
 
-    Rectangle {
-        id: bgRect
-        anchors.fill: parent
-        color: Appearance.colors.colLayer0
-        radius: height / 2
-        visible: false
+    function containsCjk(value) {
+        const cjkPattern =
+              /[\u2e80-\u2fff\u3040-\u30ff\u31f0-\u31ff\u3400-\u4dbf\u4e00-\u9fff\uac00-\ud7af\uf900-\ufaff]/;
+        return cjkPattern.test(String(value || ""));
     }
 
-    MultiEffect {
-        source: bgRect
-        anchors.fill: bgRect
-        shadowEnabled: true
-        shadowColor: Qt.alpha(Appearance.colors.colShadow, 0.4)
-        shadowBlur: 0.8
-        shadowVerticalOffset: 3
-        shadowHorizontalOffset: 0
+    function limitedVerticalTitle(value) {
+        const characters = Array.from(String(value || ""));
+        const limit = 14;
+        if (characters.length > limit)
+            return characters.slice(0, limit - 1).concat(["…"]).join("");
+
+        return characters.join("");
     }
 
-    RowLayout {
+    function stackedVerticalTitle(value) {
+        return Array.from(root.limitedVerticalTitle(value)).join("\n");
+    }
+
+    implicitHeight: vertical ? layout.implicitHeight + 2 * Sizes.barPillHorizontalPadding :
+                               Sizes.barPillThickness
+    implicitWidth: vertical ? Sizes.barPillThickness : layout.implicitWidth + 2
+                              * Sizes.barPillHorizontalPadding
+
+    GridLayout {
         id: layout
-        anchors.left: parent.left
-        anchors.verticalCenter: parent.verticalCenter
-        anchors.leftMargin: 12
-        spacing: 10
+
+        anchors.centerIn: parent
+        columns: root.vertical ? 1 : 2
+        rowSpacing: Sizes.barLabelSpacing
+        columnSpacing: Sizes.barLabelSpacing
 
         Item {
-            Layout.preferredWidth: 18
-            Layout.preferredHeight: 18
-            Layout.alignment: Qt.AlignVCenter
-            visible: root.activeIcon !== "" || root.activeAppName !== ""
+            Layout.preferredWidth: Sizes.barControlCircleSize
+            Layout.preferredHeight: Sizes.barControlCircleSize
+            Layout.alignment: Qt.AlignCenter
+            visible: root.vertical || root.isDesktop || root.activeIcon !== "" || root.activeAppName !== ""
 
             Image {
                 id: appIcon
-                anchors.fill: parent
+
+                anchors.centerIn: parent
+                width: Sizes.barIconSize
+                height: Sizes.barIconSize
                 source: root.activeIcon
-                sourceSize.width: 36
-                sourceSize.height: 36
+                sourceSize.width: Sizes.barIconSize * 2
+                sourceSize.height: Sizes.barIconSize * 2
                 fillMode: Image.PreserveAspectFit
                 asynchronous: true
                 smooth: true
                 visible: root.activeIcon !== "" && status !== Image.Error
             }
 
+            MaterialSymbol {
+                anchors.fill: parent
+                text: "desktop_windows"
+                iconSize: Sizes.barIconSize
+                color: Appearance.colors.colPrimary
+                visible: root.isDesktop
+            }
+
             Text {
                 anchors.centerIn: parent
-                text: (root.activeAppName || "?").charAt(0).toUpperCase()
+                text: root.activeAppName.charAt(0).toUpperCase()
                 color: Appearance.colors.colPrimary
                 font.pixelSize: 13
                 font.bold: true
-                visible: !appIcon.visible
+                visible: !root.isDesktop && !appIcon.visible
             }
         }
 
-        Text {
-            id: windowTitle
-            text: root.activeTitle
+        Item {
+            implicitWidth: root.vertical ? (root.verticalAppNameIsCjk ? verticalCjkTitle.implicitWidth :
+                                                                        verticalRotatedTitle.implicitHeight) :
+                                           horizontalTitle.implicitWidth
+            implicitHeight: root.vertical ? (root.verticalAppNameIsCjk ? verticalCjkTitle.implicitHeight :
+                                                                         verticalRotatedTitle.implicitWidth) :
+                                            horizontalTitle.implicitHeight
+            Layout.maximumWidth: root.maximumTitleWidth
+            Layout.alignment: Qt.AlignCenter
 
-            font.family: Sizes.fontFamilyMono
-            font.pointSize: 11
-            color: Appearance.colors.colOnSurface
+            Text {
+                id: horizontalTitle
 
-            Layout.maximumWidth: 250
-            elide: Text.ElideRight
-            Layout.alignment: Qt.AlignVCenter
+                anchors.fill: parent
+                text: root.activeTitle
+                font.family: Fonts.ui
+                font.pointSize: 11
+                color: Appearance.colors.colOnSurface
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+                elide: Text.ElideRight
+                visible: !root.vertical
+            }
+
+            Text {
+                id: verticalCjkTitle
+
+                anchors.centerIn: parent
+                text: root.stackedVerticalTitle(root.verticalAppName)
+                font.family: Fonts.ui
+                font.pointSize: 11
+                color: Appearance.colors.colOnSurface
+                horizontalAlignment: Text.AlignHCenter
+                lineHeight: 0.9
+                visible: root.vertical && root.verticalAppNameIsCjk
+            }
+
+            Text {
+                id: verticalRotatedTitle
+
+                anchors.centerIn: parent
+                text: root.limitedVerticalTitle(root.verticalAppName)
+                font.family: Fonts.ui
+                font.pointSize: 11
+                color: Appearance.colors.colOnSurface
+                rotation: root.edge === "left" ? -90 : 90
+                visible: root.vertical && !root.verticalAppNameIsCjk
+            }
         }
+    }
+
+    MouseArea {
+        id: activeHover
+
+        anchors.fill: parent
+        enabled: root.vertical
+        hoverEnabled: true
+        acceptedButtons: Qt.NoButton
+    }
+
+    PopupToolTip {
+        extraVisibleCondition: root.vertical && activeHover.containsMouse
+        text: root.detailedTooltipText
     }
 }

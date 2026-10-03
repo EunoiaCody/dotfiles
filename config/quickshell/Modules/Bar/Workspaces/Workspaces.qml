@@ -1,56 +1,55 @@
 import Quickshell
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Effects
-import Clavis.Niri 1.0
+import Clavis.Niri
 import qs.Common
+import qs.Services
 import qs.Widgets.common
 
-Item {
+TopBarPill {
     id: root
 
     property string screenName: ""
+    property bool vertical: false
     readonly property bool hasMultipleOutputs: Niri.outputs.count > 1
 
-    implicitHeight: 36
-    implicitWidth: layout.width + 24
+    implicitHeight: vertical ? layout.implicitHeight + 2 * Sizes.barPillHorizontalPadding :
+                               Sizes.barPillThickness
+    implicitWidth: vertical ? Sizes.barPillThickness : layout.implicitWidth + 2
+                              * Sizes.barPillHorizontalPadding
+
+    animateResize: {
+        for (let index = 0; index < workspaceRepeater.count; ++index) {
+            const workspace = workspaceRepeater.itemAt(index);
+            if (workspace && workspace.resizing)
+                return false;
+        }
+        return true;
+    }
 
     function acceptsOutput(outputName) {
         if (root.screenName === "")
-            return true
+            return true;
         if (!root.hasMultipleOutputs && outputName === "")
-            return true
-        return outputName === root.screenName
+            return true;
+        return outputName === root.screenName;
     }
 
-    Rectangle {
-        id: bgRect
-        anchors.fill: parent
-        color: Appearance.colors.colLayer0
-        radius: height / 2
-        visible: false
-    }
-
-    MultiEffect {
-        source: bgRect
-        anchors.fill: bgRect
-        shadowEnabled: true
-        shadowColor: Qt.alpha(Appearance.colors.colShadow, 0.4)
-        shadowBlur: 0.8
-        shadowVerticalOffset: 3
-        shadowHorizontalOffset: 0
-    }
-
-    RowLayout {
+    GridLayout {
         id: layout
         anchors.centerIn: parent
-        spacing: 8
+        rowSpacing: Sizes.barItemSpacing
+        columnSpacing: Sizes.barItemSpacing
+        columns: root.vertical ? 1 : Math.max(1, Niri.workspaces.count)
 
         Repeater {
+            id: workspaceRepeater
             model: Niri.workspaces
 
             delegate: Item {
                 id: delegateRoot
+
+                readonly property bool resizing: widthAnimation.running || heightAnimation.running
 
                 property bool belongsToScreen: root.acceptsOutput(model.output)
                 property bool active: model.isActive
@@ -58,11 +57,22 @@ Item {
                 property bool isHovered: mouseArea.containsMouse
 
                 visible: belongsToScreen
-                implicitWidth: !belongsToScreen ? 0 : ((active || isHovered) ? 32 : 12)
-                implicitHeight: belongsToScreen ? 12 : 0
+                implicitWidth: !belongsToScreen ? 0 : root.vertical ? 12 : ((active || isHovered) ? 32 : 12)
+                implicitHeight: !belongsToScreen ? 0 : root.vertical ? ((active || isHovered) ? 32 : 12) : 12
 
                 Behavior on implicitWidth {
-                    NumberAnimation { duration: 300; easing.type: Easing.OutCubic }
+                    NumberAnimation {
+                        id: widthAnimation
+                        duration: 300
+                        easing.type: Easing.OutCubic
+                    }
+                }
+                Behavior on implicitHeight {
+                    NumberAnimation {
+                        id: heightAnimation
+                        duration: 300
+                        easing.type: Easing.OutCubic
+                    }
                 }
 
                 Rectangle {
@@ -71,11 +81,16 @@ Item {
                     height: parent.implicitHeight
                     radius: height / 2
 
-                    color: delegateRoot.active ? Appearance.colors.colPrimary
-                         : delegateRoot.isHovered ? Appearance.colors.colLayer2Hover
-                         : Appearance.colors.colLayer4
+                    color: delegateRoot.active ? Appearance.colors.colPrimary : delegateRoot.hasWindows
+                                                 ? Appearance.colors.colOnSurface : delegateRoot.isHovered
+                                                   ? Appearance.colors.colLayer2Hover :
+                                                     Appearance.colors.colLayer4
 
-                    Behavior on color { ColorAnimation { duration: 200 } }
+                    Behavior on color {
+                        ColorAnimation {
+                            duration: 200
+                        }
+                    }
                 }
 
                 MouseArea {
@@ -88,7 +103,8 @@ Item {
 
                 PopupToolTip {
                     extraVisibleCondition: mouseArea.containsMouse
-                    text: "工作区 " + model.id + (delegateRoot.hasWindows ? "\n窗口: " + model.windowCount : "")
+                    text: qsTr("Workspace ") + model.id + (delegateRoot.hasWindows ? qsTr("\nWindows: ")
+                                                                                     + model.windowCount : "")
                 }
             }
         }

@@ -1,0 +1,12 @@
+module qs.Common
+singleton Animations 1.0 Animations.qml
+singleton Appearance 1.0 Appearance.qml
+singleton BluetoothDeviceIcon 1.0 BluetoothDeviceIcon.qml
+singleton ColorMap 1.0 ColorMap.qml
+singleton Fonts 1.0 Fonts.qml
+singleton KeystoneMotion 1.0 KeystoneMotion.qml
+singleton Metrics 1.0 Metrics.qml
+singleton Paths 1.0 Paths.qml
+singleton Sizes 1.0 Sizes.qml
+singleton Typography 1.0 Typography.qml
+singleton WidgetState 1.0 WidgetState.qml

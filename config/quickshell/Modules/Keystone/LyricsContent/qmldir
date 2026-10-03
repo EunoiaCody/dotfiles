@@ -1,0 +1,6 @@
+module qs.Modules.Keystone.LyricsContent
+HorizontalLyricsLayout 1.0 HorizontalLyricsLayout.qml
+LyricsAlbumArt 1.0 LyricsAlbumArt.qml
+LyricsContent 1.0 LyricsContent.qml
+LyricsSpectrum 1.0 LyricsSpectrum.qml
+VerticalLyricsLayout 1.0 VerticalLyricsLayout.qml

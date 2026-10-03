@@ -1,33 +1,18 @@
 import QtQuick
-import QtQuick.Controls
 import qs.Common
 import qs.Widgets.common
 
-ToolTip {
+PopupToolTip {
     id: root
 
-    property bool extraVisibleCondition: true
-    property bool alternativeVisibleCondition: false
+    property font font
 
-    readonly property bool internalVisibleCondition: (extraVisibleCondition && (parent === null || parent.hovered === undefined || parent.hovered)) || alternativeVisibleCondition
-
-    verticalPadding: 5
     horizontalPadding: 10
-    background: null
-    delay: 0
-    visible: internalVisibleCondition
-
+    verticalPadding: 5
     font {
-        family: Sizes.fontFamily
+        family: Fonts.ui
         pixelSize: 12
         hintingPreference: Font.PreferNoHinting
     }
 
-    contentItem: StyledToolTipContent {
-        text: root.text
-        shown: root.internalVisibleCondition
-        horizontalPadding: root.horizontalPadding
-        verticalPadding: root.verticalPadding
-        font: root.font
-    }
 }

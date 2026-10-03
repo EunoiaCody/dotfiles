@@ -1,0 +1,5 @@
+module qs.Modules.Keystone.MediaContent
+CaelestiaCover 1.0 CaelestiaCover.qml
+MediaBackdrop 1.0 MediaBackdrop.qml
+MediaContent 1.0 MediaContent.qml
+MediaCover 1.0 MediaCover.qml

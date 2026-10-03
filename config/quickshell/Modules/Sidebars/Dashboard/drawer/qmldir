@@ -1,0 +1,4 @@
+module qs.Modules.Sidebars.Dashboard.drawer
+DrawerGridTile 1.0 DrawerGridTile.qml
+SystemLoadingState 1.0 SystemLoadingState.qml
+SystemUnavailableState 1.0 SystemUnavailableState.qml

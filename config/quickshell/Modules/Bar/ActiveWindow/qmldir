@@ -1,0 +1,5 @@
+module qs.Modules.Bar.ActiveWindow
+ActiveWindow 1.0 ActiveWindow.qml
+SidebarButton 1.0 SidebarButton.qml
+SidebarPillButton 1.0 SidebarPillButton.qml
+SidebarWeatherButton 1.0 SidebarWeatherButton.qml

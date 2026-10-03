@@ -1,58 +1,56 @@
 import QtQuick
-import Quickshell
 import qs.Services
 import qs.Common
+import qs.Components
 import qs.Widgets.common
 
-// Network button — simple icon like tray items.
-// No background, no hover expansion. Click opens network panel.
-MouseArea {
+BarLabelButton {
     id: root
 
     property var screen: null
+    readonly property bool active: WidgetState.quickSettingsOpen && WidgetState.quickSettingsView
+                                   === "network"
+    tooltipText: NetworkService.connected ? ((NetworkService.activeConnection || qsTr("Network connected"))
+                                             + qsTr("\nClick to open network settings")) : qsTr(
+                                                "Network disconnected\nClick to open network settings")
+    readonly property string networkIcon: {
+        if (NetworkService.activeConnectionType === "ETHERNET")
+            return "settings_ethernet";
 
-    implicitWidth: 20
-    implicitHeight: 20
-    hoverEnabled: true
-    cursorShape: Qt.PointingHandCursor
+        if (!NetworkService.connected)
+            return "wifi_off";
 
-    Text {
-        anchors.centerIn: parent
-        font.family: "JetBrainsMono Nerd Font"
-        font.pixelSize: 14
-        color: Appearance.colors.colOnLayer0
-        text: {
-            if (Network.activeConnectionType === "ETHERNET") return "󰈀";
-            if (!Network.connected) return "󰤭";
-            const s = Network.signalStrength;
-            if (s >= 80) return "󰤨";
-            if (s >= 60) return "󰤥";
-            if (s >= 40) return "󰤢";
-            if (s >= 20) return "󰤟";
-            return "󰤯";
-        }
+        const strength = Number(NetworkService.signalStrength || 0);
+        if (strength >= 80)
+            return "signal_wifi_4_bar";
+
+        if (strength >= 60)
+            return "network_wifi_3_bar";
+
+        if (strength >= 40)
+            return "network_wifi_2_bar";
+
+        if (strength >= 20)
+            return "network_wifi_1_bar";
+
+        return "signal_wifi_0_bar";
     }
 
-    onClicked: {
-        const gpos = root.mapToGlobal(0, 0);
-        WidgetState.qsAnchorGlobalX = gpos.x;
-        WidgetState.qsAnchorGlobalY = gpos.y;
-        WidgetState.qsAnchorWidth = root.width;
-        WidgetState.qsAnchorHeight = root.height;
+    function toggleNetworkView() {
         if (root.screen && root.screen.name)
-            WidgetState.qsScreenName = root.screen.name;
-        if (WidgetState.qsOpen && WidgetState.qsView === "network") {
-            WidgetState.qsOpen = false;
+            WidgetState.quickSettingsScreenName = root.screen.name;
+
+        if (root.active) {
+            WidgetState.quickSettingsOpen = false;
         } else {
-            WidgetState.qsView = "network";
-            WidgetState.qsOpen = true;
+            WidgetState.quickSettingsView = "network";
+            WidgetState.quickSettingsOpen = true;
         }
     }
 
-    PopupToolTip {
-        extraVisibleCondition: root.containsMouse
-        text: Network.connected
-              ? ((Network.activeConnection || "网络已连接") + "\n点击打开网络设置")
-              : "网络未连接\n点击打开网络设置"
-    }
+    iconName: root.networkIcon
+    label: NetworkService.connected ? NetworkService.activeConnection : ""
+    showLabel: PersonalizationConfig.barShowNames
+    selected: root.active
+    onClicked: root.toggleNetworkView()
 }

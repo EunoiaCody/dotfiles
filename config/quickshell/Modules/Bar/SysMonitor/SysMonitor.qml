@@ -1,158 +1,164 @@
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Effects
 import Quickshell
-import Quickshell.Io
-import qs.Common 
+import qs.Common
+import qs.Services
+import qs.Widgets.common
+import "../../../Common/functions/SystemFormat.js" as Format
 
-// 新增引入我们的 C++ 高性能监控库
-import Clavis.Sysmon 1.0
-
-Item {
+TopBarPill {
     id: root
+    property bool flatIndicators: false
 
-    property bool isHovered: mouseArea.containsMouse
-    
-    implicitHeight: 36
-    
-    implicitWidth: {
-        if (isHovered) {
-            return contentLayout.implicitWidth + 24;
-        }
-        return ramGroup.implicitWidth + 24;
+    property bool vertical: false
+    property bool showValues: true
+    property string ownerId: "bar-sysmonitor"
+    readonly property bool isHovered: mouseArea.pointerHovered
+    readonly property var memory: SystemMonitorService.memory || ({})
+    readonly property var cpu: SystemMonitorService.cpu || ({})
+    readonly property var disk: Format.rootDisk(SystemMonitorService.disks)
+    readonly property real memoryUsage: root.normalizedPercent(root.memory.usagePercent)
+    readonly property real diskUsage: root.normalizedPercent(root.disk.usagePercent)
+    readonly property real temperatureValue: Format.isNumber(root.cpu.packageTemperatureCelsius)
+                                             ? root.cpu.packageTemperatureCelsius :
+                                               Format.isNumber(root.cpu.temperatureCelsius)
+                                               ? root.cpu.temperatureCelsius : NaN
+    readonly property real temperatureUsage: root.normalizedTemperature(root.temperatureValue)
+    readonly property real cpuUsage: root.normalizedPercent(root.cpu.usagePercent)
+    readonly property bool useFahrenheit: UiPreferences.systemTemperatureUnit === "fahrenheit"
+    readonly property real displayTemperature: root.useFahrenheit && Format.isNumber(root.temperatureValue)
+                                               ? root.temperatureValue * 9 / 5 + 32 : root.temperatureValue
+    readonly property string memoryDisplayText: Format.number(root.memory.usagePercent, 0)
+    readonly property string diskDisplayText: Format.number(root.disk.usagePercent, 0)
+    readonly property string temperatureDisplayText: Format.number(root.displayTemperature, 0)
+    readonly property string cpuDisplayText: Format.number(root.cpu.usagePercent, 0)
+    // Match the ordinary circular controls in QuickSettings.
+    readonly property real horizontalIndicatorSize: Sizes.barControlCircleSize
+    readonly property real verticalIndicatorSize: Sizes.barControlCircleSize
+    readonly property real indicatorSize: root.vertical ? root.verticalIndicatorSize :
+                                                          root.horizontalIndicatorSize
+    readonly property real indicatorIconSize: 15
+    readonly property real indicatorSpacing: Sizes.barItemSpacing + (root.showValues ? 0 : Metrics.spacingXXS)
+
+    readonly property string tooltipText: [qsTr("Memory") + "    " + root.bytesPair(root.memory), qsTr("Disk")
+        + "    " + root.bytesPair(root.disk), qsTr("Temperature") + "    " + Format.temperature(root.temperatureValue,
+                                                                                                UiPreferences.systemTemperatureUnit
+                                                                                                === "fahrenheit"),
+        qsTr("CPU") + "    " + Format.percent(root.cpu.usagePercent)].join("\n")
+
+    function clamp(value) {
+        const numeric = Number(value);
+        if (!isFinite(numeric))
+            return 0;
+
+        return Math.max(0, Math.min(1, numeric));
     }
 
-    Behavior on implicitWidth { 
-        NumberAnimation { duration: 300; easing.type: Easing.OutQuart } 
+    function normalizedPercent(value) {
+        return Format.isNumber(value) ? root.clamp(value / 100) : 0;
     }
 
-    Rectangle {
-        id: bgRect
-        anchors.fill: parent
-        color: Appearance.colors.colLayer0
-        radius: height / 2 
-        visible: false 
+    // CPU temperature uses the same 90 °C visual ceiling already used by the
+    // lock-screen SystemGrid. Only its text is converted for presentation.
+    function normalizedTemperature(value) {
+        return Format.isNumber(value) ? root.clamp(value / 90) : 0;
     }
 
-    MultiEffect {
-        source: bgRect
-        anchors.fill: bgRect
-        shadowEnabled: true
-        shadowColor: Qt.alpha(Appearance.colors.colShadow, 0.4)
-        shadowBlur: 0.8
-        shadowVerticalOffset: 3
+    function bytesPair(item) {
+        const used = Format.bytes(item && item.usedBytes);
+        const total = Format.bytes(item && item.totalBytes);
+        return used === Format.unavailable() || total === Format.unavailable() ? Format.unavailable() : used
+                                                                                 + " / " + total;
     }
 
-    // （这里原本庞大的 Process 启动子线程和 SplitParser JSON 提取，以及循环调度的 Timer 已被彻底抹去）
+    implicitWidth: root.vertical ? Sizes.barPillThickness : mouseArea.implicitWidth
+    implicitHeight: root.vertical ? mouseArea.implicitHeight : Sizes.barPillThickness
+    Component.onCompleted: SystemMonitorService.setConsumerModules(root.ownerId, ["cpu", "memory", "disk"])
+    Component.onDestruction: SystemMonitorService.clearConsumer(root.ownerId)
 
-    // ================= 布局内容 =================
-    RowLayout {
-        id: contentLayout
-        anchors.right: parent.right
-        anchors.verticalCenter: parent.verticalCenter
-        anchors.rightMargin: 12
-        spacing: 12
-        layoutDirection: Qt.RightToLeft
-
-        // --- 1. RAM (常驻) ---
-        RowLayout {
-            id: ramGroup
-            spacing: 4
-            Text { 
-                text: "" 
-                color: "#a6e3a1" 
-                font.family: "JetBrainsMono Nerd Font"
-                font.pixelSize: 16
-            }
-            Text { 
-                // 同时保全了原始流的传递。并在这里调取新的 ramUsedGB。toFixed(1) 可保留如 14.2G 格式：
-                text: SysmonPlugin.ramUsedGB.toFixed(1) + "G"
-                color: Appearance.colors.colOnSurface
-                font.family: Sizes.fontFamilyMono
-                font.bold: true
-                font.pixelSize: 13
-            }
-        }
-
-        // --- 2. Disk (展开) ---
-        RowLayout {
-            id: diskGroup
-            spacing: 4
-            visible: opacity > 0
-            opacity: root.isHovered ? 1.0 : 0.0
-            Behavior on opacity { NumberAnimation { duration: 200 } }
-            
-            Text { 
-                text: "" 
-                color: "#89b4fa" 
-                font.family: "JetBrainsMono Nerd Font"
-                font.pixelSize: 16
-            }
-            Text { 
-                text: Math.round(SysmonPlugin.diskUsage) + "%"
-                color: Appearance.colors.colOnSurface
-                font.family: Sizes.fontFamilyMono
-                font.bold: true
-                font.pixelSize: 13
-            }
-        }
-
-        // --- 3. Temp (展开) ---
-        RowLayout {
-            id: tempGroup
-            spacing: 4
-            visible: opacity > 0
-            opacity: root.isHovered ? 1.0 : 0.0
-            Behavior on opacity { NumberAnimation { duration: 200 } }
-            
-            Text { 
-                text: "" 
-                color: "#f9e2af" 
-                font.family: "JetBrainsMono Nerd Font"
-                font.pixelSize: 16
-            }
-            Text { 
-                text: Math.round(SysmonPlugin.coreTemp) + "°C"
-                color: Appearance.colors.colOnSurface
-                font.family: Sizes.fontFamilyMono
-                font.bold: true
-                font.pixelSize: 13
-            }
-        }
-
-        // --- 4. CPU (展开) ---
-        RowLayout {
-            id: cpuGroup
-            spacing: 4
-            visible: opacity > 0
-            opacity: root.isHovered ? 1.0 : 0.0
-            Behavior on opacity { NumberAnimation { duration: 200 } }
-            
-            Text { 
-                text: "" 
-                color: "#cba6f7" 
-                font.family: "JetBrainsMono Nerd Font"
-                font.pixelSize: 16
-            }
-            Text { 
-                text: Math.round(SysmonPlugin.cpuUsage) + "%"
-                color: Appearance.colors.colOnSurface
-                font.family: Sizes.fontFamilyMono
-                font.bold: true
-                font.pixelSize: 13
-            }
-        }
-    }
-
-    // ================= 交互区域 =================
-    MouseArea {
+    BarActionButton {
         id: mouseArea
+
         anchors.fill: parent
-        hoverEnabled: true 
-        cursorShape: Qt.PointingHandCursor
-        
-        onClicked: {
-            Quickshell.execDetached(["gnome-system-monitor"]);
+        vertical: root.vertical
+        contentItem: Item {
+            implicitWidth: resourceLayout.implicitWidth
+            implicitHeight: resourceLayout.implicitHeight
+            GridLayout {
+                id: resourceLayout
+
+                anchors.centerIn: parent
+                rowSpacing: root.indicatorSpacing
+                columnSpacing: root.indicatorSpacing
+                columns: root.vertical ? 1 : 4
+
+                ResourcePie {
+                    flat: root.flatIndicators
+                    Layout.alignment: Qt.AlignCenter
+                    indicatorSize: root.indicatorSize
+                    iconSize: root.indicatorIconSize
+                    value: root.memoryUsage
+                    showText: root.showValues
+                    vertical: root.vertical
+                    displayText: root.memoryDisplayText
+                    icon: "memory_alt"
+                    fillColor: Appearance.colors.colPrimary
+                    trackColor: Appearance.colors.colPrimaryContainer
+                    iconColor: Appearance.colors.colOnPrimary
+                }
+
+                ResourcePie {
+                    flat: root.flatIndicators
+                    Layout.alignment: Qt.AlignCenter
+                    indicatorSize: root.indicatorSize
+                    iconSize: root.indicatorIconSize
+                    value: root.diskUsage
+                    showText: root.showValues
+                    vertical: root.vertical
+                    displayText: root.diskDisplayText
+                    icon: "hard_drive"
+                    fillColor: Appearance.colors.colSecondary
+                    trackColor: Appearance.colors.colSecondaryContainer
+                    iconColor: Appearance.colors.colOnSecondary
+                }
+
+                ResourcePie {
+                    flat: root.flatIndicators
+                    Layout.alignment: Qt.AlignCenter
+                    indicatorSize: root.indicatorSize
+                    iconSize: root.indicatorIconSize
+                    value: root.temperatureUsage
+                    showText: root.showValues
+                    vertical: root.vertical
+                    displayText: root.temperatureDisplayText
+                    icon: "thermostat"
+                    fillColor: Appearance.colors.colTertiary
+                    trackColor: Appearance.colors.colTertiaryContainer
+                    iconColor: Appearance.colors.colOnTertiary
+                }
+
+                ResourcePie {
+                    flat: root.flatIndicators
+                    Layout.alignment: Qt.AlignCenter
+                    indicatorSize: root.indicatorSize
+                    iconSize: root.indicatorIconSize
+                    value: root.cpuUsage
+                    showText: root.showValues
+                    vertical: root.vertical
+                    displayText: root.cpuDisplayText
+                    icon: "developer_board"
+                    fillColor: Appearance.colors.colTertiary
+                    trackColor: Appearance.colors.colTertiaryContainer
+                    iconColor: Appearance.colors.colOnTertiary
+                }
+            }
         }
+        Accessible.name: root.tooltipText
+        onClicked: ApplicationService.launchCommand(["gnome-system-monitor"])
+    }
+
+    PopupToolTip {
+        extraVisibleCondition: root.isHovered
+        text: root.tooltipText
     }
 }

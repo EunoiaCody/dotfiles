@@ -19,7 +19,7 @@
       "time": "06:00"
     },
     "transition": {
-      "type": "fade",
+      "type": "disc",
       "included": [
         "fade",
         "wipe",
@@ -88,10 +88,10 @@
     "cursorHideAfterInactiveMs": 0,
     "iconTheme": "Catppuccin-Mocha-Lavender-Cursors",
     "fonts": {
-      "ui": "Symbols Nerd Font",
+      "ui": "Maple Mono NF CN",
       "mono": "JetBrainsMono Nerd Font",
       "numeric": "JetBrainsMono Nerd Font",
-      "expressive": "Symbols Nerd Font"
+      "expressive": "Google Sans Flex"
     }
   },
   "effects": {
@@ -107,7 +107,7 @@
     "position": "top",
     "capsLockOsd": true,
     "numLockOsd": true,
-    "hideDate": false,
+    "hideDate": true,
     "longShowNames": true,
     "longShowMonitorValues": true,
     "longShowValues": true,
@@ -130,7 +130,7 @@
     "leftClickAction": "media",
     "middleClickAction": "lyrics",
     "media": {
-      "progressStyle": "material",
+      "progressStyle": "wave",
       "coverStyle": "rounded",
       "colorStyle": "theme"
     },
@@ -138,11 +138,11 @@
       "card": "weather"
     },
     "horizontalClock": {
-      "fontSize": 22,
+      "fontSize": 23,
       "axes": {
         "wght": 900,
-        "wdth": 85,
-        "opsz": 18,
+        "wdth": 100,
+        "opsz": 15,
         "GRAD": 0,
         "ROND": 25,
         "slnt": 0

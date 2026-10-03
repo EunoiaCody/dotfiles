@@ -1,0 +1,8 @@
+// Managed by Clavis.
+layer-rule {
+    match namespace="^clavis-overview-wallpaper$";
+    place-within-backdrop true;
+}
+layout {
+    background-color "transparent";
+}

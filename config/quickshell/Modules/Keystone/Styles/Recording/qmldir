@@ -1,0 +1,10 @@
+module qs.Modules.Keystone.Styles.Recording
+AudioRecordingVisual 1.0 AudioRecordingVisual.qml
+AudioStopButton 1.0 AudioStopButton.qml
+AudioWaveform 1.0 AudioWaveform.qml
+BangsRecordingVisual 1.0 BangsRecordingVisual.qml
+HorizontalPillRecordingVisual 1.0 HorizontalPillRecordingVisual.qml
+PillMorphSurface 1.0 PillMorphSurface.qml
+ProcessingSpiralIndicator 1.0 ProcessingSpiralIndicator.qml
+VerticalPillRecordingVisual 1.0 VerticalPillRecordingVisual.qml
+VerticalRecordingStatusLabel 1.0 VerticalRecordingStatusLabel.qml

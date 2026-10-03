@@ -8,43 +8,73 @@ import qs.Common
 Singleton {
     id: root
 
-    readonly property string configDir: Paths.homeDir + "/.cache/quickshell"
+    readonly property string configDir: Paths.configHome
     readonly property string filePath: configDir + "/quick-toggles.json"
-    readonly property var availableTypes: ["network", "bluetooth", "caffeine", "mic", "audio", "theme", "dnd"]
 
     property bool storeReady: false
     property var toggles: defaultToggles()
-    readonly property var unusedToggleTypes: root.availableTypes.filter(type => root.toggles.findIndex(toggle => toggle.type === type) === -1)
 
     function defaultToggles() {
         return [
-            { "type": "network", "size": 2 },
-            { "type": "bluetooth", "size": 2 },
-            { "type": "caffeine", "size": 1 },
-            { "type": "mic", "size": 1 },
-            { "type": "audio", "size": 2 },
-            { "type": "theme", "size": 2 },
-            { "type": "dnd", "size": 1 }
-        ];
+                    {
+                        "type": "network",
+                        "size": 2
+                    },
+                    {
+                        "type": "bluetooth",
+                        "size": 2
+                    },
+                    {
+                        "type": "caffeine",
+                        "size": 1
+                    },
+                    {
+                        "type": "mic",
+                        "size": 1
+                    },
+                    {
+                        "type": "audio",
+                        "size": 2
+                    },
+                    {
+                        "type": "theme",
+                        "size": 2
+                    },
+                    {
+                        "type": "dnd",
+                        "size": 1
+                    },
+                    {
+                        "type": "night",
+                        "size": 2
+                    }
+                ];
     }
 
     function normalizeToggles(rawToggles) {
         if (!Array.isArray(rawToggles))
             return root.defaultToggles();
 
+        const validTypes = root.defaultToggles().map(toggle => toggle.type);
         const seen = {};
         const normalized = [];
         for (const item of rawToggles) {
             const type = item && typeof item.type === "string" ? item.type : "";
-            if (root.availableTypes.indexOf(type) === -1 || seen[type])
+            if (validTypes.indexOf(type) === -1 || seen[type])
                 continue;
 
             seen[type] = true;
             normalized.push({
-                "type": type,
-                "size": Number(item.size) === 2 ? 2 : 1
-            });
+                                "type": type,
+                                "size": Number(item.size) === 2 ? 2 : 1
+                            });
         }
+        // Existing saved layouts also receive the new action without reordering their buttons.
+        if (!seen.night)
+            normalized.push({
+                                "type": "night",
+                                "size": 2
+                            });
         return normalized;
     }
 
@@ -52,23 +82,9 @@ Singleton {
         return root.toggles.findIndex(toggle => toggle.type === type);
     }
 
-    function isEnabled(type) {
-        return root.indexOfType(type) !== -1;
-    }
-
     function refreshBindings() {
         root.toggles = root.toggles.slice();
         root.save();
-    }
-
-    function toggleEnabled(type) {
-        const index = root.indexOfType(type);
-        if (index === -1) {
-            root.toggles.push({ "type": type, "size": 1 });
-        } else {
-            root.toggles.splice(index, 1);
-        }
-        root.refreshBindings();
     }
 
     function toggleSize(type) {
@@ -76,7 +92,11 @@ Singleton {
         if (index === -1)
             return;
 
-        root.toggles[index].size = root.toggles[index].size === 2 ? 1 : 2;
+        const current = root.toggles[index];
+        root.toggles[index] = {
+            "type": current.type,
+            "size": current.size === 2 ? 1 : 2
+        };
         root.refreshBindings();
     }
 
@@ -97,8 +117,8 @@ Singleton {
             return;
 
         configFile.setText(JSON.stringify({
-            "toggles": root.toggles
-        }, null, 2));
+                                              "toggles": root.toggles
+                                          }, null, 2));
     }
 
     Process {
@@ -120,7 +140,7 @@ Singleton {
                 const parsed = JSON.parse(configFile.text().trim() || "{}");
                 root.toggles = root.normalizeToggles(parsed.toggles);
             } catch (error) {
-                console.log("QuickToggleConfig failed to load:", error);
+                console.warn("QuickToggleConfig failed to load:", error);
                 root.toggles = root.defaultToggles();
                 root.save();
             }

@@ -2,7 +2,7 @@ pragma Singleton
 
 import QtQuick
 import Quickshell
-import Clavis.Media 1.0
+import Clavis.Media
 import qs.Common
 
 Singleton {

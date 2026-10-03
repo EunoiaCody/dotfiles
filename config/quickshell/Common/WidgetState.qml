@@ -1,31 +1,33 @@
 pragma Singleton
-
 import QtQuick
 
 QtObject {
     id: root
 
-    property bool qsOpen: false
-    property string qsView: "network"
-    property string qsScreenName: ""
+    property bool quickSettingsOpen: false
+    property string quickSettingsView: "settings"
+    property string quickSettingsScreenName: ""
+    property bool dashboardSidebarOpen: false
+    property string dashboardSidebarView: "info"
 
-    // Anchor position for the QuickSettingsPanel popup
-    // Set by each button before toggling qsOpen
-    property real qsAnchorGlobalX: 0
-    property real qsAnchorGlobalY: 0
-    property real qsAnchorWidth: 0
-    property real qsAnchorHeight: 0
+    // The shared host owns both panels on the same retained output.
+    property string sidebarScreenName: ""
+    property bool sidebarPresentationActive: false
 
-    property bool leftSidebarOpen: false
-    property string leftSidebarView: "info"
-
-    onQsOpenChanged: {
-        if (!qsOpen)
-            qsScreenName = "";
+    function sidebarHasPriority(screenName) {
+        return screenName !== "" && sidebarPresentationActive && sidebarScreenName === screenName;
     }
 
+    signal transientSurfacesDismissRequested
+
     function closeAllPopups() {
-        qsOpen = false;
-        leftSidebarOpen = false;
+        quickSettingsOpen = false;
+        dashboardSidebarOpen = false;
+        transientSurfacesDismissRequested();
+    }
+
+    onQuickSettingsOpenChanged: {
+        if (!quickSettingsOpen)
+            quickSettingsScreenName = "";
     }
 }

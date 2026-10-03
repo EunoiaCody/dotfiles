@@ -1,55 +1,50 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Shapes
-import Clavis.Sysmon 1.0
 import qs.Common
+import qs.Services
 
 Rectangle {
     id: root
 
     Layout.fillWidth: true
-    Layout.preferredHeight: Sizes.lockSystemGridHeight
-    implicitHeight: Layout.preferredHeight
-
+    implicitHeight: width
     color: Appearance.colors.colLayer2
-    radius: Sizes.lockCardRadius
+    radius: Metrics.lockCardRadius
     clip: true
 
     GridLayout {
         anchors.fill: parent
-        anchors.margins: Sizes.lockOuterPadding
+        anchors.margins: Metrics.lockOuterPadding
         rows: 2
         columns: 2
-        rowSpacing: Math.round(20 * 4 / 3)
-        columnSpacing: Math.round(20 * 4 / 3)
+        rowSpacing: Metrics.spacingL
+        columnSpacing: Metrics.spacingL
 
         ResourceTile {
-            Layout.topMargin: Sizes.lockOuterPadding
             icon: "memory"
-            value: SysmonPlugin.cpuUsage / 100
+            value: Number(SystemMonitorService.cpu.usagePercent) / 100
             accent: Appearance.colors.colPrimary
         }
 
         ResourceTile {
-            Layout.topMargin: Sizes.lockOuterPadding
             icon: "thermostat"
-            value: Math.min(1, Math.max(0, SysmonPlugin.coreTemp / 90))
+            value: Math.min(1, Math.max(0, (Number(SystemMonitorService.cpu.packageTemperatureCelsius) || Number(SystemMonitorService.cpu.temperatureCelsius)) / 90))
             accent: Appearance.colors.colSecondary
         }
 
         ResourceTile {
-            Layout.bottomMargin: Sizes.lockOuterPadding
             icon: "memory_alt"
-            value: SysmonPlugin.ramUsage / 100
+            value: Number(SystemMonitorService.memory.usagePercent) / 100
             accent: Appearance.colors.colSecondary
         }
 
         ResourceTile {
-            Layout.bottomMargin: Sizes.lockOuterPadding
             icon: "hard_disk"
-            value: SysmonPlugin.diskUsage / 100
+            value: (SystemMonitorService.disks.length > 0 ? Number(SystemMonitorService.disks[0].usagePercent) : 0) / 100
             accent: Appearance.colors.colTertiary
         }
+
     }
 
     component ResourceTile: Rectangle {
@@ -60,25 +55,17 @@ Rectangle {
         property real animatedValue: value
         property color accent: Appearance.colors.colPrimary
         readonly property real progressSize: Math.min(width, height)
-        readonly property real progressPadding: Sizes.lockResourceProgressPadding
-        readonly property real strokeSize: Sizes.lockResourceProgressStroke
-        // NaN 防护：系统监控数据异常时 animatedValue 可能为 NaN，
-        // Math.min/Math.max 会传播 NaN 导致 CurveRenderer 描边崩溃
-        readonly property real progressValue: {
-            const v = Number(animatedValue);
-            if (!isFinite(v))
-                return 1 / 360;
-            return Math.max(1 / 360, Math.min(1, Math.max(0, v)));
-        }
+        readonly property real progressPadding: Math.min(Metrics.lockResourceProgressPadding, progressSize * 0.42)
+        readonly property real strokeSize: Math.min(Metrics.lockResourceProgressStroke, progressSize * 0.08)
+        readonly property real progressValue: Math.max(1 / 360, Math.min(1, Math.max(0, animatedValue)))
         readonly property real arcRadius: Math.max(1, (progressSize - progressPadding - strokeSize) / 2)
-        readonly property real gapAngle: ((Sizes.lockResourceProgressGap + strokeSize) / arcRadius) * (180 / Math.PI)
+        readonly property real gapAngle: ((Metrics.lockResourceProgressGap + strokeSize) / arcRadius) * (180 / Math.PI)
 
         Layout.fillWidth: true
         Layout.fillHeight: false
         implicitHeight: width
-
         color: Appearance.colors.colLayer3
-        radius: Sizes.lockResourceTileRadius
+        radius: Metrics.cornerL
 
         Shape {
             id: circleShape
@@ -102,6 +89,7 @@ Rectangle {
                     startAngle: 360 * tile.progressValue + tile.gapAngle
                     sweepAngle: Math.max(-tile.gapAngle, 360 * (1 - tile.progressValue) - tile.gapAngle * 2)
                 }
+
             }
 
             ShapePath {
@@ -118,15 +106,17 @@ Rectangle {
                     startAngle: 0
                     sweepAngle: 360 * tile.progressValue
                 }
+
             }
+
         }
 
         Text {
             anchors.centerIn: parent
             text: tile.icon
             color: tile.accent
-            font.family: "Material Symbols Outlined"
-            font.pixelSize: Math.max(Sizes.lockResourceIconMinSize, tile.arcRadius * Sizes.lockResourceIconScale)
+            font.family: Fonts.materialSymbolsOutlined
+            font.pixelSize: Math.max(Metrics.iconL, tile.arcRadius * Metrics.lockResourceIconScale)
             font.weight: 600
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
@@ -138,6 +128,9 @@ Rectangle {
                 easing.type: Appearance.animation.standardLarge.type
                 easing.bezierCurve: Appearance.animation.standardLarge.bezierCurve
             }
+
         }
+
     }
+
 }

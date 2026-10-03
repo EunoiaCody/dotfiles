@@ -1,0 +1,66 @@
+binds {
+    // 使用 Mod + hjkl 移动窗口焦点
+    Mod+H { focus-column-left; }
+    Mod+J { focus-window-down; }
+    Mod+K { focus-window-up; }
+    Mod+L { focus-column-right; }
+
+    // 使用 Mod + 方向键移动窗口焦点
+    Mod+Left  { focus-column-left; }
+    Mod+Down  { focus-window-down; }
+    Mod+Up    { focus-window-up; }
+    Mod+Right { focus-column-right; }
+
+    // 关闭窗口
+    Mod+Q { close-window; }
+
+    // 打开终端 kitty
+    Mod+T { spawn "kitty"; }
+
+    Mod+Space { spawn "qs" "ipc" "call" "launcher" "toggle"; }
+
+    // 锁屏 (Mod + Escape)
+    Mod+Escape { spawn "qs" "ipc" "call" "lock" "open"; }
+
+    // 随机切换壁纸（QML WallpaperBackground GLSL 过渡）
+    Mod+W { spawn "qs" "ipc" "call" "wallpaper" "random"; }
+
+    // 最大化和全屏
+    Mod+M { maximize-column; }
+    Mod+Shift+M { fullscreen-window; }
+
+    // 使用 Mod + 鼠标滚轮切换工作区
+    Mod+WheelScrollUp   { focus-workspace-up; }
+    Mod+WheelScrollDown { focus-workspace-down; }
+
+    // 使用 Mod + Tab 打开/关闭预览
+    Mod+Tab { toggle-overview; }
+
+    // 使用 Mod + Shift + hjkl 移动窗口 / 加入左右列
+    Mod+Shift+H { consume-or-expel-window-left; }
+    Mod+Shift+J { move-window-down; }
+    Mod+Shift+K { move-window-up; }
+    Mod+Shift+L { consume-or-expel-window-right; }
+
+    // 使用 Mod + Shift + 方向键移动窗口 / 加入左右列
+    Mod+Shift+Left  { consume-or-expel-window-left; }
+    Mod+Shift+Down  { move-window-down; }
+    Mod+Shift+Up    { move-window-up; }
+    Mod+Shift+Right { consume-or-expel-window-right; }
+
+    // 截图（区域选择，保存到剪贴板）
+    Mod+Shift+S { spawn "mark-shot"; }
+
+    // 切换当前窗口为浮动模式
+    Mod+F { toggle-window-floating; }
+
+    // 灵动岛 - 打开 Hub 总控 (概览/媒体/壁纸/天气)
+    Mod+I { spawn "qs" "ipc" "call" "island" "hub"; }
+
+    // 灵动岛 - 打开 Tools 工具箱 (取色/录屏/截屏/录音)
+    Mod+Shift+I { spawn "qs" "ipc" "call" "island" "tools"; }
+
+    // 改变窗口大小
+    Mod+Minus { set-column-width "-10%"; }
+    Mod+Equal { set-column-width "+10%"; }
+}

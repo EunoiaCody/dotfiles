@@ -21,7 +21,7 @@ RowLayout {
     property real disabledOpacity: 0.35
     property real iconSize: 26
     property real skipIconSize: 32
-    property string iconFontFamily: "Material Symbols Outlined"
+    property string iconFontFamily: Fonts.materialSymbolsOutlined
     property string shuffleIconName: "shuffle"
     property string previousIconName: "skip_previous"
     property string nextIconName: "skip_next"

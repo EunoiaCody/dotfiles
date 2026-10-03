@@ -1,32 +1,42 @@
-// AudioSpectrum stub - provides safe defaults when Clavis.Audio is not available.
-// The real Clavis.Audio plugin provides a PipeWire/Cava-based audio spectrum analyzer.
-// This stub is a fallback so the Media and Lyrics components can still render without
-// crashing. The visualizer will simply not animate, but everything else works.
-
 pragma Singleton
 
-import Quickshell
 import QtQuick
+import Quickshell
+import Clavis.Cava
 
 Singleton {
     id: root
 
-    // Empty values array - visualizers will render but not animate
-    property var values: []
-    property int bars: 32
-    // Never available so visualizers fade out gracefully
-    readonly property bool available: false
+    property int bars: 45
+    property var _owners: ({})
 
-    // No-op acquire/release - these are called by media components
-    // to subscribe/unsubscribe to spectrum updates
+    readonly property int refCount: Object.keys(_owners).length
+    readonly property bool active: refCount > 0
+    readonly property bool available: cava.available
+    readonly property var values: cava.values
+
     function acquire(token) {
-        if (!token) return;
+        if (!token || root._owners[token])
+            return;
+
+        const next = Object.assign({}, root._owners);
+        next[token] = true;
+        root._owners = next;
     }
 
     function release(token) {
-        if (!token) return;
+        if (!token || !root._owners[token])
+            return;
+
+        const next = Object.assign({}, root._owners);
+        delete next[token];
+        root._owners = next;
     }
 
-    // Real Clavis.Audio would push live audio FFT data to this property
-    // on a timer. Without it, the property stays at its initial value.
+    CavaProvider {
+        id: cava
+
+        active: root.active
+        bars: root.bars
+    }
 }
