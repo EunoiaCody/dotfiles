@@ -4,14 +4,14 @@ This file provides guidance to AI coding agents (pi, Copilot, Cursor, Claude) wh
 
 ## Project Overview
 
-Personal dotfiles repository by **@EunoiaCody** — a collection of configuration files for a Linux/macOS development environment. Covers the full desktop stack: Wayland compositor (niri), desktop shell (quickshell), terminal (kitty), shell (fish), file manager (yazi), editor (neovim), media player (mpv), AI agent (pi), and various CLI tools. Managed via copy-based sync scripts (not symlinks/GNU stow) so configs are directly viewable on GitHub.
+Personal dotfiles repository by **@EunoiaCody** — a collection of configuration files for a Linux/macOS development environment. Covers the full desktop stack: Wayland compositor (niri), desktop shell (Noctalia v5, with legacy quickshell), terminal (kitty), shell (fish), file manager (yazi), editor (neovim), media player (mpv), AI agent (pi), and various CLI tools. Managed via copy-based sync scripts (not symlinks/GNU stow) so configs are directly viewable on GitHub.
 
 ## Tech Stack
 
 | Layer | Technology | Config Language |
 |-------|-----------|-----------------|
 | Display server | Wayland (niri compositor) | KDL |
-| Desktop shell | QuickShell (Qt6/QML) | QML, JavaScript |
+| Desktop shell | Noctalia v5 (C++), legacy QuickShell (Qt6/QML) | TOML (Noctalia), QML (legacy) |
 | Terminal | Kitty | kitty.conf (INI-like) |
 | Shell | Fish | Fish script |
 | Editor | Neovim 0.12+ | Lua |
@@ -45,7 +45,8 @@ dotfiles/
 │   │   ├── animation.kdl     #     Spring-based window animations
 │   │   ├── blur.kdl          #     Background blur settings
 │   │   └── windows-rule.kdl  #     Per-window rules (opacity, corner radius)
-│   ├── quickshell/           #   QuickShell desktop shell (Qt6/QML)
+│   ├── noctalia/             #   Noctalia v5 desktop shell (config.toml; bar/widgets/plugins)
+│   ├── quickshell/           #   Legacy QuickShell desktop shell (Qt6/QML; kept for rollback)
 │   │   ├── Modules/          #     Feature modules: Bar, DynamicIsland, Lock, Launcher, Sidebars, Wallpaper
 │   │   ├── Services/         #     Backend QML services: Audio, Bluetooth, Network, Media, Notifications, etc.
 │   │   ├── Common/           #     Shared engines: LyricsSyncEngine, LyricsDaemon, ColorMap, Animations
@@ -53,7 +54,7 @@ dotfiles/
 │   │   ├── Widgets/          #     Composite widgets: RollingDigit, SpringLyricView
 │   │   ├── scripts/          #     Python helpers: lyrics_fetcher, weather, title_parser, parse_schedule
 │   │   ├── assets/shaders/   #     GLSL wallpaper transition shaders (7 effects)
-│   │   └── start-quickshell.sh #   Launch script invoked by niri
+│   │   └── start-quickshell.sh #   Legacy launch script (no longer invoked by niri)
 │   ├── kitty/                #   Kitty terminal (~2800 line kitty.conf + theme include)
 │   ├── fish/                 #   Fish shell (conf.d, completions, functions, themes)
 │   ├── yazi/                 #   Yazi file manager (smart-filter plugin, clipboard sync)
@@ -196,7 +197,8 @@ DynamicIsland (LyricsContent) / Media (SpringLyricView) → render
 | Tool | Entry Point | Platform |
 |------|------------|----------|
 | niri | `niri --config ~/.config/niri/config.kdl` | Linux |
-| quickshell | `~/.config/quickshell/start-quickshell.sh` (launched by niri) | Linux |
+| noctalia | `~/.config/noctalia/config.toml` (launched by niri via `spawn-at-startup`) | Linux |
+| quickshell | `~/.config/quickshell/start-quickshell.sh` (legacy) | Linux |
 | kitty | `kitty --config ~/.config/kitty/kitty.conf` | Linux/macOS |
 | fish | `~/.config/fish/config.fish` (auto-sourced) | Linux/macOS |
 | nvim | `~/.config/nvim/init.lua` | Linux/macOS/Windows |
@@ -213,7 +215,8 @@ DynamicIsland (LyricsContent) / Media (SpringLyricView) → render
 | Package | Purpose |
 |---------|---------|
 | niri | Wayland compositor (scrollable-tiling) |
-| quickshell | Desktop shell (QML/Qt6) |
+| noctalia | Desktop shell (Noctalia v5) |
+| quickshell | Legacy desktop shell (QML/Qt6) |
 | wlroots | niri dependency |
 | polkit-gnome | Authentication agent (started by niri) |
 | awww | Wallpaper daemon (Wayland) |
@@ -264,7 +267,8 @@ AVANTE_OPENCODE_API_KEY        # Required for avante.nvim AI features (opencode.
 | App | Repo Path | Local Config Path |
 |-----|-----------|-------------------|
 | niri | `config/niri/` | `~/.config/niri/` |
-| quickshell | `config/quickshell/` | `~/.config/quickshell/` |
+| noctalia | `config/noctalia/` | `~/.config/noctalia/` |
+| quickshell | `config/quickshell/` (legacy) | `~/.config/quickshell/` |
 | kitty | `config/kitty/` | `~/.config/kitty/` |
 | fish | `config/fish/` | `~/.config/fish/` |
 | yazi | `config/yazi/` | `~/.config/yazi/` |

@@ -7,3 +7,11 @@ home/.pi/agent/sessions/
 # pi-agent plans and working files inside other config dirs
 **/.pi/plan*
 **/.pi/plan/
+
+# migration planning docs (never sync)
+my plans/
+.pi/plan/
+
+# python caches
+__pycache__/
+*.pyc

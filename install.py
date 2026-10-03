@@ -43,7 +43,8 @@ COMPONENT_SPECS: dict[str, dict] = {
 	"figlet":     {"category": "config", "desc": "Figlet utility"},
 	"bat":        {"category": "config", "desc": "bat pager"},
 	"niri":       {"category": "config", "desc": "Niri compositor"},
-	"quickshell": {"category": "config", "desc": "Quickshell (Arch preferred)"},
+	"quickshell": {"category": "config", "desc": "Quickshell (Arch preferred, legacy)"},
+	"noctalia":   {"category": "config", "desc": "Noctalia desktop shell (niri)"},
 	"vscode":     {"category": "config", "desc": "VSCode custom CSS/JS"},
 
 	# Home-directory dotfiles (~/.*)
@@ -68,6 +69,7 @@ PACKAGE_MAP = {
 		"bat": ["bat"],
 		"niri": ["niri"],
 		"quickshell": [],
+		"noctalia": [],
 	},
 	"dnf": {
 		"kitty": ["kitty", "jetbrains-mono-fonts", "google-noto-sans-cjk-fonts", "google-noto-serif-cjk-fonts"],
@@ -82,6 +84,7 @@ PACKAGE_MAP = {
 		"bat": ["bat"],
 		"niri": ["niri"],
 		"quickshell": [],
+		"noctalia": [],
 	},
 	"pacman": {
 		"kitty": ["kitty", "ttf-jetbrains-mono", "noto-fonts-cjk", "wqy-zenhei"],
@@ -96,6 +99,7 @@ PACKAGE_MAP = {
 		"bat": ["bat"],
 		"niri": ["niri"],
 		"quickshell": [],
+		"noctalia": ["noctalia"],
 	},
 }
 

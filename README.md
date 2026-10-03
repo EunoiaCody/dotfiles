@@ -23,7 +23,8 @@
 ### 窗口管理与桌面
 
 - **niri** - Wayland 合成器（平铺式窗口管理、模块化配置、IPC 集成）
-- **quickshell** - 现代化桌面 Shell（状态栏、动态岛、锁屏、启动器、壁纸管理、侧边栏控制中心、逐字歌词系统）
+- **noctalia** - 现代化桌面 Shell（Noctalia v5；状态栏、启动器、控制中心、锁屏、壁纸、通知、天气、媒体岛/歌词插件）
+- **quickshell** - （legacy，迁移中保留作回滚）原自研 QuickShell 桌面 Shell（动态岛、侧边栏、逐字歌词系统）
 - **aerospace** - macOS 平铺窗口管理器配置
 - **sketchybar** - macOS 状态栏配置
 
@@ -68,7 +69,9 @@ dotfiles/
 │   ├── Components/         #   基础组件（图标等）
 │   ├── scripts/            #   Python 辅助脚本（歌词、天气、日程、标题解析）
 │   ├── assets/             #   静态资源（着色器等）
-│   └── start-quickshell.sh #   启动脚本
+│   └── start-quickshell.sh #   启动脚本（legacy，迁移中保留）
+├── noctalia/              # Noctalia v5 桌面 Shell
+│   └── config.toml         #   主配置（bar/widget/壁纸/插件等）
 ├── kitty/                 # Kitty 终端配置
 ├── fish/                  # Fish shell 配置
 │   ├── conf.d/             #   模块化配置（主题、自动补全、键位绑定）
@@ -126,7 +129,7 @@ git clone https://github.com/EunoiaCody/dotfiles.git ~/dotfiles
 cd ~/dotfiles
 
 # 复制配置到 ~/.config/
-cp -r niri quickshell kitty fish yazi nvim neovide mpv bat ~/.config/
+cp -r niri noctalia quickshell kitty fish yazi nvim neovide mpv bat ~/.config/
 cp -r vscode ~/.config/
 
 # 手动复制 Aerospace 配置（仅 macOS）
@@ -158,7 +161,8 @@ cd dotfiles
 | 软件 | Ubuntu/Debian | Fedora/RHEL | Arch Linux | macOS |
 |------|---------------|-------------|------------|-------|
 | **Niri** | [编译安装](https://github.com/YaLTeR/niri) | [编译安装](https://github.com/YaLTeR/niri) | `pacman -S niri` | N/A |
-| **QuickShell** | [编译安装](https://github.com/quick-shell/QuickShell) | [编译安装](https://github.com/quick-shell/QuickShell) | `pacman -S quickshell` | N/A |
+| **Noctalia** | Noctalia 官方源 | Fedora 44+ 官方源 | `pacman -S noctalia` | N/A |
+| **QuickShell**（legacy） | [编译安装](https://github.com/quick-shell/QuickShell) | [编译安装](https://github.com/quick-shell/QuickShell) | `pacman -S quickshell` | N/A |
 | **Kitty** | `apt install kitty` | `dnf install kitty` | `pacman -S kitty` | `brew install kitty` |
 | **Fish** | `apt install fish` | `dnf install fish` | `pacman -S fish` | `brew install fish` |
 | **Yazi** | `cargo install --locked yazi` | `cargo install --locked yazi` | `pacman -S yazi` | `brew install yazi` |
@@ -251,11 +255,24 @@ apt install qt6-base-dev qt6-wayland
 - 平铺式窗口管理，Catppuccin 主题色彩
 - 动画配置（窗口开关/切换/工作区切换的弹簧动画）
 - 模糊效果配置（背景模糊、高斯模糊强度）
-- 通过 IPC 与 QuickShell 集成（锁屏、启动器、壁纸切换、动态岛）
-- 自动启动 QuickShell、Emby 播放脚本、微信、Telegram 等应用
+- 通过 IPC 与 Noctalia 集成（锁屏、启动器、壁纸切换、媒体岛、控制中心）：`noctalia msg ...`
+- 自动启动 Noctalia、Emby 播放脚本、微信、Telegram 等应用
 - 窗口规则配置（圆角、透明度、层级）
 
-### QuickShell 桌面 Shell
+### Noctalia 桌面 Shell（当前）
+
+基于 Noctalia v5（Arch `extra/noctalia`），单文件声明式配置 `~/.config/noctalia/config.toml`，与 niri 通过 `noctalia msg ...` IPC 集成：
+
+- **Bar** — 顶部状态栏：工作区、时钟（居中）、系统托盘、系统监控、音量/网络/蓝牙/亮度/电池、通知、剪贴板、控制中心、会话
+- **Launcher / Control Center / Lockscreen / Wallpaper** — 内置面板
+- **插件** — `notoxus/media-island`（顶部媒体岛）、`h465855hgg/lyrics`（逐字歌词）、`kavya-nama/wallpaper-switcher`（壁纸切换）
+- **天气** — 内置 weather widget + `[location] auto_locate`
+- 配置分层：手写 `~/.config/noctalia/*.toml`（可版本化）优先于内置默认，但 GUI 覆盖 `~/.local/state/noctalia/settings.toml` 优先级更高
+- 插件代码存于 `~/.local/share/noctalia/`，通过 `[plugins].enabled` 声明式重建
+
+> 迁移状态：`quickshell` 配置暂时保留用于回滚，niri 已切换为启动 Noctalia。
+
+### QuickShell 桌面 Shell（legacy，迁移中保留）
 
 采用模块化架构，由 20+ 个后端服务和多个功能模块组成：
 
