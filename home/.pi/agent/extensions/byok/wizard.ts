@@ -16,6 +16,7 @@ import {
   validateProviderId,
 } from "./config";
 import {
+  DEFAULT_CONTEXT_WINDOW,
   fetchRemoteModels,
   registerByokProvider,
   remoteToByokModel,
@@ -38,6 +39,7 @@ const SUBS = [
   "url",
   "key",
   "models",
+  "meta",
   "test",
   "help",
 ] as const;
@@ -132,6 +134,179 @@ async function pickProvider(
   }
   if (ids.length === 1) return ids[0];
   return ctx.ui.select("选择 provider", ids);
+}
+
+// ---------------------------------------------------------------------------
+// 模型属性编辑
+// ---------------------------------------------------------------------------
+
+function omitKey<T extends object, K extends keyof T>(obj: T, key: K): Omit<T, K> {
+  const { [key]: _removed, ...rest } = obj;
+  return rest;
+}
+
+/** 解析 token 数：数字 / 128k / 1m；reset/default/off 返回 null（清除）。 */
+function parseTokenCount(input: string): number | null {
+  const t = input.trim().toLowerCase();
+  if (["", "reset", "clear", "default", "auto", "off", "none"].includes(t)) {
+    return null;
+  }
+  const m = t.match(/^(\d+(?:\.\d+)?)\s*([kmg])?$/);
+  if (!m) throw new Error(`无效数值：${input}（示例：128000 / 128k / 1m）`);
+  const mult = m[2] === "k" ? 1_000 : m[2] === "m" ? 1_000_000 : m[2] === "g" ? 1_000_000_000 : 1;
+  const n = Math.round(Number(m[1]) * mult);
+  if (!Number.isFinite(n) || n <= 0) throw new Error(`无效数值：${input}`);
+  return n;
+}
+
+function modelMetaLabel(m: ByokModel): string {
+  const ctx = m.contextWindow ?? DEFAULT_CONTEXT_WINDOW;
+  const ctxLabel = `${Math.round(ctx / 1000)}k${m.contextWindow === undefined ? "(默认)" : ""}`;
+  const maxLabel = typeof m.maxTokens === "number" ? String(m.maxTokens) : "auto";
+  const flags: string[] = [];
+  if (m.reasoning) flags.push("reasoning");
+  if ((m.input ?? ["text"]).includes("image")) flags.push("image");
+  if (m.cost) flags.push("cost");
+  return `${m.id} · ctx=${ctxLabel} · max=${maxLabel}${flags.length ? " · " + flags.join("+") : ""}`;
+}
+
+async function promptTokenCount(
+  ctx: ExtensionCommandContext,
+  title: string,
+  current: number | undefined,
+): Promise<number | null | undefined> {
+  const v = await ctx.ui.input(
+    `${title}（当前 ${current ?? "未设置"}；留空=保持，reset=清除，支持 128k/1m）`,
+    current !== undefined ? String(current) : "128k",
+  );
+  if (v === undefined || v.trim() === "") return undefined; // 保持
+  return parseTokenCount(v);
+}
+
+async function editOneModelMeta(
+  ctx: ExtensionCommandContext,
+  m: ByokModel,
+): Promise<ByokModel | undefined> {
+  const field = await ctx.ui.select(`编辑模型 ${m.id}`, [
+    `name：${m.name ?? m.id}`,
+    `contextWindow：${m.contextWindow ?? "未设置（pi 默认 128000）"}`,
+    `maxTokens：${m.maxTokens ?? "未设置（自动）"}`,
+    `reasoning：${m.reasoning ? "是" : "否"}`,
+    `input：${(m.input ?? ["text"]).join("+")}`,
+    `cost：${m.cost ? JSON.stringify(m.cost) : "未设置（全 0）"}`,
+    "↩ 返回",
+  ]);
+  if (!field || field.startsWith("↩")) return undefined;
+
+  if (field.startsWith("name")) {
+    const v = await ctx.ui.input("name（留空=使用 id）", m.name ?? "");
+    if (v === undefined) return undefined;
+    return v.trim() ? { ...m, name: v.trim() } : omitKey(m, "name");
+  }
+  if (field.startsWith("contextWindow") || field.startsWith("maxTokens")) {
+    const key = field.startsWith("contextWindow") ? "contextWindow" : "maxTokens";
+    let n: number | null | undefined;
+    try {
+      n = await promptTokenCount(ctx, key, m[key]);
+    } catch (err) {
+      ctx.ui.notify(errMessage(err), "error");
+      return undefined;
+    }
+    if (n === undefined) return undefined;
+    return n === null ? omitKey(m, key) : ({ ...m, [key]: n } as ByokModel);
+  }
+  if (field.startsWith("reasoning")) {
+    const v = await ctx.ui.select("reasoning", ["是（支持推理/思维链）", "否", "↩ 返回"]);
+    if (!v || v.startsWith("↩")) return undefined;
+    return { ...m, reasoning: v.startsWith("是") };
+  }
+  if (field.startsWith("input")) {
+    const v = await ctx.ui.select("input", [
+      "text（仅文本）",
+      "text+image（支持图片）",
+      "↩ 返回",
+    ]);
+    if (!v || v.startsWith("↩")) return undefined;
+    return { ...m, input: v.startsWith("text+image") ? ["text", "image"] : ["text"] };
+  }
+  if (field.startsWith("cost")) {
+    const v = await ctx.ui.editor(
+      "cost JSON（$/百万 token；留空=清除）",
+      m.cost
+        ? JSON.stringify(m.cost, null, 2)
+        : JSON.stringify({ input: 0, output: 0, cacheRead: 0, cacheWrite: 0 }, null, 2),
+    );
+    if (v === undefined) return undefined;
+    if (!v.trim()) return omitKey(m, "cost");
+    try {
+      const parsed = JSON.parse(v) as Record<string, unknown>;
+      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+        throw new Error("cost 需为 JSON 对象");
+      }
+      const num = (k: string): number => {
+        const x = parsed[k];
+        return typeof x === "number" && Number.isFinite(x) ? x : 0;
+      };
+      return {
+        ...m,
+        cost: {
+          input: num("input"),
+          output: num("output"),
+          cacheRead: num("cacheRead"),
+          cacheWrite: num("cacheWrite"),
+        },
+      };
+    } catch (err) {
+      ctx.ui.notify(`解析失败：${errMessage(err)}`, "error");
+      return undefined;
+    }
+  }
+  return undefined;
+}
+
+/** 逐模型/批量编辑模型元数据；返回更新后的数组。 */
+async function editModelsMeta(
+  ctx: ExtensionCommandContext,
+  models: ByokModel[],
+): Promise<ByokModel[]> {
+  const list = models.map((m) => ({ ...m }));
+  while (true) {
+    const action = await ctx.ui.select(`模型属性（共 ${list.length} 个模型）`, [
+      "逐个编辑模型",
+      "批量设置 contextWindow",
+      "批量设置 maxTokens",
+      "完成",
+    ]);
+    if (!action || action === "完成") return list;
+
+    if (action === "批量设置 contextWindow" || action === "批量设置 maxTokens") {
+      const key = action.includes("contextWindow") ? "contextWindow" : "maxTokens";
+      let n: number | null | undefined;
+      try {
+        n = await promptTokenCount(ctx, `批量 ${key}`, undefined);
+      } catch (err) {
+        ctx.ui.notify(errMessage(err), "error");
+        continue;
+      }
+      if (n === undefined) continue;
+      for (const m of list) {
+        if (n === null) delete (m as Record<string, unknown>)[key];
+        else (m as Record<string, unknown>)[key] = n;
+      }
+      ctx.ui.notify(`已${n === null ? "清除" : "设置"}全部模型的 ${key}`, "info");
+      continue;
+    }
+
+    while (true) {
+      const labels = list.map((m, i) => `${i + 1}. ${modelMetaLabel(m)}`);
+      const choice = await ctx.ui.select("选择要编辑的模型", [...labels, "↩ 返回"]);
+      if (!choice || choice.startsWith("↩")) break;
+      const idx = labels.indexOf(choice);
+      if (idx < 0) break;
+      const updated = await editOneModelMeta(ctx, list[idx]);
+      if (updated) list[idx] = updated;
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -232,6 +407,12 @@ async function addWizard(pi: ExtensionAPI, ctx: ExtensionCommandContext): Promis
     ctx.ui.notify("未添加任何模型，已取消保存。可稍后用 /byok models 设置。", "warning");
     return;
   }
+
+  const adjust = await ctx.ui.confirm(
+    "调整模型属性",
+    `已识别 ${models.length} 个模型。是否现在调整 contextWindow / maxTokens / reasoning / 图片输入 / 价格？\n（可稍后用 /byok edit 或 /byok meta 修改）`,
+  );
+  if (adjust) models = await editModelsMeta(ctx, models);
 
   draft.models = models;
   const validation = validateProvider(draft);
@@ -342,6 +523,7 @@ async function editWizard(
     "topP",
     "兼容预设",
     "模型列表（重新拉取）",
+    "模型属性（contextWindow/maxTokens 等）",
     "headers (JSON)",
     "modelsPath",
     "lastModel",
@@ -406,6 +588,8 @@ async function editWizard(
   } else if (field.startsWith("模型列表")) {
     await refreshModels(pi, ctx, cfg, id);
     return;
+  } else if (field.startsWith("模型属性")) {
+    p.models = await editModelsMeta(ctx, p.models);
   } else if (field.startsWith("headers")) {
     const v = await ctx.ui.editor(
       "headers JSON（例如 {\"X-Api-Version\":\"1\"}）",
@@ -458,7 +642,11 @@ async function refreshModels(
     }
     const models = await chooseModels(ctx, remote);
     if (models.length === 0) return;
-    p.models = models;
+    const adjust = await ctx.ui.confirm(
+      "调整模型属性",
+      `已识别 ${models.length} 个模型。是否现在调整 contextWindow / maxTokens / reasoning / 图片输入 / 价格？`,
+    );
+    p.models = adjust ? await editModelsMeta(ctx, models) : models;
     const registered = apply(pi, cfg, id, "models");
     ctx.ui.notify(
       `已更新 ${id} 的模型列表（${models.length} 个）${registered ? "" : "，未注册（列表为空？）"}`,
@@ -657,6 +845,7 @@ async function helpCmd(ctx: ExtensionCommandContext): Promise<void> {
     "  /byok url <id> <baseUrl>  修改 Base URL",
     "  /byok key <id> <key>      修改 API Key",
     "  /byok models <id>         刷新模型列表",
+    "  /byok meta <id>           编辑模型属性（上下文窗口/最大输出/价格等）",
     "  /byok test <id>           测试连通性",
   ];
   if (ctx.hasUI) {
@@ -677,6 +866,7 @@ async function menu(pi: ExtensionAPI, ctx: ExtensionCommandContext): Promise<voi
     "remove — 删除 provider",
     "use — 切换模型",
     "models — 刷新模型列表",
+    "meta — 编辑模型属性（上下文/最大输出/价格）",
     "temp — 设置 temperature",
     "url — 修改 Base URL",
     "key — 修改 API Key",
@@ -726,6 +916,24 @@ async function dispatch(
         }
         if (!requireUI(ctx)) return;
         await refreshModels(pi, ctx, cfg, id);
+      })();
+    case "meta":
+      return (async () => {
+        const cfg = loadConfig();
+        const id = rest[0] ?? (await pickProvider(ctx, cfg));
+        if (!id) return;
+        const p = cfg.providers[id];
+        if (!p) {
+          ctx.ui.notify(`找不到 provider "${id}"`, "error");
+          return;
+        }
+        if (!requireUI(ctx)) return;
+        p.models = await editModelsMeta(ctx, p.models);
+        const registered = apply(pi, cfg, id, "meta");
+        ctx.ui.notify(
+          `已更新 ${id} 的模型属性（${p.models.length} 个）${registered ? "" : "，未注册"}`,
+          "info",
+        );
       })();
     case "test":
       return testCmd(ctx, rest[0]);

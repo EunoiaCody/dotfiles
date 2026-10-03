@@ -1,6 +1,7 @@
 import QtQuick
 import qs.Common
 import qs.Services
+import qs.Widgets.common
 import "../../../Common/functions/DateFormat.js" as DateFormat
 
 Item {
@@ -13,8 +14,6 @@ Item {
     property string dateStr: ""
     property var verticalDateParts: []
     readonly property string clockFamily: Fonts.systemClock
-    readonly property var horizontalClockAxes: root.safeHorizontalClockAxes(
-                                                   PersonalizationConfig.horizontalClockAxes)
     readonly property var verticalClockAxes: Fonts.familyAvailable(Fonts.systemClock) ? ({
                                                                                              "wght": 900,
                                                                                              "wdth": 85,
@@ -23,59 +22,12 @@ Item {
                                                                                              "ROND": 25,
                                                                                              "slnt": 0
                                                                                          }) : ({})
-    readonly property real horizontalFontSize: root.boundedNumber(
-                                                   PersonalizationConfig.horizontalClockFontSize, 22, 16, 28)
-    // 【核心变化1】把时间拆分成 4 个独立的整数型变量，绑定动画目标值
-    property int h0: 0
-    property int h1: 0
-    property int m0: 0
-    property int m1: 0
-    property string periodLead: "A"
-
-    function boundedNumber(value, fallback, minimum, maximum) {
-        const numberValue = Number(value);
-        if (!isFinite(numberValue))
-            return fallback;
-
-        return Math.max(minimum, Math.min(maximum, numberValue));
-    }
-
-    function safeHorizontalClockAxes(source) {
-        const defaults = PersonalizationConfig.horizontalClockAxisDefaults;
-        const minimums = PersonalizationConfig.horizontalClockAxisMinimums;
-        const maximums = PersonalizationConfig.horizontalClockAxisMaximums;
-        const result = {};
-        const names = ["wght", "wdth", "opsz", "GRAD", "ROND", "slnt"];
-        const values = source && typeof source === "object" ? source : {};
-        for (let i = 0; i < names.length; i += 1) {
-            const name = names[i];
-            result[name] = root.boundedNumber(values[name], defaults[name], minimums[name], maximums[name]);
-        }
-        return result;
-    }
-
-    function horizontalDigitValue(id, field) {
-        const defaults = PersonalizationConfig.horizontalClockDigitDefaults;
-        const configured = PersonalizationConfig.horizontalClockDigits;
-        const fallback = defaults[id] || {};
-        const candidate = configured && configured[id] ? configured[id] : {};
-        const limits = field === "x" ? [-8, 8] : field === "y" ? [-6, 6] : [-12, 12];
-        return root.boundedNumber(candidate[field], fallback[field] || 0, limits[0], limits[1]);
-    }
-
-    function horizontalDigitColor(id) {
-        const defaults = PersonalizationConfig.horizontalClockDigitDefaults;
-        const configured = PersonalizationConfig.horizontalClockDigits;
-        const fallback = defaults[id] || {};
-        const candidate = configured && configured[id] ? configured[id] : fallback;
-        if (candidate.colorRole === "custom" && /^#([0-9a-f]{6}|[0-9a-f]{8})$/i.test(String(
-                                                                                         candidate.customColor
-                                                                                         || "")))
-            return candidate.customColor;
-
-        return candidate.colorRole === "inversePrimary" ? Appearance.colors.colInversePrimary :
-                                                          Appearance.colors.colPrimary;
-    }
+    // 时间拆成 4 个整数驱动翻页动画；数字本体交给 RollingClock（与锁屏共用）
+    readonly property int h0: rollingClock.h0
+    readonly property int h1: rollingClock.h1
+    readonly property int m0: rollingClock.m0
+    readonly property int m1: rollingClock.m1
+    readonly property string periodLead: rollingClock.periodLead
 
     function formatDate(date) {
         if (DateFormat.isChinese(I18nService.language))
@@ -106,19 +58,11 @@ Item {
         repeat: true
         triggeredOnStart: true
         onTriggered: {
-            let d = new Date();
+            const d = new Date();
             root.dateStr = root.formatDate(d);
             root.verticalDateParts = root.sideDateParts(d);
-            const hour24 = d.getHours();
-            const displayHour = UiPreferences.useTwelveHourClock ? ((hour24 + 11) % 12) + 1 : hour24;
-            let hStr = displayHour.toString().padStart(2, '0');
-            let mStr = d.getMinutes().toString().padStart(2, '0');
-            root.periodLead = hour24 >= 12 ? "P" : "A";
-            // 转换为整数，驱动数字翻页动画
-            root.h0 = parseInt(hStr[0]);
-            root.h1 = parseInt(hStr[1]);
-            root.m0 = parseInt(mStr[0]);
-            root.m1 = parseInt(mStr[1]);
+            // 数字与日期共用同一个时间点，避免跨秒错位
+            rollingClock.tick(d);
         }
     }
 
@@ -154,65 +98,11 @@ Item {
             }
         }
 
-        // --- 右侧 Standby 滚动时钟 ---
-        Row {
+        // --- 右侧滚动时钟（锁屏复用同一组件，设置里改一次两处生效）---
+        RollingClock {
+            id: rollingClock
+
             anchors.verticalCenter: parent.verticalCenter
-            spacing: 5
-
-            // 小时部分
-            Row {
-                spacing: -1
-
-                RollingDigit {
-                    digitId: "h0"
-                    targetDigit: root.h0
-                    digitColor: root.horizontalDigitColor("h0")
-                }
-
-                RollingDigit {
-                    digitId: "h1"
-                    targetDigit: root.h1
-                    digitColor: root.horizontalDigitColor("h1")
-                }
-            }
-
-            ClockLetter {
-                letterId: "separator"
-                value: ":"
-            }
-
-            // 分钟部分
-            Row {
-                spacing: 1
-
-                RollingDigit {
-                    digitId: "m0"
-                    targetDigit: root.m0
-                    digitColor: root.horizontalDigitColor("m0")
-                }
-
-                RollingDigit {
-                    digitId: "m1"
-                    targetDigit: root.m1
-                    digitColor: root.horizontalDigitColor("m1")
-                }
-            }
-
-            Row {
-                visible: UiPreferences.useTwelveHourClock
-                anchors.verticalCenter: parent.verticalCenter
-                spacing: 0
-
-                ClockLetter {
-                    letterId: "ap"
-                    value: root.periodLead
-                }
-
-                ClockLetter {
-                    letterId: "periodM"
-                    value: "M"
-                }
-            }
         }
     }
 
@@ -334,96 +224,4 @@ Item {
         }
     }
 
-    // ============================================================
-    // 【核心变化2】定义可复用的滚动数字组件 (Qt 6 内联组件)
-    // ============================================================
-    component RollingDigit: Item {
-        id: digitContainer
-
-        property string digitId: "h0"
-        property int targetDigit: 0
-        property color digitColor: "white"
-        readonly property real digitXOffset: root.horizontalDigitValue(digitId, "x")
-        readonly property real digitYOffset: root.horizontalDigitValue(digitId, "y")
-        readonly property real digitRotation: root.horizontalDigitValue(digitId, "rotation")
-        readonly property real lineHeight: Math.max(18, root.horizontalFontSize + 2)
-
-        width: digitText.implicitWidth
-        height: lineHeight
-        clip: true
-        anchors.verticalCenter: parent.verticalCenter
-        transform: [
-            Translate {
-                x: digitContainer.digitXOffset
-                y: digitContainer.digitYOffset
-            },
-            Rotation {
-                angle: digitContainer.digitRotation
-                origin.x: digitContainer.width / 2
-                origin.y: digitContainer.height / 2
-            }
-        ]
-
-        Text {
-            id: digitText
-
-            // 一次性渲染 0-9，通过改变 y 坐标来实现滚动
-            text: "0\n1\n2\n3\n4\n5\n6\n7\n8\n9"
-            color: digitContainer.digitColor
-            font.family: root.clockFamily
-            font.variableAxes: root.horizontalClockAxes
-            font.pixelSize: root.horizontalFontSize
-            lineHeight: digitContainer.lineHeight
-            lineHeightMode: Text.FixedHeight
-            // 计算 y 轴偏移量
-            y: -digitContainer.targetDigit * digitContainer.lineHeight
-
-            // 弹性动画，带来带有惯性回弹的机械翻页感
-            Behavior on y {
-                SpringAnimation {
-                    spring: 3.5
-                    damping: 0.75
-                    mass: 1
-                }
-            }
-        }
-    }
-
-    component ClockLetter: Item {
-        id: letterContainer
-
-        required property string letterId
-        required property string value
-        readonly property real letterXOffset: root.horizontalDigitValue(letterId, "x")
-        readonly property real letterYOffset: root.horizontalDigitValue(letterId, "y")
-        readonly property real letterRotation: root.horizontalDigitValue(letterId, "rotation")
-        readonly property real lineHeight: Math.max(18, root.horizontalFontSize + 2)
-
-        width: letterText.implicitWidth
-        height: lineHeight
-        anchors.verticalCenter: parent.verticalCenter
-        transform: [
-            Translate {
-                x: letterContainer.letterXOffset
-                y: letterContainer.letterYOffset
-            },
-            Rotation {
-                angle: letterContainer.letterRotation
-                origin.x: letterContainer.width / 2
-                origin.y: letterContainer.height / 2
-            }
-        ]
-
-        Text {
-            id: letterText
-
-            text: letterContainer.value
-            color: root.horizontalDigitColor(letterContainer.letterId)
-            font.family: root.clockFamily
-            font.variableAxes: root.horizontalClockAxes
-            font.pixelSize: root.horizontalFontSize
-            lineHeight: letterContainer.lineHeight
-            lineHeightMode: Text.FixedHeight
-        }
-    }
 }

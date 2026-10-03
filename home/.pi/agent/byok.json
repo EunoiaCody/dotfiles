@@ -25,81 +25,166 @@
       "compatPreset": "openai",
       "models": [
         {
-          "id": "big-pickle",
-          "reasoning": false,
-          "input": [
-            "text"
-          ]
+          "id": "big-pickle"
         },
+        {
+          "id": "deepseek-v4-flash"
+        },
+        {
+          "id": "gemini-3.1-flash-lite-image"
+        },
+        {
+          "id": "glm-5.3"
+        },
+        {
+          "id": "gpt-free"
+        },
+        {
+          "id": "gpt-image-2"
+        },
+        {
+          "id": "kimi-k3"
+        },
+        {
+          "id": "mimo-v2.5"
+        },
+        {
+          "id": "mimo-v2.6-flash"
+        },
+        {
+          "id": "minimax-m3"
+        },
+        {
+          "id": "muse-glimmer-30b"
+        }
+      ]
+    },
+    "sensenova": {
+      "baseUrl": "https://token.sensenova.cn/v1",
+      "apiKey": "sk-Kchyzu21Fw7fmmTeeUNySsLKGKEqgNkF",
+      "api": "openai-completions",
+      "compatPreset": "openai",
+      "models": [
         {
           "id": "deepseek-v4-flash",
-          "reasoning": false,
-          "input": [
-            "text"
-          ]
+          "name": "deepseek-v4-flash",
+          "reasoning": true,
+          "contextWindow": 1048576,
+          "maxTokens": 65536,
+          "cost": {
+            "input": 0,
+            "output": 0,
+            "cacheRead": 0,
+            "cacheWrite": 0
+          }
         },
         {
-          "id": "gemini-3.1-flash-lite-image",
-          "reasoning": false,
-          "input": [
-            "text"
-          ]
+          "id": "glm-5.2",
+          "name": "glm-5.2",
+          "reasoning": true,
+          "contextWindow": 1048576,
+          "maxTokens": 131072,
+          "cost": {
+            "input": 0,
+            "output": 0,
+            "cacheRead": 0,
+            "cacheWrite": 0
+          }
         },
         {
-          "id": "glm-5.3",
-          "reasoning": false,
-          "input": [
-            "text"
-          ]
+          "id": "sensenova-u1-fast",
+          "name": "sensenova-u1-fast",
+          "reasoning": true,
+          "contextWindow": 262144,
+          "maxTokens": 65536,
+          "cost": {
+            "input": 0,
+            "output": 0,
+            "cacheRead": 0,
+            "cacheWrite": 0
+          }
         },
         {
-          "id": "gpt-free",
-          "reasoning": false,
+          "id": "sensenova-6.8-flash-lite",
+          "name": "sensenova-6.8-flash-lite",
+          "reasoning": true,
           "input": [
-            "text"
-          ]
+            "text",
+            "image"
+          ],
+          "contextWindow": 262144,
+          "maxTokens": 65536,
+          "cost": {
+            "input": 0,
+            "output": 0,
+            "cacheRead": 0,
+            "cacheWrite": 0
+          }
         },
         {
-          "id": "gpt-image-2",
-          "reasoning": false,
-          "input": [
-            "text"
-          ]
+          "id": "sensenova-u1.5-lite",
+          "name": "sensenova-u1.5-lite",
+          "reasoning": true,
+          "contextWindow": 262144,
+          "maxTokens": 65536,
+          "cost": {
+            "input": 0,
+            "output": 0,
+            "cacheRead": 0,
+            "cacheWrite": 0
+          }
+        },
+        {
+          "id": "deepseek-v4-pro",
+          "name": "deepseek-v4-pro",
+          "reasoning": true,
+          "contextWindow": 1048576,
+          "maxTokens": 65536,
+          "cost": {
+            "input": 0,
+            "output": 0,
+            "cacheRead": 0,
+            "cacheWrite": 0
+          }
         },
         {
           "id": "kimi-k3",
-          "reasoning": false,
-          "input": [
-            "text"
-          ]
+          "name": "kimi-k3",
+          "reasoning": true,
+          "contextWindow": 1048576,
+          "maxTokens": 65536,
+          "cost": {
+            "input": 0,
+            "output": 0,
+            "cacheRead": 0,
+            "cacheWrite": 0
+          }
         },
         {
-          "id": "mimo-v2.5",
-          "reasoning": false,
-          "input": [
-            "text"
-          ]
+          "id": "deepseek-flash",
+          "name": "deepseek-flash",
+          "reasoning": true,
+          "contextWindow": 1048576,
+          "maxTokens": 65536,
+          "cost": {
+            "input": 0,
+            "output": 0,
+            "cacheRead": 0,
+            "cacheWrite": 0
+          }
         },
         {
-          "id": "mimo-v2.6-flash",
-          "reasoning": false,
-          "input": [
-            "text"
-          ]
-        },
-        {
-          "id": "minimax-m3",
-          "reasoning": false,
-          "input": [
-            "text"
-          ]
-        },
-        {
-          "id": "muse-glimmer-30b",
-          "reasoning": false,
-          "input": [
-            "text"
-          ]
+          "id": "deepseek-v4.1-flash",
+          "name": "deepseek-v4.1-flash",
+          "reasoning": true,
+          "contextWindow": 1048576,
+          "maxTokens": 65536,
+          "cost": {
+            "input": 0,
+            "output": 0,
+            "cacheRead": 0,
+            "cacheWrite": 0
+          }
         }
       ]
     }

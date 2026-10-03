@@ -40,6 +40,7 @@ QuickToggleGroup 1.0 QuickToggleGroup.qml
 RadialSpectrum 1.0 RadialSpectrum.qml
 RippleButton 1.0 RippleButton.qml
 RippleEffect 1.0 RippleEffect.qml
+RollingClock 1.0 RollingClock.qml
 SearchSelectMenuField 1.0 SearchSelectMenuField.qml
 SettingsActionRow 1.0 SettingsActionRow.qml
 SettingsRow 1.0 SettingsRow.qml

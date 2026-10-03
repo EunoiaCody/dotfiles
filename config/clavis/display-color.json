@@ -1,0 +1,15 @@
+{
+  "gamma": 1,
+  "contrast": 1,
+  "dimming": 1,
+  "nightEnabled": false,
+  "nightTemperature": 4000,
+  "dayTemperature": 6500,
+  "useIP": false,
+  "mode": "fixed",
+  "start": 1200,
+  "end": 420,
+  "transition": 30,
+  "latitude": null,
+  "longitude": null
+}

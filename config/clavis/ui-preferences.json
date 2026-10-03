@@ -15,7 +15,7 @@
   "storageCapacityDiskDevice": "follow-io",
   "systemMonitorIntervalMs": 3000,
   "useTwelveHourClock": true,
-  "sidebarClockStyle": "digital",
+  "sidebarClockStyle": "cookie",
   "sidebarCookieSides": 14,
   "sidebarCookieConstantlyRotate": false,
   "sidebarCookieHourMarks": false,
@@ -29,59 +29,54 @@
     "version": 8,
     "tiles": [
       {
-        "id": "time",
-        "x": 0,
-        "y": 1176
-      },
-      {
         "id": "battery",
-        "x": 0,
-        "y": 168
+        "x": 136,
+        "y": 336
       },
       {
         "id": "cpu",
         "x": 0,
-        "y": 0
+        "y": 672
       },
       {
         "id": "gpu",
         "x": 160,
-        "y": 840
+        "y": 1176
       },
       {
         "id": "memoryUsed",
         "x": 320,
-        "y": 0
+        "y": 504
       },
       {
         "id": "wifi",
         "x": 0,
-        "y": 840
+        "y": 168
       },
       {
         "id": "network",
         "x": 0,
-        "y": 504
+        "y": 1344
       },
       {
         "id": "storage",
         "x": 0,
-        "y": 672
+        "y": 0
       },
       {
         "id": "storageCapacity",
-        "x": 0,
-        "y": 1008
+        "x": 296,
+        "y": 168
       },
       {
         "id": "calendar",
         "x": 320,
-        "y": 1008
+        "y": 336
       },
       {
         "id": "weather",
         "x": 160,
-        "y": 168
+        "y": 840
       }
     ]
   },
@@ -91,17 +86,17 @@
     "cards": {
       "time": {
         "enabled": true,
-        "container": "sidebar",
-        "screenName": "",
+        "container": "desktop",
+        "screenName": "DP-1",
         "sidebar": {
           "x": 0,
-          "y": 1176
+          "y": 0
         },
         "desktop": {
           "placementSpace": "screen",
           "screen": {
-            "xNorm": 0.5,
-            "yNorm": 0.5
+            "xNorm": 0.037209302325581395,
+            "yNorm": 0.07222222222222222
           },
           "wallpaper": {
             "xNorm": 0.5,
@@ -114,8 +109,8 @@
         "container": "sidebar",
         "screenName": "",
         "sidebar": {
-          "x": 0,
-          "y": 168
+          "x": 136,
+          "y": 336
         },
         "desktop": {
           "placementSpace": "screen",
@@ -135,7 +130,7 @@
         "screenName": "",
         "sidebar": {
           "x": 0,
-          "y": 0
+          "y": 672
         },
         "desktop": {
           "placementSpace": "screen",
@@ -155,7 +150,7 @@
         "screenName": "",
         "sidebar": {
           "x": 160,
-          "y": 840
+          "y": 1176
         },
         "desktop": {
           "placementSpace": "screen",
@@ -175,13 +170,13 @@
         "screenName": "",
         "sidebar": {
           "x": 320,
-          "y": 0
+          "y": 504
         },
         "desktop": {
           "placementSpace": "screen",
           "screen": {
-            "xNorm": 0.5,
-            "yNorm": 0.5
+            "xNorm": 0.046511627906976744,
+            "yNorm": 0.7944444444444444
           },
           "wallpaper": {
             "xNorm": 0.5,
@@ -195,7 +190,7 @@
         "screenName": "",
         "sidebar": {
           "x": 0,
-          "y": 840
+          "y": 168
         },
         "desktop": {
           "placementSpace": "screen",
@@ -215,13 +210,13 @@
         "screenName": "",
         "sidebar": {
           "x": 0,
-          "y": 504
+          "y": 1344
         },
         "desktop": {
           "placementSpace": "screen",
           "screen": {
-            "xNorm": 0.5,
-            "yNorm": 0.5
+            "xNorm": 0.7465116279069768,
+            "yNorm": 0.3277777777777778
           },
           "wallpaper": {
             "xNorm": 0.5,
@@ -235,7 +230,7 @@
         "screenName": "",
         "sidebar": {
           "x": 0,
-          "y": 672
+          "y": 0
         },
         "desktop": {
           "placementSpace": "screen",
@@ -254,8 +249,8 @@
         "container": "sidebar",
         "screenName": "",
         "sidebar": {
-          "x": 0,
-          "y": 1008
+          "x": 296,
+          "y": 168
         },
         "desktop": {
           "placementSpace": "screen",
@@ -275,7 +270,7 @@
         "screenName": "",
         "sidebar": {
           "x": 320,
-          "y": 1008
+          "y": 336
         },
         "desktop": {
           "placementSpace": "screen",
@@ -295,7 +290,7 @@
         "screenName": "",
         "sidebar": {
           "x": 160,
-          "y": 168
+          "y": 840
         },
         "desktop": {
           "placementSpace": "screen",

@@ -18,6 +18,14 @@
     {
       "kind": "app",
       "desktopId": "org.clavis.Settings"
+    },
+    {
+      "kind": "app",
+      "desktopId": "zen"
+    },
+    {
+      "kind": "app",
+      "desktopId": "kitty"
     }
   ]
 }

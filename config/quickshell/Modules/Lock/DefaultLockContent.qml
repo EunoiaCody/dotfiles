@@ -101,40 +101,21 @@ Item {
         opacity: root.clockOpacity
         scale: root.clockScale
 
-        Row {
+        // 与 bar 完全同款：滚动数字 + Google Sans Flex + 设置里那份数字微调
+        RollingClock {
             anchors.horizontalCenter: parent.horizontalCenter
-            spacing: 18
-
-            Text {
-                text: (UiPreferences.useTwelveHourClock ? String((root.now.getHours() + 11) % 12 + 1) : String(
-                                                              root.now.getHours()).padStart(2, "0")) + ":"
-                      + Qt.formatTime(root.now, "mm")
-                color: "white"
-                font.family: Fonts.numeric
-                font.pixelSize: Math.min(root.width * 0.19, root.height * 0.24, 240)
-                font.weight: Font.DemiBold
-                renderType: Text.NativeRendering
-            }
-
-            Text {
-                anchors.bottom: parent.bottom
-                anchors.bottomMargin: parent.height * 0.18
-                visible: UiPreferences.useTwelveHourClock
-                text: root.now.getHours() < 12 ? Qt.locale(Qt.uiLanguage).amText : Qt.locale(
-                                                     Qt.uiLanguage).pmText
-                color: "white"
-                font.family: Fonts.numeric
-                font.pixelSize: Math.min(root.width * 0.045, 48)
-                font.weight: Font.Medium
-            }
+            fontSizeOverride: Math.min(root.width * 0.19, root.height * 0.24, 240)
+            width: implicitWidth
+            height: implicitHeight
         }
 
         Text {
             width: parent.width
             text: root.now.toLocaleDateString(Qt.locale(Qt.uiLanguage), qsTr("yyyy MMMM d, dddd"))
-            color: "white"
+            color: Appearance.colors.colPrimary
             font.family: Fonts.ui
             font.pixelSize: Math.min(26, root.width * 0.035)
+            font.bold: true
             horizontalAlignment: Text.AlignHCenter
             wrapMode: Text.WordWrap
         }

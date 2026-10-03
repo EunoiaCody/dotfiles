@@ -28,8 +28,11 @@ ${PI_CODING_AGENT_DIR:-~/.pi/agent}/byok.json   # 权限 0600
 1. 在 pi 交互式 TUI 中运行 `/byok`，选择 **add**。
 2. 依次填写 provider id、Base URL、API Key，选择 API 类型与兼容预设。
 3. 扩展会请求 `GET <baseUrl>/models` 并让你选择要注册的模型
-   （拉取失败时回退为手动输入模型 ID）。
-4. 保存后立即生效，运行 `/model` 选择 `byok 的 provider id/<model>`。
+   （拉取失败时回退为手动输入模型 ID），并尽力从返回内容中识别
+   `contextWindow` / `maxTokens` / `reasoning` / 图片输入 / 价格。
+4. 识别后可选择立即调整模型属性（逐个或批量），也可稍后用
+   `/byok edit` 或 `/byok meta` 修改。
+5. 保存后立即生效，运行 `/model` 选择 `byok 的 provider id/<model>`。
 
 非交互用法（无需 TUI）：
 
@@ -41,6 +44,7 @@ ${PI_CODING_AGENT_DIR:-~/.pi/agent}/byok.json   # 权限 0600
 /byok url <id> <baseUrl>
 /byok key <id> <key>
 /byok models <id>
+/byok meta <id>
 /byok test <id>
 ```
 
@@ -95,6 +99,43 @@ ${PI_CODING_AGENT_DIR:-~/.pi/agent}/byok.json   # 权限 0600
 | `openai-compat` | `supportsStore:false`、`supportsDeveloperRole:false`、`supportsReasoningEffort:false`，适配 Ollama / vLLM 等 |
 | `deepseek` | `thinkingFormat:"deepseek"`、`supportsReasoningEffort:true` |
 
+## 模型属性（自动识别与手动编辑）
+
+添加或刷新模型时，扩展会尝试从 `/models` 返回里识别下列字段（不同服务商名不一，
+按优先级回退）：
+
+| 属性 | 识别的字段（节选） |
+|------|--------------------|
+| 上下文窗口 | `context_window`、`context_length`（OpenRouter / SenseNova）、`max_model_len`（vLLM）、`max_input_length`（SenseNova）、`top_provider.context_length`、`model_info.max_input_tokens`（LiteLLM） |
+| 最大输出 | `max_tokens`、`max_completion_tokens`、`max_output_tokens`、`max_output_length`（SenseNova）、`top_provider.max_completion_tokens`、`model_info.max_output_tokens` |
+| 推理 | `supported_parameters`、`supported_sampling_parameters`、`supported_features`（SenseNova，值含 `reasoning`）、`model_info.supports_reasoning`、`capabilities.reasoning` |
+| 图片输入 | `input_modalities`（SenseNova）、`architecture.input_modalities`、`modalities`、`supported_features` 含 `vision`、`model_info.supports_vision`、`capabilities.vision` |
+| 价格 | `pricing.prompt/completion/input/output`（OpenRouter / SenseNova，$/token 自动换算为 $/M）、`*_cost_per_token`、`*_cost_per_million*` |
+
+例如 SenseNova（`https://token.sensenova.cn/v1`）返回 `context_length` +
+`max_output_length` + `supported_features`，可直接得到 1M 上下文 / 65K 输出 /
+thinking 支持，无需手工填写。
+
+无法识别的字段会回退到 pi 默认值（`contextWindow` 128000、`maxTokens` 自动）。
+可用以下方式手动覆盖：
+
+- `/byok add` 选择模型后，确认「调整模型属性」；
+- `/byok edit <id>` → 选择「模型属性（contextWindow/maxTokens 等）」；
+- `/byok meta <id>` 直接进入模型属性编辑器。
+
+编辑器支持：
+
+- **逐个编辑**每个模型的 `name` / `contextWindow` / `maxTokens` /
+  `reasoning` / `input` / `cost`；
+- **批量设置**全部模型的 `contextWindow` 或 `maxTokens`。
+
+数值支持 `128000`、`128k`、`1m` 等写法；留空保持原值，`reset` / `default`
+清除该字段回到 pi 默认。`cost` 用 JSON 编辑，单位是 $/百万 token：
+
+```json
+{ "input": 3, "output": 15, "cacheRead": 0.3, "cacheWrite": 3.75 }
+```
+
 ## 模型目录地址规则
 
 - `baseUrl` 以 `/v1`（或 `/v2`…）结尾 → 请求 `<baseUrl>/models`
@@ -115,6 +156,8 @@ ${PI_CODING_AGENT_DIR:-~/.pi/agent}/byok.json   # 权限 0600
   payload，按扩展加载顺序，后运行者可能覆盖。
 - **内置 provider 重名**：provider id 若与内置同名（如 `openai`），注册会覆盖
   该内置 provider 的模型；向导会提示确认。可用 `/byok remove` 恢复。
+- **模型属性识别是尽力而为**：部分服务端 `/models` 只返回 `id`（如原生 OpenAI、
+  Ollama），此时上下文窗口等会回退到 pi 默认值，请用 `/byok meta <id>` 手动填写。
 - 单个 provider 注册失败只会记录警告，不影响其它 provider 与扩展加载。
 
 ## 迁移说明
