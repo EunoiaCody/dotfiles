@@ -67,16 +67,14 @@ Item {
         }
         Accessible.name: tooltip.text
 
-        WheelHandler {
-            onWheel: wheel => {
-                const step = 0.05;
-                let newVol = Volume.sinkVolume;
-                if (wheel.angleDelta.y > 0)
-                    newVol += step;
-                else
-                    newVol -= step;
-                Volume.setSinkVolume(newVol);
-            }
+        onWheelScrolled: wheel => {
+            const step = 0.05;
+            let newVol = Volume.sinkVolume;
+            if (wheel.angleDelta.y > 0)
+                newVol += step;
+            else
+                newVol -= step;
+            Volume.setSinkVolume(newVol);
         }
         onClicked: {
             if (root.screen && root.screen.name)

@@ -16,6 +16,8 @@ Button {
     property var doubleClickAction
     property var altAction
     property var middleClickAction
+    // 滚轮转发：MouseArea 会截获滚轮事件，故在 Button 层暴露信号供子组件使用
+    signal wheelScrolled(var wheel)
     property color containerColor: "transparent"
     property color rippleColor: Appearance.colors.colOnSurface
     property bool stateLayerEnabled: true
@@ -113,6 +115,10 @@ Button {
             root.down = false;
             root.pointerPressActive = false;
             root.finishRipple();
+        }
+        onWheel: (wheel) => {
+            wheel.accepted = true;
+            root.wheelScrolled(wheel);
         }
     }
 
