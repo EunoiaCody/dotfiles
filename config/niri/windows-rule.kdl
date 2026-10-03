@@ -180,8 +180,10 @@ window-rule {
     match app-id="zoom"
     open-floating true
 }
-// Open dms windows as floating by default
+// Noctalia 设置窗口以浮动方式打开
 window-rule {
-    match app-id=r#"org.quickshell$"#
+    match app-id="dev.noctalia.Noctalia"
     open-floating true
+    default-column-width { fixed 1080; }
+    default-window-height { fixed 920; }
 }

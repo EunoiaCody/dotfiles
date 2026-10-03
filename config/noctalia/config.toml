@@ -1,0 +1,164 @@
+# Noctalia v5 configuration (quickshell -> Noctalia migration)
+#
+# Hand-written declarative config. Synced into the dotfiles repo by sync-config.sh.
+# NOTE: GUI-saved overrides live in ~/.local/state/noctalia/settings.toml and WIN over
+#       this file. If a value here seems ignored, inspect/remove that state file.
+# Validate with: noctalia config validate
+
+# ── Theme ───────────────────────────────────────────────────────────────
+[theme]
+mode    = "dark"
+source  = "builtin"
+builtin = "Catppuccin"
+
+# ── Shell ───────────────────────────────────────────────────────────────
+[shell]
+font_family            = "JetBrainsMono Nerd Font"
+corner_radius_scale    = 1.0
+polkit_agent           = false   # niri already spawns polkit-gnome (avoid double agent)
+settings_show_advanced = true
+
+[shell.animation]
+enabled = true
+speed   = 1.0
+
+[shell.panel]
+transparency_mode = "glass"      # solid | soft | glass
+borders           = true
+shadow            = true
+
+[shell.launcher]
+categories    = true
+show_icons    = true
+sort_by_usage = true
+
+# ── Wallpaper & backdrop ────────────────────────────────────────────────
+[wallpaper]
+enabled             = true
+directory           = "/home/eunoia/Wallpapers"
+fill_mode           = "crop"     # quickshell "Fill" (PreserveAspectCrop)
+transition          = ["fade", "wipe", "disc", "stripes", "zoom", "honeycomb"]
+transition_duration = 1000
+
+[wallpaper.default]
+path = "/home/eunoia/Wallpapers/wallhaven-gw53o7_3440x1440.png"
+
+# niri is configured for "stationary wallpaper" (layer-rule ^noctalia-wallpaper),
+# so the backdrop layer stays disabled.
+[backdrop]
+enabled = false
+
+# ── Notifications / OSD ─────────────────────────────────────────────────
+[notification]
+enable_daemon = true
+
+[osd]
+position      = "top_right"
+hide_delay_ms = 1400
+
+# ── Lock screen ─────────────────────────────────────────────────────────
+[lockscreen]
+enabled = true
+
+# ── Weather & location ──────────────────────────────────────────────────
+[weather]
+enabled = true
+effects = true
+
+[location]
+auto_locate = true               # previously IP-based auto location
+
+# ── System monitor ──────────────────────────────────────────────────────
+[system.monitor]
+enabled = true
+
+# ── Bar ─────────────────────────────────────────────────────────────────
+[bar.main]
+position           = "top"
+thickness          = 44          # matches old Sizes.barHeight
+background_opacity = 0.97
+compositor_blur    = true
+radius             = 12
+margin_ends        = 180
+margin_edge        = 10
+padding            = 14
+widget_spacing     = 6
+shadow             = true
+auto_hide          = false
+reserve_space      = true
+
+start  = ["launcher", "wallpaper", "wallpaper_switch", "workspaces"]
+center = ["clock", "media_island", "lyrics"]
+end    = ["tray", "cpu", "ram", "weather", "volume", "network", "bluetooth", "brightness", "battery", "notifications", "clipboard", "control-center", "session"]
+
+# ── Widgets ─────────────────────────────────────────────────────────────
+[widget.clock]
+format = "{:%H:%M}"
+
+# Plugin widgets (ids must match [plugins].enabled below)
+[widget.media_island]
+type = "notoxus/media-island:now-playing"
+
+[widget.lyrics]
+type = "h465855hgg/lyrics:lyrics"
+
+[widget.wallpaper_switch]
+type = "kavya-nama/wallpaper-switcher:switch"
+
+[widget.cpu]
+type = "sysmon"
+stat = "cpu_usage"
+
+[widget.ram]
+type = "sysmon"
+stat = "ram_used"
+
+[widget.weather]
+show_condition   = true
+show_temperature = true
+
+[widget.workspaces]
+style        = "regular"          # regular | minimal | focus_hint
+show_labels  = true
+label_source = "id"
+
+# ── Control center shortcuts (max 6) ────────────────────────────────────
+[[control_center.shortcuts]]
+type = "wifi"
+
+[[control_center.shortcuts]]
+type = "bluetooth"
+
+[[control_center.shortcuts]]
+type = "caffeine"
+
+[[control_center.shortcuts]]
+type = "audio"
+
+[[control_center.shortcuts]]
+type = "dark_mode"
+
+[[control_center.shortcuts]]
+type = "notification"
+
+# ── Idle (disabled by default; tune to taste) ───────────────────────────
+[idle.behavior.lock]
+timeout = 600
+action  = "lock"
+enabled = false
+
+[idle.behavior.screen-off]
+timeout = 660
+action  = "screen_off"
+enabled = false
+
+# ── Plugins ─────────────────────────────────────────────────────────────
+# Declarative enable list; plugin code is fetched into ~/.local/share/noctalia
+# (not versioned). Re-materialized on a fresh machine via these ids + auto_update.
+[plugins]
+enabled = [
+  "notoxus/media-island",
+  "h465855hgg/lyrics",
+  "kavya-nama/wallpaper-switcher",
+]
+auto_update = "all"

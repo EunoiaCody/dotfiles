@@ -17,6 +17,91 @@
           "id": "auto:smart"
         }
       ]
+    },
+    "baipiao": {
+      "baseUrl": "https://api.baipiao.eu.org/v1",
+      "apiKey": "aaa",
+      "api": "openai-completions",
+      "compatPreset": "openai",
+      "models": [
+        {
+          "id": "big-pickle",
+          "reasoning": false,
+          "input": [
+            "text"
+          ]
+        },
+        {
+          "id": "deepseek-v4-flash",
+          "reasoning": false,
+          "input": [
+            "text"
+          ]
+        },
+        {
+          "id": "gemini-3.1-flash-lite-image",
+          "reasoning": false,
+          "input": [
+            "text"
+          ]
+        },
+        {
+          "id": "glm-5.3",
+          "reasoning": false,
+          "input": [
+            "text"
+          ]
+        },
+        {
+          "id": "gpt-free",
+          "reasoning": false,
+          "input": [
+            "text"
+          ]
+        },
+        {
+          "id": "gpt-image-2",
+          "reasoning": false,
+          "input": [
+            "text"
+          ]
+        },
+        {
+          "id": "kimi-k3",
+          "reasoning": false,
+          "input": [
+            "text"
+          ]
+        },
+        {
+          "id": "mimo-v2.5",
+          "reasoning": false,
+          "input": [
+            "text"
+          ]
+        },
+        {
+          "id": "mimo-v2.6-flash",
+          "reasoning": false,
+          "input": [
+            "text"
+          ]
+        },
+        {
+          "id": "minimax-m3",
+          "reasoning": false,
+          "input": [
+            "text"
+          ]
+        },
+        {
+          "id": "muse-glimmer-30b",
+          "reasoning": false,
+          "input": [
+            "text"
+          ]
+        }
+      ]
     }
   }
 }

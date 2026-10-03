@@ -8,10 +8,7 @@ spawn-at-startup "/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1"
 spawn-at-startup "wl-paste" "--type" "text" "--watch" "cliphist" "store"
 spawn-at-startup "wl-paste" "--type" "image" "--watch" "cliphist" "store"
 
-// 自动启动 emby 本地播放脚本
-spawn-at-startup "sh" "-c" "/home/eunoia/Apps/embyToLocalPlayer/etlp_run.command"
-
-spawn-at-startup "systemctl" "start" "quickshell-init.service" "--user"
+spawn-at-startup "noctalia"
 
 // 自动启动的应用（Telegram 与 cc-switch 以后台无窗口方式启动，仅在托盘可见，需要时从托盘点开）
 spawn-at-startup "Telegram" "-startintray"
@@ -188,8 +185,23 @@ layout {
     }
 }
 layer-rule {
-    match namespace="^quickshell$"
+    match namespace="^noctalia-wallpaper"
     place-within-backdrop true
+}
+// Noctalia 层表面：关闭 xray，使模糊采样窗口/内容而非壁纸
+layer-rule {
+    match namespace="^noctalia-(bar-[^\"]+|notification|dock|panel|attached-panel|osd)$"
+    background-effect {
+        xray false
+    }
+}
+// Noctalia 窗口切换器：启用模糊
+layer-rule {
+    match namespace="noctalia-window-switcher"
+    background-effect {
+        blur true
+        xray false
+    }
 }
 layer-rule {
     match namespace="^overlay$"
