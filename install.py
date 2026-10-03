@@ -44,6 +44,7 @@ COMPONENT_SPECS: dict[str, dict] = {
 	"bat":        {"category": "config", "desc": "bat pager"},
 	"niri":       {"category": "config", "desc": "Niri compositor"},
 	"quickshell": {"category": "config", "desc": "Quickshell (Arch preferred)"},
+	"clavis":     {"category": "config", "desc": "Clavis shell settings (used by quickshell)"},
 	"vscode":     {"category": "config", "desc": "VSCode custom CSS/JS"},
 
 	# Home-directory dotfiles (~/.*)
@@ -68,6 +69,7 @@ PACKAGE_MAP = {
 		"bat": ["bat"],
 		"niri": ["niri"],
 		"quickshell": [],
+		"clavis": [],
 	},
 	"dnf": {
 		"kitty": ["kitty", "jetbrains-mono-fonts", "google-noto-sans-cjk-fonts", "google-noto-serif-cjk-fonts"],
@@ -82,6 +84,7 @@ PACKAGE_MAP = {
 		"bat": ["bat"],
 		"niri": ["niri"],
 		"quickshell": [],
+		"clavis": [],
 	},
 	"pacman": {
 		"kitty": ["kitty", "ttf-jetbrains-mono", "noto-fonts-cjk", "wqy-zenhei"],
@@ -96,6 +99,7 @@ PACKAGE_MAP = {
 		"bat": ["bat"],
 		"niri": ["niri"],
 		"quickshell": [],
+		"clavis": [],
 	},
 }
 

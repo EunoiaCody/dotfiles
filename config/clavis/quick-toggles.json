@@ -1,0 +1,36 @@
+{
+  "toggles": [
+    {
+      "type": "network",
+      "size": 2
+    },
+    {
+      "type": "bluetooth",
+      "size": 2
+    },
+    {
+      "type": "caffeine",
+      "size": 1
+    },
+    {
+      "type": "mic",
+      "size": 1
+    },
+    {
+      "type": "audio",
+      "size": 2
+    },
+    {
+      "type": "theme",
+      "size": 2
+    },
+    {
+      "type": "dnd",
+      "size": 1
+    },
+    {
+      "type": "night",
+      "size": 2
+    }
+  ]
+}

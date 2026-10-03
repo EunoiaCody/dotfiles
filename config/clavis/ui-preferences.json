@@ -1,0 +1,324 @@
+{
+  "dndEnabled": false,
+  "language": "zh_CN",
+  "weatherTemperatureUnit": "celsius",
+  "systemTemperatureUnit": "celsius",
+  "spotlightSearchEngine": "google",
+  "spotlightAppStyle": "list",
+  "spotlightAppOrder": "name",
+  "spotlightClipboardStyle": "default",
+  "weatherMapBaseProvider": "openfreemap",
+  "weatherMapOverlayProvider": "rainviewer",
+  "systemMonitorGpuId": "auto",
+  "systemMonitorDiskDevice": "",
+  "systemMonitorNetworkInterface": "",
+  "storageCapacityDiskDevice": "follow-io",
+  "systemMonitorIntervalMs": 2000,
+  "useTwelveHourClock": true,
+  "sidebarClockStyle": "digital",
+  "sidebarCookieSides": 14,
+  "sidebarCookieConstantlyRotate": false,
+  "sidebarCookieHourMarks": false,
+  "sidebarCookieTimeIndicators": true,
+  "sidebarCookieDialStyle": "full",
+  "sidebarCookieHourHandStyle": "fill",
+  "sidebarCookieMinuteHandStyle": "medium",
+  "sidebarCookieSecondHandStyle": "dot",
+  "sidebarCookieDateStyle": "bubble",
+  "drawerGridLayout": {
+    "version": 8,
+    "tiles": [
+      {
+        "id": "time",
+        "x": 0,
+        "y": 1176
+      },
+      {
+        "id": "battery",
+        "x": 0,
+        "y": 168
+      },
+      {
+        "id": "cpu",
+        "x": 0,
+        "y": 0
+      },
+      {
+        "id": "gpu",
+        "x": 160,
+        "y": 840
+      },
+      {
+        "id": "memoryUsed",
+        "x": 320,
+        "y": 0
+      },
+      {
+        "id": "wifi",
+        "x": 0,
+        "y": 840
+      },
+      {
+        "id": "network",
+        "x": 0,
+        "y": 504
+      },
+      {
+        "id": "storage",
+        "x": 0,
+        "y": 672
+      },
+      {
+        "id": "storageCapacity",
+        "x": 0,
+        "y": 1008
+      },
+      {
+        "id": "calendar",
+        "x": 320,
+        "y": 1008
+      },
+      {
+        "id": "weather",
+        "x": 160,
+        "y": 168
+      }
+    ]
+  },
+  "systemCards": {
+    "version": 4,
+    "globalDesktopLayoutMode": "free",
+    "cards": {
+      "time": {
+        "enabled": true,
+        "container": "sidebar",
+        "screenName": "",
+        "sidebar": {
+          "x": 0,
+          "y": 1176
+        },
+        "desktop": {
+          "placementSpace": "screen",
+          "screen": {
+            "xNorm": 0.5,
+            "yNorm": 0.5
+          },
+          "wallpaper": {
+            "xNorm": 0.5,
+            "yNorm": 0.5
+          }
+        }
+      },
+      "battery": {
+        "enabled": true,
+        "container": "sidebar",
+        "screenName": "",
+        "sidebar": {
+          "x": 0,
+          "y": 168
+        },
+        "desktop": {
+          "placementSpace": "screen",
+          "screen": {
+            "xNorm": 0.5,
+            "yNorm": 0.5
+          },
+          "wallpaper": {
+            "xNorm": 0.5,
+            "yNorm": 0.5
+          }
+        }
+      },
+      "cpu": {
+        "enabled": true,
+        "container": "sidebar",
+        "screenName": "",
+        "sidebar": {
+          "x": 0,
+          "y": 0
+        },
+        "desktop": {
+          "placementSpace": "screen",
+          "screen": {
+            "xNorm": 0.5,
+            "yNorm": 0.5
+          },
+          "wallpaper": {
+            "xNorm": 0.5,
+            "yNorm": 0.5
+          }
+        }
+      },
+      "gpu": {
+        "enabled": true,
+        "container": "sidebar",
+        "screenName": "",
+        "sidebar": {
+          "x": 160,
+          "y": 840
+        },
+        "desktop": {
+          "placementSpace": "screen",
+          "screen": {
+            "xNorm": 0.5,
+            "yNorm": 0.5
+          },
+          "wallpaper": {
+            "xNorm": 0.5,
+            "yNorm": 0.5
+          }
+        }
+      },
+      "memoryUsed": {
+        "enabled": true,
+        "container": "sidebar",
+        "screenName": "",
+        "sidebar": {
+          "x": 320,
+          "y": 0
+        },
+        "desktop": {
+          "placementSpace": "screen",
+          "screen": {
+            "xNorm": 0.5,
+            "yNorm": 0.5
+          },
+          "wallpaper": {
+            "xNorm": 0.5,
+            "yNorm": 0.5
+          }
+        }
+      },
+      "wifi": {
+        "enabled": true,
+        "container": "sidebar",
+        "screenName": "",
+        "sidebar": {
+          "x": 0,
+          "y": 840
+        },
+        "desktop": {
+          "placementSpace": "screen",
+          "screen": {
+            "xNorm": 0.5,
+            "yNorm": 0.5
+          },
+          "wallpaper": {
+            "xNorm": 0.5,
+            "yNorm": 0.5
+          }
+        }
+      },
+      "network": {
+        "enabled": true,
+        "container": "sidebar",
+        "screenName": "",
+        "sidebar": {
+          "x": 0,
+          "y": 504
+        },
+        "desktop": {
+          "placementSpace": "screen",
+          "screen": {
+            "xNorm": 0.5,
+            "yNorm": 0.5
+          },
+          "wallpaper": {
+            "xNorm": 0.5,
+            "yNorm": 0.5
+          }
+        }
+      },
+      "storage": {
+        "enabled": true,
+        "container": "sidebar",
+        "screenName": "",
+        "sidebar": {
+          "x": 0,
+          "y": 672
+        },
+        "desktop": {
+          "placementSpace": "screen",
+          "screen": {
+            "xNorm": 0.5,
+            "yNorm": 0.5
+          },
+          "wallpaper": {
+            "xNorm": 0.5,
+            "yNorm": 0.5
+          }
+        }
+      },
+      "storageCapacity": {
+        "enabled": true,
+        "container": "sidebar",
+        "screenName": "",
+        "sidebar": {
+          "x": 0,
+          "y": 1008
+        },
+        "desktop": {
+          "placementSpace": "screen",
+          "screen": {
+            "xNorm": 0.5,
+            "yNorm": 0.5
+          },
+          "wallpaper": {
+            "xNorm": 0.5,
+            "yNorm": 0.5
+          }
+        }
+      },
+      "calendar": {
+        "enabled": true,
+        "container": "sidebar",
+        "screenName": "",
+        "sidebar": {
+          "x": 320,
+          "y": 1008
+        },
+        "desktop": {
+          "placementSpace": "screen",
+          "screen": {
+            "xNorm": 0.5,
+            "yNorm": 0.5
+          },
+          "wallpaper": {
+            "xNorm": 0.5,
+            "yNorm": 0.5
+          }
+        }
+      },
+      "weather": {
+        "enabled": true,
+        "container": "sidebar",
+        "screenName": "",
+        "sidebar": {
+          "x": 160,
+          "y": 168
+        },
+        "desktop": {
+          "placementSpace": "screen",
+          "screen": {
+            "xNorm": 0.5,
+            "yNorm": 0.5
+          },
+          "wallpaper": {
+            "xNorm": 0.5,
+            "yNorm": 0.5
+          }
+        }
+      }
+    }
+  },
+  "cloudBackupFoldersInitialized": false,
+  "cloudBackupFoldersVersion": 0,
+  "cloudBackupFolders": [],
+  "cloudDefaultRemoteName": "openlist",
+  "cloudBackupRoot": "Backups",
+  "cloudUploadRoot": "Uploads",
+  "recordingVideoDirectory": "/home/eunoia/Videos/Recordings",
+  "recordingGifDirectory": "/home/eunoia/Pictures/GIFs",
+  "recordingMicrophoneDirectory": "/home/eunoia/Music/Recordings/Microphone",
+  "recordingSystemAudioDirectory": "/home/eunoia/Music/Recordings/System"
+}

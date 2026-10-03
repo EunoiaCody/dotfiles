@@ -265,6 +265,7 @@ AVANTE_OPENCODE_API_KEY        # Required for avante.nvim AI features (opencode.
 |-----|-----------|-------------------|
 | niri | `config/niri/` | `~/.config/niri/` |
 | quickshell | `config/quickshell/` | `~/.config/quickshell/` |
+| clavis | `config/clavis/` | `~/.config/clavis/` |
 | kitty | `config/kitty/` | `~/.config/kitty/` |
 | fish | `config/fish/` | `~/.config/fish/` |
 | yazi | `config/yazi/` | `~/.config/yazi/` |

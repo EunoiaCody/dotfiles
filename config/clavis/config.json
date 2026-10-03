@@ -1,0 +1,244 @@
+{
+  "wallpaper": {
+    "bannerSource": "",
+    "folder": "/home/eunoia/Wallpapers",
+    "path": "/home/eunoia/Wallpapers/wallhaven-gw53o7_3440x1440.png",
+    "pathLight": "",
+    "pathDark": "",
+    "perMode": false,
+    "perMonitor": false,
+    "monitorWallpapers": {},
+    "monitorFillModes": {},
+    "recentColors": [],
+    "fillMode": "Fill",
+    "desktopBackend": "quickshell",
+    "autoCycle": {
+      "enabled": false,
+      "mode": "interval",
+      "interval": 300,
+      "time": "06:00"
+    },
+    "transition": {
+      "type": "fade",
+      "included": [
+        "fade",
+        "wipe",
+        "disc",
+        "stripes",
+        "iris bloom",
+        "pixelate",
+        "portal"
+      ],
+      "durationMs": 1000,
+      "easingMode": "customBezier",
+      "bezierCurve": [
+        0.43,
+        1.19,
+        1,
+        0.4,
+        1,
+        1
+      ]
+    },
+    "awww": {
+      "transitionType": "fade",
+      "transitionFps": 60,
+      "transitionStep": 90,
+      "transitionAngle": 45,
+      "transitionPosition": "center",
+      "transitionWave": "20,20"
+    },
+    "overview": {
+      "enabled": true,
+      "useDesktopWallpaper": true,
+      "path": "",
+      "fillMode": "Fill",
+      "perMonitor": false,
+      "monitorWallpapers": {},
+      "monitorFillModes": {},
+      "transitionType": "fade",
+      "blurRadius": 0,
+      "dim": 0,
+      "saturation": 1,
+      "contrast": 1
+    },
+    "parallax": {
+      "verticalEnabled": false,
+      "followWorkspaces": true,
+      "followSidebars": false,
+      "followTiledColumns": false,
+      "preferredScale": 1.1,
+      "tiledColumnSpan": 6
+    }
+  },
+  "theme": {
+    "matugenScheme": "scheme-tonal-spot",
+    "matugenTemplates": {
+      "btop": true,
+      "cava": true,
+      "kitty": true,
+      "yazi": true
+    },
+    "mode": "dark",
+    "superKeyStyle": "text",
+    "lockScreenStyle": "default",
+    "cursorTheme": "",
+    "cursorSize": 24,
+    "cursorHideWhenTyping": false,
+    "cursorHideAfterInactiveMs": 0,
+    "iconTheme": "Catppuccin-Mocha-Lavender-Cursors",
+    "fonts": {
+      "ui": "Symbols Nerd Font",
+      "mono": "JetBrainsMono Nerd Font",
+      "numeric": "JetBrainsMono Nerd Font",
+      "expressive": "Symbols Nerd Font"
+    }
+  },
+  "effects": {
+    "shellBackgroundOpacity": 1,
+    "shellBlurEnabled": false,
+    "shellBlurXray": true
+  },
+  "keystone": {
+    "enabled": true,
+    "overlay": true,
+    "style": "pill",
+    "fullDisplay": false,
+    "position": "top",
+    "capsLockOsd": true,
+    "numLockOsd": true,
+    "hideDate": false,
+    "longShowNames": true,
+    "longShowMonitorValues": true,
+    "longShowValues": true,
+    "hoverAction": "peak",
+    "hoverOpenDelay": 150,
+    "hoverCloseDelay": 250,
+    "longLeading": [
+      "workspaces",
+      "media",
+      "systemMonitor"
+    ],
+    "longTrailing": [
+      "network",
+      "bluetooth",
+      "brightness",
+      "volume",
+      "microphone",
+      "battery"
+    ],
+    "leftClickAction": "media",
+    "middleClickAction": "lyrics",
+    "media": {
+      "progressStyle": "material",
+      "coverStyle": "rounded",
+      "colorStyle": "theme"
+    },
+    "keyhole": {
+      "card": "weather"
+    },
+    "horizontalClock": {
+      "fontSize": 22,
+      "axes": {
+        "wght": 900,
+        "wdth": 85,
+        "opsz": 18,
+        "GRAD": 0,
+        "ROND": 25,
+        "slnt": 0
+      },
+      "digits": {
+        "h0": {
+          "x": 0,
+          "y": -2,
+          "rotation": -3,
+          "colorRole": "inversePrimary",
+          "customColor": ""
+        },
+        "h1": {
+          "x": 0,
+          "y": 1,
+          "rotation": 3,
+          "colorRole": "primary",
+          "customColor": ""
+        },
+        "separator": {
+          "x": 0,
+          "y": 0,
+          "rotation": 0,
+          "colorRole": "primary",
+          "customColor": ""
+        },
+        "m0": {
+          "x": 0,
+          "y": -1,
+          "rotation": -2,
+          "colorRole": "inversePrimary",
+          "customColor": ""
+        },
+        "m1": {
+          "x": 0,
+          "y": 1,
+          "rotation": 2,
+          "colorRole": "primary",
+          "customColor": ""
+        },
+        "ap": {
+          "x": 1,
+          "y": -2,
+          "rotation": -2,
+          "colorRole": "inversePrimary",
+          "customColor": ""
+        },
+        "periodM": {
+          "x": 1,
+          "y": 1,
+          "rotation": 2,
+          "colorRole": "primary",
+          "customColor": ""
+        }
+      }
+    }
+  },
+  "bar": {
+    "enabled": true,
+    "overlay": false,
+    "position": "top",
+    "showValues": true,
+    "showNames": false,
+    "barLeadingComponents": [
+      "workspaces",
+      "information"
+    ],
+    "barTrailingComponents": [
+      "tray",
+      "systemMonitor",
+      "quickSettings"
+    ],
+    "quickSettingsComponents": [
+      "network",
+      "bluetooth",
+      "brightness",
+      "volume",
+      "microphone",
+      "battery",
+      "settings",
+      "power"
+    ]
+  },
+  "sidebar": {
+    "keepLoaded": true,
+    "dashboardSide": "left",
+    "quickSettingsSide": "right"
+  },
+  "hotCorners": {
+    "top-left": "overview",
+    "top-right": "disabled",
+    "bottom-left": "disabled",
+    "bottom-right": "disabled"
+  },
+  "desktopCards": {
+    "gridSnapEnabled": true,
+    "gridVisibleWhileDragging": true
+  }
+}

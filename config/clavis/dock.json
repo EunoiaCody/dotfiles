@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "options": {
+    "enabled": false,
+    "position": "bottom",
+    "iconSize": 48,
+    "magnification": true,
+    "magnificationScale": 1.5,
+    "autoHide": false,
+    "launchBounce": true,
+    "showIndicators": true,
+    "showRecent": true,
+    "showThumbnails": true,
+    "previewSize": 160,
+    "contextPinning": true
+  },
+  "pinned": [
+    {
+      "kind": "app",
+      "desktopId": "org.clavis.Settings"
+    }
+  ]
+}

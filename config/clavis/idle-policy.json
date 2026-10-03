@@ -1,0 +1,17 @@
+{
+  "inhibited": false,
+  "policyEnabled": true,
+  "dimEnabled": false,
+  "dimTimeout": 300,
+  "dimRespectInhibitors": true,
+  "dimFraction": 0.35,
+  "lockEnabled": true,
+  "lockTimeout": 600,
+  "lockRespectInhibitors": true,
+  "displayOffEnabled": true,
+  "displayOffTimeout": 900,
+  "displayOffRespectInhibitors": true,
+  "suspendEnabled": false,
+  "suspendTimeout": 1800,
+  "suspendRespectInhibitors": true
+}
