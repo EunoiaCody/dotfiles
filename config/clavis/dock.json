@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
   "options": {
-    "enabled": false,
+    "enabled": true,
     "position": "bottom",
     "iconSize": 48,
     "magnification": true,
     "magnificationScale": 1.5,
-    "autoHide": false,
+    "autoHide": true,
     "launchBounce": true,
     "showIndicators": true,
     "showRecent": true,

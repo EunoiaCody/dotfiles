@@ -251,7 +251,7 @@ def initial(feature, request):
         section = kdl.Node('binds')
         for key, *command in DEFAULT_BINDINGS:
             section.nodes.append(kdl.Node(key, props={'repeat': False}, nodes=[
-                kdl.Node('spawn', args=['qs', '-c', 'clavis', 'ipc', 'call', *command])]))
+                kdl.Node('spawn', args=['qs', 'ipc', 'call', *command])]))
         return header + render(section)
     if feature == 'layer-rules':
         return header + 'layer-rule {\n    match namespace="^clavis-overview-wallpaper$";\n    place-within-backdrop true;\n}\nlayout {\n    background-color "transparent";\n}\n'
@@ -306,11 +306,11 @@ def action_identity(action):
     if action.name == 'spawn' and action.args[:3] == ['key', 'ipc', 'call']:
         entries = json.loads((Path(__file__).parent / 'niri-actions.json').read_text())
         if any(e.get('target') == action.args[3] and e.get('method') == action.args[4] for e in entries) if len(action.args) >= 5 else False:
-            action.args = ['qs', '-c', 'clavis', 'ipc', 'call'] + action.args[3:]
-    if (action.name == 'spawn' and len(action.args) == 8
-            and action.args[:6] == ['qs', '-c', 'clavis', 'ipc', 'call', 'sidebar']
-            and action.args[6] in ('open', 'close', 'toggle')):
-        action.args[7] = {'left': 'dashboard', 'right': 'quicksettings'}.get(action.args[7], action.args[7])
+            action.args = ['qs', 'ipc', 'call'] + action.args[3:]
+    if (action.name == 'spawn' and len(action.args) == 6
+            and action.args[:4] == ['qs', 'ipc', 'call', 'sidebar']
+            and action.args[4] in ('open', 'close', 'toggle')):
+        action.args[5] = {'left': 'dashboard', 'right': 'quicksettings'}.get(action.args[5], action.args[5])
     return canonical(action)
 
 

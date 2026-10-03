@@ -1,39 +1,39 @@
 // Managed by Clavis.
 binds {
     Mod+Space repeat=false {
-        spawn "qs" "-c" "clavis" "ipc" "call" "spotlight" "toggle";
+        spawn "qs" "ipc" "call" "spotlight" "toggle";
     };
     Mod+Slash repeat=false {
-        spawn "qs" "-c" "clavis" "ipc" "call" "shortcut-map" "toggle";
+        spawn "qs" "ipc" "call" "shortcut-map" "toggle";
     };
     Mod+BackSpace repeat=false {
-        spawn "qs" "-c" "clavis" "ipc" "call" "power-menu" "toggle";
+        spawn "qs" "ipc" "call" "power-menu" "toggle";
     };
     Mod+Shift+Space repeat=false {
-        spawn "qs" "-c" "clavis" "ipc" "call" "spotlight" "web";
+        spawn "qs" "ipc" "call" "spotlight" "web";
     };
     Mod+Alt+V repeat=false {
-        spawn "qs" "-c" "clavis" "ipc" "call" "spotlight" "openMode" "clipboard";
+        spawn "qs" "ipc" "call" "spotlight" "openMode" "clipboard";
     };
     Mod+Alt+W repeat=false {
-        spawn "qs" "-c" "clavis" "ipc" "call" "spotlight" "openMode" "wallpapers";
+        spawn "qs" "ipc" "call" "spotlight" "openMode" "wallpapers";
     };
     Mod+N repeat=false {
-        spawn "qs" "-c" "clavis" "ipc" "call" "sidebar" "toggle" "dashboard";
+        spawn "qs" "ipc" "call" "sidebar" "toggle" "dashboard";
     };
     Mod+A repeat=false {
-        spawn "qs" "-c" "clavis" "ipc" "call" "sidebar" "toggle" "quicksettings";
+        spawn "qs" "ipc" "call" "sidebar" "toggle" "quicksettings";
     };
     Mod+Ctrl+Comma repeat=false {
-        spawn "qs" "-c" "clavis" "ipc" "call" "control-center" "toggle" "general";
+        spawn "qs" "ipc" "call" "control-center" "toggle" "general";
     };
     Mod+Shift+W repeat=false {
-        spawn "qs" "-c" "clavis" "ipc" "call" "keystone" "hub";
+        spawn "qs" "ipc" "call" "keystone" "hub";
     };
     Mod+Shift+T repeat=false {
-        spawn "qs" "-c" "clavis" "ipc" "call" "keystone" "tools";
+        spawn "qs" "ipc" "call" "keystone" "tools";
     };
     Alt+Shift+L repeat=false {
-        spawn "qs" "-c" "clavis" "ipc" "call" "lock" "open";
+        spawn "qs" "ipc" "call" "lock" "open";
     };
 };
